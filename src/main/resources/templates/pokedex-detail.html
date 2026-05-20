@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Fiche Pokemon - Pokemon TCG Collection</title>
+    <style>
+        .zoom-hover-image {
+            cursor: zoom-in;
+        }
+
+        .card-zoom-preview {
+            position: fixed;
+            z-index: 1085;
+            display: none;
+            pointer-events: none;
+            width: 320px;
+            max-width: 28vw;
+            border-radius: 18px;
+            background: rgba(17, 24, 39, 0.96);
+            box-shadow: 0 18px 48px rgba(15, 23, 42, 0.35);
+            padding: 12px;
+            backdrop-filter: blur(6px);
+        }
+
+        .card-zoom-preview img {
+            width: 100%;
+            display: block;
+            border-radius: 12px;
+            object-fit: contain;
+            background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(226,232,240,0.92));
+        }
+
+        .card-zoom-preview-title {
+            color: #f8fafc;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .card-zoom-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1090;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(8px);
+        }
+
+        .card-zoom-modal.is-open {
+            display: flex;
+        }
+
+        .card-zoom-modal-dialog {
+            position: relative;
+            width: min(460px, 92vw);
+            max-height: 92vh;
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(30,41,59,0.98));
+            box-shadow: 0 28px 80px rgba(15, 23, 42, 0.45);
+            padding: 18px 18px 14px;
+        }
+
+        .card-zoom-modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            border: 0;
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.14);
+            color: #f8fafc;
+            font-size: 1.1rem;
+        }
+
+        .card-zoom-modal-image {
+            width: 100%;
+            max-height: 76vh;
+            object-fit: contain;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(226,232,240,0.96));
+        }
+
+        .card-zoom-modal-title {
+            color: #f8fafc;
+            text-align: center;
+            margin-top: 12px;
+            font-size: 0.98rem;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div th:if="${error}" class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i> <span th:text="${error}">Erreur</span>
+    </div>
+
+    <div th:if="${detail != null}">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+            <div>
+                <a class="btn btn-link ps-0" href="/pokedex">
+                    <i class="fas fa-arrow-left"></i> Retour au pokedex
+                </a>
+                <div class="text-muted small" th:text="|#${detail.species.speciesId}|">#1</div>
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                    <h1 class="mb-0" th:text="${detail.species.displayName}">Bulbasaur</h1>
+                    <span class="badge bg-dark"
+                          th:if="${detail.species.formLabel != null and !detail.species.formLabel.isBlank()}"
+                          th:text="${detail.species.formLabel}">
+                        Alola
+                    </span>
+                </div>
+                <div class="text-muted fs-5"
+                     th:if="${detail.species.secondaryName != null}"
+                     th:text="${detail.species.secondaryName}">
+                    Bulbasaur
+                </div>
+                <a class="btn btn-outline-primary btn-sm mt-3"
+                   th:href="${detail.species.pokepediaUrl}"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    <i class="fas fa-up-right-from-square"></i> Voir sur Pokepedia
+                </a>
+            </div>
+            <span class="badge bg-dark fs-6"
+                  th:if="${detail.species.generationLabel != null and !detail.species.generationLabel.isBlank()}"
+                  th:text="${detail.species.generationLabel}">
+                Generation I
+            </span>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h3 class="h5 mb-3">Carte affichee dans le Pokedex</h3>
+                        <div th:if="${detail.hasAssignedCard()}">
+                            <img class="img-fluid mb-3"
+                                 th:src="${detail.assignedCard.displayImage}"
+                                 th:alt="${detail.assignedCard.name}"
+                                 th:attr="data-zoom-src=${detail.assignedCard.displayImage},data-zoom-title=${detail.assignedCard.displayName}"
+                                 th:classappend="' zoom-hover-image'"
+                                 onerror="this.onerror=null;this.src='/images/placeholder.svg'">
+                            <h4 class="h6 mb-1" th:text="${detail.assignedCard.displayName}">Bulbasaur</h4>
+                            <div class="text-muted small mb-2"
+                                 th:if="${detail.assignedCard.secondaryName != null}"
+                                 th:text="${detail.assignedCard.secondaryName}">
+                                Bulbasaur
+                            </div>
+                            <p class="small text-muted mb-3" th:text="${detail.assignedCard.cardId}">base1-44</p>
+                            <button class="btn btn-outline-danger w-100"
+                                    th:attr="data-pokemon-id=${detail.species.id}"
+                                    onclick="clearAssignment(this.dataset.pokemonId)">
+                                <i class="fas fa-trash"></i> Retirer l'assignation
+                            </button>
+                        </div>
+                        <div th:if="${!detail.hasAssignedCard()}" class="text-center py-4">
+                            <div class="display-4 text-dark mb-2" th:if="${!detail.hasMissingCardMarked()}">
+                                <i class="fas fa-circle-dot"></i>
+                            </div>
+                            <div class="display-4 text-warning mb-2" th:if="${detail.hasMissingCardMarked()}">
+                                <i class="fas fa-ban"></i>
+                            </div>
+                            <p class="text-muted mb-3" th:if="${!detail.hasMissingCardMarked()}">
+                                Aucune carte n'est encore assignee a ce Pokemon.
+                            </p>
+                            <p class="text-warning-emphasis fw-semibold mb-3"
+                               th:if="${detail.hasMissingCardMarked()}">
+                                Aucune carte correspondante
+                            </p>
+                            <div class="form-check text-start border rounded p-3"
+                                 th:classappend="${detail.hasMissingCardMarked()} ? ' bg-warning-subtle border-warning' : ' bg-light'">
+                                <input id="missingCardCheckbox"
+                                       class="form-check-input"
+                                       type="checkbox"
+                                       th:checked="${detail.hasMissingCardMarked()}"
+                                       th:attr="data-pokemon-id=${detail.species.id}"
+                                       onchange="toggleMissingCard(this.dataset.pokemonId, this.checked)">
+                                <label class="form-check-label" for="missingCardCheckbox">
+                                    Aucune carte correspondante
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="h5 mb-0">Cartes deja dans ma collection</h3>
+                            <span class="badge bg-success" th:text="|${detail.ownedCards.size()} option(s)|">0</span>
+                        </div>
+                        <div class="alert alert-secondary mb-0" th:if="${detail.ownedCards.isEmpty()}">
+                            Vous n'avez pas encore de carte de ce Pokemon dans votre collection.
+                        </div>
+                        <div class="row g-3" th:if="${!detail.ownedCards.isEmpty()}">
+                            <div class="col-md-6" th:each="card : ${detail.ownedCards}">
+                                <div class="border rounded p-3 h-100">
+                                    <div class="d-flex gap-3">
+                                        <img th:src="${card.displayImage}"
+                                             th:alt="${card.name}"
+                                             th:attr="data-zoom-src=${card.displayImage},data-zoom-title=${card.displayName}"
+                                             th:classappend="' zoom-hover-image'"
+                                             style="width: 72px; height: 100px; object-fit: contain;"
+                                             onerror="this.onerror=null;this.src='/images/placeholder.svg'">
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" th:text="${card.displayName}">Bulbasaur</div>
+                                            <div class="text-muted small"
+                                                 th:if="${card.secondaryName != null}"
+                                                 th:text="${card.secondaryName}">
+                                                Bulbasaur
+                                            </div>
+                                            <div class="small text-muted" th:text="${card.cardId}">base1-44</div>
+                                            <div class="mt-2 d-flex gap-2 flex-wrap">
+                                                <span class="badge bg-success" th:text="|x${card.quantity}|">x1</span>
+                                                <button class="btn btn-sm btn-outline-danger"
+                                                        th:attr="data-card-id=${card.cardId}"
+                                                        onclick="removeFromCollection(this.dataset.cardId)">
+                                                    <i class="fas fa-minus"></i> Retirer
+                                                </button>
+                                                <button class="btn btn-sm btn-dark"
+                                                        th:attr="data-pokemon-id=${detail.species.id},data-card-id=${card.cardId}"
+                                                        onclick="assignCard(this.dataset.pokemonId, this.dataset.cardId)">
+                                                    <i class="fas fa-thumbtack"></i> Assigner
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="h5 mb-0">Cartes TCG disponibles pour ce Pokemon</h3>
+                            <span class="badge bg-primary" th:text="|${detail.availableCards.size()} carte(s)|">0</span>
+                        </div>
+                        <div class="row g-3 mb-3" th:if="${!detail.availableCards.isEmpty()}">
+                            <div class="col-lg-4">
+                                <label class="form-label" for="available-card-search">Recherche rapide</label>
+                                <input id="available-card-search"
+                                       type="search"
+                                       class="form-control"
+                                       placeholder="Nom FR/EN, set, id...">
+                            </div>
+                            <div class="col-lg-4">
+                                <label class="form-label" for="available-card-set-filter">Set</label>
+                                <select id="available-card-set-filter" class="form-select">
+                                    <option value="">Tous les sets</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-2">
+                                <label class="form-label" for="available-card-form-filter">Forme</label>
+                                <select id="available-card-form-filter" class="form-select">
+                                    <option value="">Toutes les formes</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-2 d-grid">
+                                <label class="form-label invisible" for="available-card-filter-reset">Reset</label>
+                                <button id="available-card-filter-reset" type="button" class="btn btn-outline-secondary">
+                                    Reinitialiser
+                                </button>
+                            </div>
+                            <div class="col-12">
+                                <div class="small text-muted">
+                                    <span id="available-card-visible-count" th:text="${detail.availableCards.size()}">0</span>
+                                    carte(s) affichee(s)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mb-0" th:if="${detail.availableCards.isEmpty()}">
+                            Aucune carte n'a ete remontee pour ce Pokemon.
+                        </div>
+                        <div class="row g-3" th:if="${!detail.availableCards.isEmpty()}">
+                            <div class="col-md-6 available-card-item"
+                                 th:each="card : ${detail.availableCards}"
+                                 th:attr="data-name=${card.displayName},
+                                          data-secondary=${card.secondaryName},
+                                          data-card-id=${card.id},
+                                          data-set=${#strings.contains(card.id, '-') ? #strings.substringBefore(card.id, '-') : card.id},
+                                          data-form=${card.variantLabel}">
+                                <div class="border rounded p-3 h-100">
+                                    <div class="d-flex gap-3">
+                                        <img th:src="${card.displayImage}"
+                                             th:alt="${card.displayName}"
+                                             th:attr="data-zoom-src=${card.displayImage},data-zoom-title=${card.displayName}"
+                                             th:classappend="' zoom-hover-image'"
+                                             style="width: 72px; height: 100px; object-fit: contain;"
+                                             onerror="this.onerror=null;this.src='/images/placeholder.svg'">
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" th:text="${card.displayName}">Bulbasaur</div>
+                                            <div class="text-muted small"
+                                                 th:if="${card.secondaryName != null}"
+                                                 th:text="${card.secondaryName}">
+                                                Bulbasaur
+                                            </div>
+                                            <div class="small text-muted" th:text="${card.id}">base1-44</div>
+                                            <div class="mt-2 d-flex gap-2 flex-wrap">
+                                                <span class="badge bg-success"
+                                                      th:if="${detail.ownedCardCounts.containsKey(card.id)}"
+                                                      th:text="|x${detail.ownedCardCounts.get(card.id)}|">
+                                                    x1
+                                                </span>
+                                                <button class="btn btn-sm btn-outline-success"
+                                                        th:attr="data-card-id=${card.id}"
+                                                        onclick="addToCollection(this.dataset.cardId)">
+                                                    <i class="fas fa-plus"></i> Ajouter
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger"
+                                                        th:if="${detail.ownedCardCounts.containsKey(card.id)}"
+                                                        th:attr="data-card-id=${card.id}"
+                                                        onclick="removeFromCollection(this.dataset.cardId)">
+                                                    <i class="fas fa-minus"></i> Retirer
+                                                </button>
+                                                <button class="btn btn-sm btn-dark"
+                                                        th:if="${detail.ownedCardCounts.containsKey(card.id)}"
+                                                        th:attr="data-pokemon-id=${detail.species.id},data-card-id=${card.id}"
+                                                        onclick="assignCard(this.dataset.pokemonId, this.dataset.cardId)">
+                                                    <i class="fas fa-thumbtack"></i> Assigner
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div layout:fragment="scripts">
+    <script>
+        function normalizeText(value) {
+            return (value || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
+        function setupAvailableCardFilters() {
+            const items = Array.from(document.querySelectorAll('.available-card-item'));
+            if (!items.length) {
+                return;
+            }
+
+            const searchInput = document.getElementById('available-card-search');
+            const setSelect = document.getElementById('available-card-set-filter');
+            const formSelect = document.getElementById('available-card-form-filter');
+            const resetButton = document.getElementById('available-card-filter-reset');
+            const visibleCount = document.getElementById('available-card-visible-count');
+
+            const uniqueSets = [...new Set(items
+                .map(item => item.dataset.set)
+                .filter(value => value && value.trim() !== ''))]
+                .sort((left, right) => left.localeCompare(right, 'fr', { sensitivity: 'base' }));
+            const uniqueForms = [...new Set(items
+                .map(item => item.dataset.form)
+                .filter(value => value && value.trim() !== ''))]
+                .sort((left, right) => left.localeCompare(right, 'fr', { sensitivity: 'base' }));
+
+            uniqueSets.forEach(setName => {
+                const option = document.createElement('option');
+                option.value = setName;
+                option.textContent = setName;
+                setSelect.appendChild(option);
+            });
+
+            uniqueForms.forEach(formName => {
+                const option = document.createElement('option');
+                option.value = formName;
+                option.textContent = formName;
+                formSelect.appendChild(option);
+            });
+
+            function applyFilters() {
+                const searchValue = normalizeText(searchInput.value);
+                const setValue = normalizeText(setSelect.value);
+                const formValue = normalizeText(formSelect.value);
+                let visible = 0;
+
+                items.forEach(item => {
+                    const haystack = normalizeText([
+                        item.dataset.name,
+                        item.dataset.secondary,
+                        item.dataset.cardId,
+                        item.dataset.set,
+                        item.dataset.form
+                    ].join(' '));
+
+                    const matchesSearch = !searchValue || haystack.includes(searchValue);
+                    const matchesSet = !setValue || normalizeText(item.dataset.set) === setValue;
+                    const matchesForm = !formValue || normalizeText(item.dataset.form) === formValue;
+                    const shouldShow = matchesSearch && matchesSet && matchesForm;
+
+                    item.style.display = shouldShow ? '' : 'none';
+                    if (shouldShow) {
+                        visible += 1;
+                    }
+                });
+
+                visibleCount.textContent = String(visible);
+            }
+
+            searchInput.addEventListener('input', applyFilters);
+            setSelect.addEventListener('change', applyFilters);
+            formSelect.addEventListener('change', applyFilters);
+            resetButton.addEventListener('click', () => {
+                searchInput.value = '';
+                setSelect.value = '';
+                formSelect.value = '';
+                applyFilters();
+            });
+
+            applyFilters();
+        }
+
+        function setupHoverZoom(selector) {
+            const images = document.querySelectorAll(selector);
+            if (!images.length || !window.matchMedia('(hover: hover)').matches) {
+                return;
+            }
+
+            const preview = document.createElement('div');
+            preview.className = 'card-zoom-preview';
+            preview.innerHTML = '<img alt=""><div class="card-zoom-preview-title"></div>';
+            document.body.appendChild(preview);
+
+            const previewImage = preview.querySelector('img');
+            const previewTitle = preview.querySelector('.card-zoom-preview-title');
+
+            let hoverTimer = null;
+            let activeImage = null;
+
+            function positionPreview(event) {
+                const offset = 24;
+                const previewWidth = preview.offsetWidth || 320;
+                const previewHeight = preview.offsetHeight || 460;
+                const maxLeft = window.innerWidth - previewWidth - 16;
+                const maxTop = window.innerHeight - previewHeight - 16;
+                const left = Math.min(event.clientX + offset, Math.max(16, maxLeft));
+                const top = Math.min(event.clientY + offset, Math.max(16, maxTop));
+
+                preview.style.left = left + 'px';
+                preview.style.top = top + 'px';
+            }
+
+            function hidePreview() {
+                if (hoverTimer) {
+                    clearTimeout(hoverTimer);
+                    hoverTimer = null;
+                }
+                preview.style.display = 'none';
+                activeImage = null;
+            }
+
+            images.forEach(image => {
+                image.addEventListener('mouseenter', event => {
+                    hidePreview();
+                    activeImage = image;
+                    hoverTimer = window.setTimeout(() => {
+                        if (activeImage !== image) {
+                            return;
+                        }
+                        previewImage.src = image.dataset.zoomSrc || image.src;
+                        previewImage.alt = image.alt || '';
+                        previewTitle.textContent = image.dataset.zoomTitle || image.alt || '';
+                        preview.style.display = 'block';
+                        positionPreview(event);
+                    }, 500);
+                });
+
+                image.addEventListener('mousemove', event => {
+                    if (preview.style.display === 'block') {
+                        positionPreview(event);
+                    }
+                });
+
+                image.addEventListener('mouseleave', hidePreview);
+            });
+        }
+
+        function setupClickZoom(selector) {
+            const images = document.querySelectorAll(selector);
+            if (!images.length) {
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'card-zoom-modal';
+            modal.innerHTML = '' +
+                '<div class="card-zoom-modal-dialog" role="dialog" aria-modal="true" aria-label="Zoom carte">' +
+                '<button type="button" class="card-zoom-modal-close" aria-label="Fermer">&times;</button>' +
+                '<img class="card-zoom-modal-image" alt="">' +
+                '<div class="card-zoom-modal-title"></div>' +
+                '</div>';
+            document.body.appendChild(modal);
+
+            const dialog = modal.querySelector('.card-zoom-modal-dialog');
+            const imageElement = modal.querySelector('.card-zoom-modal-image');
+            const titleElement = modal.querySelector('.card-zoom-modal-title');
+            const closeButton = modal.querySelector('.card-zoom-modal-close');
+
+            function closeModal() {
+                modal.classList.remove('is-open');
+                document.body.classList.remove('overflow-hidden');
+                imageElement.src = '';
+            }
+
+            function openModal(image) {
+                imageElement.src = image.dataset.zoomSrc || image.src;
+                imageElement.alt = image.alt || '';
+                titleElement.textContent = image.dataset.zoomTitle || image.alt || '';
+                modal.classList.add('is-open');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            closeButton.addEventListener('click', closeModal);
+            modal.addEventListener('click', event => {
+                if (!dialog.contains(event.target) || event.target === modal) {
+                    closeModal();
+                }
+            });
+
+            document.addEventListener('keydown', event => {
+                if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                    closeModal();
+                }
+            });
+
+            images.forEach(image => {
+                image.addEventListener('click', () => openModal(image));
+            });
+        }
+
+        function addToCollection(cardId) {
+            fetch('/api/collection/cards/' + cardId, withCsrf({
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            }))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                    return;
+                }
+                alert('Erreur: ' + data.error);
+            })
+            .catch(() => alert('Erreur lors de l ajout a la collection'));
+        }
+
+        function removeFromCollection(cardId) {
+            fetch('/api/collection/cards/' + cardId, withCsrf({
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            }))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                    return;
+                }
+                alert('Erreur lors de la suppression');
+            })
+            .catch(() => alert('Erreur lors de la suppression de la collection'));
+        }
+
+        function assignCard(pokemonId, cardId) {
+            fetch('/api/pokedex/pokemon/' + pokemonId + '/assign/' + cardId, withCsrf({
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            }))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                    return;
+                }
+                alert('Erreur: ' + data.error);
+            })
+            .catch(() => alert('Erreur lors de l assignation'));
+        }
+
+        function clearAssignment(pokemonId) {
+            fetch('/api/pokedex/pokemon/' + pokemonId + '/assignment', withCsrf({
+                method: 'DELETE',
+                credentials: 'same-origin'
+            }))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                    return;
+                }
+                alert('Erreur: ' + data.error);
+            })
+            .catch(() => alert('Erreur lors de la suppression de l assignation'));
+        }
+
+        function toggleMissingCard(pokemonId, checked) {
+            const method = checked ? 'POST' : 'DELETE';
+            const url = checked
+                ? '/api/pokedex/pokemon/' + pokemonId + '/mark-missing'
+                : '/api/pokedex/pokemon/' + pokemonId + '/assignment';
+
+            fetch(url, withCsrf({
+                method: method,
+                credentials: 'same-origin'
+            }))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                    return;
+                }
+                alert('Erreur: ' + data.error);
+            })
+            .catch(() => alert('Erreur lors de la mise a jour du statut de carte'));
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupAvailableCardFilters();
+            setupHoverZoom('.zoom-hover-image');
+            setupClickZoom('.zoom-hover-image');
+        });
+    </script>
+</div>
+</body>
+</html>

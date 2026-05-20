@@ -1,0 +1,50 @@
+package net.tcgdex.config;
+
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+@Configuration
+public class DatabaseSchemaInitializer {
+
+    @Bean
+    ApplicationRunner ensurePersistentSchema(JdbcTemplate jdbcTemplate) {
+        return args -> {
+            jdbcTemplate.execute("ALTER TABLE user_cards ADD COLUMN IF NOT EXISTS french_name VARCHAR(255)");
+            jdbcTemplate.execute("ALTER TABLE user_cards ADD COLUMN IF NOT EXISTS form_label VARCHAR(255)");
+            jdbcTemplate.execute("ALTER TABLE user_cards ADD COLUMN IF NOT EXISTS image VARCHAR(1000)");
+            jdbcTemplate.execute("ALTER TABLE user_cards ADD COLUMN IF NOT EXISTS set_id VARCHAR(255)");
+            jdbcTemplate.execute("ALTER TABLE user_cards ADD COLUMN IF NOT EXISTS set_name VARCHAR(255)");
+            jdbcTemplate.execute("ALTER TABLE user_cards ADD COLUMN IF NOT EXISTS added_at TIMESTAMP");
+            jdbcTemplate.execute("ALTER TABLE user_cards ADD COLUMN IF NOT EXISTS quantity INTEGER DEFAULT 1");
+            jdbcTemplate.execute("UPDATE user_cards SET quantity = 1 WHERE quantity IS NULL");
+            jdbcTemplate.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS password VARCHAR(255)");
+            try {
+                jdbcTemplate.execute("ALTER TABLE users DROP COLUMN IF EXISTS email");
+            } catch (RuntimeException ignored) {
+            }
+            jdbcTemplate.execute("""
+                    CREATE TABLE IF NOT EXISTS user_pokemon_card_assignments (
+                        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                        user_id BIGINT NOT NULL,
+                        pokemon_id INTEGER NOT NULL,
+                        assigned_card_id VARCHAR(255),
+                        card_missing BOOLEAN DEFAULT FALSE NOT NULL,
+                        created_at TIMESTAMP NOT NULL,
+                        updated_at TIMESTAMP NOT NULL
+                    )
+                    """);
+            jdbcTemplate.execute("ALTER TABLE user_pokemon_card_assignments ADD COLUMN IF NOT EXISTS card_missing BOOLEAN DEFAULT FALSE");
+            jdbcTemplate.execute("UPDATE user_pokemon_card_assignments SET card_missing = FALSE WHERE card_missing IS NULL");
+            try {
+                jdbcTemplate.execute("ALTER TABLE user_pokemon_card_assignments ALTER COLUMN assigned_card_id DROP NOT NULL");
+            } catch (RuntimeException ignored) {
+            }
+            jdbcTemplate.execute("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS uk_user_pokemon_assignment
+                    ON user_pokemon_card_assignments(user_id, pokemon_id)
+                    """);
+        };
+    }
+}

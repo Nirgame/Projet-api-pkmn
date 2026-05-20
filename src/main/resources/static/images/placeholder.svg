@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 336" role="img" aria-labelledby="title desc">
+  <title id="title">Image indisponible</title>
+  <desc id="desc">Placeholder pour une carte Pokemon</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f7f1e3"/>
+      <stop offset="100%" stop-color="#dfe6e9"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="336" rx="18" fill="url(#bg)"/>
+  <rect x="16" y="16" width="208" height="304" rx="14" fill="none" stroke="#b2bec3" stroke-width="3"/>
+  <circle cx="120" cy="120" r="46" fill="#fdcb6e"/>
+  <circle cx="120" cy="120" r="18" fill="#ffffff"/>
+  <path d="M74 120h92" stroke="#2d3436" stroke-width="8" stroke-linecap="round"/>
+  <text x="120" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#2d3436">
+    Carte indisponible
+  </text>
+</svg>

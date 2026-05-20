@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Parcourir les cartes - Pokemon TCG Collection</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1><i class="fas fa-search"></i> Parcourir les cartes</h1>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <form class="d-flex" th:action="@{/browse}" method="get">
+                    <input type="hidden" name="setId" th:value="${setId}" />
+                    <input class="form-control me-2" type="search" name="search"
+                           th:value="${search}" placeholder="Rechercher une carte en francais ou en anglais..." aria-label="Search">
+                    <button class="btn btn-outline-primary" type="submit">
+                        <i class="fas fa-search"></i> Rechercher
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${error}" class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> <span th:text="${error}">Erreur</span>
+        </div>
+
+        <div th:if="${cards != null}">
+            <div class="alert alert-info" th:if="${cards.isEmpty()}">
+                <i class="fas fa-info-circle"></i> Aucune carte trouvee pour ce filtre.
+            </div>
+            <div class="row" th:if="${!cards.isEmpty()}">
+                <div class="col-md-3 mb-4" th:each="card : ${cards}">
+                    <div class="card pokemon-card h-100 position-relative">
+                        <div class="owned-badge"
+                             th:id="|owned-badge-${card.id}|"
+                             th:style="${ownedCardCounts != null and ownedCardCounts.containsKey(card.id) ? '' : 'display: none;'}"
+                             th:text="${ownedCardCounts != null and ownedCardCounts.containsKey(card.id) ? ownedCardCounts.get(card.id) : 0}">
+                            0
+                        </div>
+                        <img th:src="${card.displayImage}"
+                             th:alt="${card.displayName}" class="card-img-top"
+                             onerror="this.onerror=null;this.src='/images/placeholder.svg'">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <div>
+                                    <h6 class="card-title mb-1" th:text="${card.displayName}">Card Name</h6>
+                                    <p class="card-text text-muted small mb-0"
+                                       th:if="${card.secondaryName != null}"
+                                       th:text="${card.secondaryName}">
+                                        English name
+                                    </p>
+                                </div>
+                                <span class="badge bg-light text-dark border"
+                                      th:if="${card.variantLabel != null}"
+                                      th:text="${card.variantLabel}">
+                                    Alola
+                                </span>
+                            </div>
+                            <p class="card-text text-muted small" th:text="${card.id}">card-id</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted" th:text="${card.localId}">Local ID</small>
+                                <button class="btn btn-sm btn-success add-to-collection-btn"
+                                        th:attr="data-card-id=${card.id}">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" th:if="${totalPages > 1}">
+            <div class="col-12">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/browse(page=${currentPage - 1}, search=${search}, setId=${setId})}">Precedent</a>
+                        </li>
+                        <th:block th:each="pageNumber : ${pageNumbers}">
+                            <li class="page-item disabled" th:if="${pageNumber == null}">
+                                <span class="page-link">...</span>
+                            </li>
+                            <li class="page-item" th:if="${pageNumber != null}"
+                                th:classappend="${pageNumber == currentPage} ? 'active'">
+                                <a class="page-link"
+                                   th:href="@{/browse(page=${pageNumber}, search=${search}, setId=${setId})}"
+                                   th:text="${pageNumber}">1</a>
+                            </li>
+                        </th:block>
+                        <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                            <a class="page-link" th:href="@{/browse(page=${currentPage + 1}, search=${search}, setId=${setId})}">Suivant</a>
+                        </li>
+                    </ul>
+                </nav>
+                <form class="row g-2 justify-content-center mt-3" method="get" th:action="@{/browse}">
+                    <input type="hidden" name="search" th:value="${search}">
+                    <input type="hidden" name="setId" th:value="${setId}">
+                    <div class="col-auto">
+                        <label class="col-form-label" for="browsePageJump">Aller a la page</label>
+                    </div>
+                    <div class="col-auto">
+                        <input id="browsePageJump"
+                               class="form-control"
+                               type="number"
+                               name="page"
+                               min="1"
+                               th:attr="max=${totalPages}"
+                               th:value="${currentPage}">
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-outline-secondary" type="submit">Aller</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <script>
+            function setButtonLoading(button, loading) {
+                button.innerHTML = loading
+                    ? '<i class="fas fa-spinner fa-spin"></i>'
+                    : '<i class="fas fa-plus"></i> Ajouter';
+                button.disabled = loading;
+            }
+
+            function updateOwnedBadge(cardId, quantity) {
+                const badge = document.getElementById('owned-badge-' + cardId);
+                if (!badge) {
+                    return;
+                }
+
+                badge.style.display = 'flex';
+                badge.textContent = String(quantity);
+            }
+
+            function addToCollection(cardId, button) {
+                setButtonLoading(button, true);
+
+                fetch('/api/collection/cards/' + cardId, withCsrf({
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                }))
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return null;
+                    }
+                    if (response.status === 401 || response.status === 403) {
+                        window.location.href = '/login';
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data) return;
+                    if (data.success) {
+                        const quantity = data.card && data.card.quantity ? data.card.quantity : 1;
+                        updateOwnedBadge(cardId, quantity);
+                        setButtonLoading(button, false);
+                    } else {
+                        setButtonLoading(button, false);
+                        alert('Erreur: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    setButtonLoading(button, false);
+                    alert('Erreur lors de l ajout a la collection');
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.add-to-collection-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const cardId = this.getAttribute('data-card-id');
+                        addToCollection(cardId, this);
+                    });
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>

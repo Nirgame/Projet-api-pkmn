@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Dashboard - Pokemon TCG Collection</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1><i class="fas fa-tachometer-alt"></i> Mon Dashboard</h1>
+                <p class="text-muted">Bienvenue, <strong th:text="${user.username}">Utilisateur</strong>!</p>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-layer-group fa-2x text-primary mb-2"></i>
+                        <h3 class="card-title" th:text="${collectionSize}">0</h3>
+                        <p class="card-text">Cartes dans ma collection</p>
+                        <a href="/collection" class="btn btn-primary">Voir ma collection</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-search fa-2x text-success mb-2"></i>
+                        <h3 class="card-title">Explorer</h3>
+                        <p class="card-text">Découvrir de nouvelles cartes</p>
+                        <a href="/browse" class="btn btn-success">Parcourir</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-cubes fa-2x text-info mb-2"></i>
+                        <h3 class="card-title">Ensembles</h3>
+                        <p class="card-text">Explorer tous les sets</p>
+                        <a href="/sets" class="btn btn-info">Voir les sets</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-bolt"></i> Actions rapides</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Ajouter des cartes</h6>
+                                <p class="text-muted">Parcourez les cartes disponibles et ajoutez-les à votre collection.</p>
+                                <a href="/browse" class="btn btn-outline-primary">
+                                    <i class="fas fa-plus"></i> Ajouter des cartes
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Gérer ma collection</h6>
+                                <p class="text-muted">Organisez vos cartes par Pokémon et consultez vos statistiques.</p>
+                                <a href="/collection" class="btn btn-outline-secondary">
+                                    <i class="fas fa-book"></i> Ma collection
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

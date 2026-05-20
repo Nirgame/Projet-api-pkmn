@@ -1,0 +1,11 @@
+target
+.git
+.idea
+.vscode
+.mvn-local-repo
+data
+startup.log
+*.log
+*.db
+*.trace.db
+

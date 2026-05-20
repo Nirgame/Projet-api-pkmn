@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Ma Collection - Pokemon TCG Collection</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1><i class="fas fa-book"></i> Ma Collection</h1>
+                <p class="text-muted" th:text="'Collection de ' + ${user.username}">Ma collection</p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4 th:text="${collection.size()}">0</h4>
+                        <p class="text-muted">Cartes totales</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4 th:text="${pokemonCards.size()}">0</h4>
+                        <p class="text-muted">Pokemons differents</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4>0</h4>
+                        <p class="text-muted">Sets completes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-filter"></i> Filtrer par Pokemon</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-2" th:each="pokemon : ${pokemonCards}">
+                                <a th:href="@{/pokemon(name=${pokemon.name}, form=${pokemon.formLabel})}"
+                                   class="btn btn-outline-primary btn-sm w-100 text-start">
+                                    <span class="d-block fw-semibold" th:text="${pokemon.displayName}">Pokemon</span>
+                                    <span class="d-block small text-muted"
+                                          th:if="${pokemon.secondaryName != null}"
+                                          th:text="${pokemon.secondaryName}">
+                                        English name
+                                    </span>
+                                    <span class="d-inline-block mt-1 badge bg-light text-dark border"
+                                          th:if="${pokemon.variantLabel != null}"
+                                          th:text="${pokemon.variantLabel}">
+                                        Forme
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <h3>Toutes mes cartes</h3>
+            </div>
+        </div>
+
+        <div class="row" th:if="${collection != null and !collection.empty}">
+            <div class="col-md-3 mb-4" th:each="card : ${collection}">
+                <div class="card h-100">
+                    <img th:src="${card.displayImage}"
+                         th:alt="${card.displayName}" class="card-img-top"
+                         onerror="this.onerror=null;this.src='/images/placeholder.svg'">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div>
+                                <h6 class="card-title mb-1" th:text="${card.displayName}">Card Name</h6>
+                                <p class="card-text text-muted small mb-0"
+                                   th:if="${card.secondaryName != null}"
+                                   th:text="${card.secondaryName}">
+                                    English name
+                                </p>
+                            </div>
+                            <span class="badge bg-light text-dark border"
+                                  th:if="${card.variantLabel != null}"
+                                  th:text="${card.variantLabel}">
+                                Alola
+                            </span>
+                        </div>
+                        <p class="card-text text-muted small" th:text="${card.cardId}">card-id</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <span th:if="${card.setName != null}" th:text="${card.setName}">Set</span>
+                            </small>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-danger"
+                                        th:attr="data-card-id=${card.cardId}"
+                                        onclick="removeFromCollection(this.dataset.cardId, this)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span class="btn btn-sm btn-light disabled" th:text="'x' + ${card.quantity}">x1</span>
+                                <button class="btn btn-sm btn-outline-success"
+                                        th:attr="data-card-id=${card.cardId}"
+                                        onclick="addToCollection(this.dataset.cardId, this)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" th:if="${collection == null or collection.empty}">
+            <div class="col-12 text-center">
+                <div class="card">
+                    <div class="card-body py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h4>Votre collection est vide</h4>
+                        <p class="text-muted">Commencez a ajouter des cartes a votre collection.</p>
+                        <a href="/browse" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Ajouter des cartes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <script>
+            function addToCollection(cardId, button) {
+                fetch('/api/collection/cards/' + cardId, withCsrf({
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                }))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Erreur lors de l ajout a la collection');
+                });
+            }
+
+            function removeFromCollection(cardId, button) {
+                fetch('/api/collection/cards/' + cardId, withCsrf({
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                }))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Erreur lors de la suppression');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Erreur lors de la suppression de la collection');
+                });
+            }
+        </script>
+    </div>
+</body>
+</html>

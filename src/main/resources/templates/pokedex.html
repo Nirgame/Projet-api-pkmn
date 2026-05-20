@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Pokedex - Pokemon TCG Collection</title>
+    <style>
+        .zoom-hover-image {
+            cursor: zoom-in;
+        }
+
+        .card-zoom-preview {
+            position: fixed;
+            z-index: 1085;
+            display: none;
+            pointer-events: none;
+            width: 320px;
+            max-width: 28vw;
+            border-radius: 18px;
+            background: rgba(17, 24, 39, 0.96);
+            box-shadow: 0 18px 48px rgba(15, 23, 42, 0.35);
+            padding: 12px;
+            backdrop-filter: blur(6px);
+        }
+
+        .card-zoom-preview img {
+            width: 100%;
+            display: block;
+            border-radius: 12px;
+            object-fit: contain;
+            background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(226,232,240,0.92));
+        }
+
+        .card-zoom-preview-title {
+            color: #f8fafc;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .card-zoom-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1090;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(8px);
+        }
+
+        .card-zoom-modal.is-open {
+            display: flex;
+        }
+
+        .card-zoom-modal-dialog {
+            position: relative;
+            width: min(460px, 92vw);
+            max-height: 92vh;
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(30,41,59,0.98));
+            box-shadow: 0 28px 80px rgba(15, 23, 42, 0.45);
+            padding: 18px 18px 14px;
+        }
+
+        .card-zoom-modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            border: 0;
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.14);
+            color: #f8fafc;
+            font-size: 1.1rem;
+        }
+
+        .card-zoom-modal-image {
+            width: 100%;
+            max-height: 76vh;
+            object-fit: contain;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(226,232,240,0.96));
+        }
+
+        .card-zoom-modal-title {
+            color: #f8fafc;
+            text-align: center;
+            margin-top: 12px;
+            font-size: 0.98rem;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="row mb-4 align-items-center">
+        <div class="col-lg-8">
+            <h1 class="mb-2"><i class="fas fa-list"></i> Pokedex</h1>
+            <p class="text-muted mb-0">
+                Retrouvez la liste complete des Pokemon et choisissez la carte de votre collection a afficher pour chacun.
+            </p>
+        </div>
+        <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+            <span class="badge bg-dark fs-6" th:text="|${totalResults} Pokemon|">0 Pokemon</span>
+        </div>
+    </div>
+
+    <div th:if="${error}" class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i> <span th:text="${error}">Erreur</span>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" th:action="@{/pokedex}" class="row g-3 align-items-end">
+                <div class="col-lg-4">
+                    <label class="form-label" for="pokedex-search">Recherche</label>
+                    <input id="pokedex-search"
+                           type="search"
+                           class="form-control"
+                           name="search"
+                           th:value="${search}"
+                           placeholder="Nom anglais, francais ou numero national">
+                </div>
+                <div class="col-lg-2">
+                    <label class="form-label" for="generation">Generation</label>
+                    <select id="generation" name="generation" class="form-select">
+                        <option value="">Toutes les generations</option>
+                        <option th:each="option : ${generationOptions}"
+                                th:value="${option.id}"
+                                th:text="${option.label}"
+                                th:selected="${generation != null and option.id == generation}">
+                            Generation I
+                        </option>
+                    </select>
+                </div>
+                <div class="col-lg-2">
+                    <label class="form-label" for="regionalMode">Formes alternatives</label>
+                    <select id="regionalMode" name="regionalMode" class="form-select">
+                        <option th:each="mode : ${regionalModes}"
+                                th:value="${mode.name()}"
+                                th:text="${mode.label()}"
+                                th:selected="${regionalMode != null and regionalMode == mode.name()}">
+                            Inclure
+                        </option>
+                    </select>
+                </div>
+                <div class="col-lg-2">
+                    <div class="form-check pt-2 mb-2">
+                        <input id="assignedOnly" class="form-check-input" type="checkbox" name="assignedOnly" value="true"
+                               th:checked="${assignedOnly}">
+                        <label class="form-check-label" for="assignedOnly">Assignes seulement</label>
+                    </div>
+                    <div class="form-check pt-1 mb-2">
+                        <input id="unassignedOnly" class="form-check-input" type="checkbox" name="unassignedOnly" value="true"
+                               th:checked="${unassignedOnly}">
+                        <label class="form-check-label" for="unassignedOnly">Non assignes seulement</label>
+                    </div>
+                </div>
+                <div class="col-lg-2 d-grid">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="alert alert-info" th:if="${pokemons != null and pokemons.isEmpty()}">
+        <i class="fas fa-info-circle"></i> Aucun Pokemon ne correspond a ce filtre.
+    </div>
+
+    <div class="row g-4" th:if="${pokemons != null and !pokemons.isEmpty()}">
+        <div class="col-md-6 col-xl-4" th:each="pokemon : ${pokemons}">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div>
+                            <div class="text-muted small" th:text="|#${pokemon.species.speciesId}|">#1</div>
+                            <h4 class="mb-1" th:text="${pokemon.species.displayName}">Bulbasaur</h4>
+                            <div class="text-muted"
+                                 th:if="${pokemon.species.secondaryName != null}"
+                                 th:text="${pokemon.species.secondaryName}">
+                                Bulbasaur
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap justify-content-end">
+                            <span class="badge bg-light text-dark border"
+                                  th:if="${pokemon.species.formLabel != null and !pokemon.species.formLabel.isBlank()}"
+                                  th:text="${pokemon.species.formLabel}">
+                                Alola
+                            </span>
+                            <span class="badge bg-light text-dark border"
+                                  th:if="${pokemon.species.generationLabel != null and !pokemon.species.generationLabel.isBlank()}"
+                                  th:text="${pokemon.species.generationLabel}">
+                                Generation I
+                            </span>
+                        </div>
+                    </div>
+
+                    <div th:if="${pokemon.hasAssignedCard()}" class="border rounded p-3 bg-light mb-3">
+                        <div class="d-flex gap-3 align-items-center">
+                            <img th:src="${pokemon.assignedCard.displayImage}"
+                                 th:alt="${pokemon.assignedCard.name}"
+                                 th:attr="data-zoom-src=${pokemon.assignedCard.displayImage},data-zoom-title=${pokemon.assignedCard.displayName}"
+                                 th:classappend="' zoom-hover-image'"
+                                 style="width: 84px; height: 118px; object-fit: contain;"
+                                 onerror="this.onerror=null;this.src='/images/placeholder.svg'">
+                            <div>
+                                <div class="fw-semibold">Carte assignee</div>
+                                <div th:text="${pokemon.assignedCard.displayName}">Bulbasaur</div>
+                                <div class="text-muted small"
+                                     th:if="${pokemon.assignedCard.secondaryName != null}"
+                                     th:text="${pokemon.assignedCard.secondaryName}">
+                                    Bulbasaur
+                                </div>
+                                <div class="small mt-1">
+                                    <span class="badge bg-success" th:text="|x${pokemon.assignedCard.quantity}|">x1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${!pokemon.hasAssignedCard() and pokemon.hasMissingCardMarked()}"
+                         class="border border-warning rounded p-4 bg-warning-subtle text-center mb-3">
+                        <div class="mb-2 text-warning-emphasis"><i class="fas fa-ban fa-2x"></i></div>
+                        <div class="fw-semibold text-warning-emphasis">Aucune carte correspondante</div>
+                        <div class="small text-muted mt-1">Ce Pokemon est marque comme sans carte disponible.</div>
+                    </div>
+
+                    <div th:if="${!pokemon.hasAssignedCard() and !pokemon.hasMissingCardMarked()}"
+                         class="border rounded p-4 bg-dark text-white text-center mb-3">
+                        <div class="mb-2"><i class="fas fa-circle-dot fa-2x"></i></div>
+                        <div class="fw-semibold">Aucune carte assignee</div>
+                    </div>
+
+                    <p class="text-muted small mb-3" th:text="|${pokemon.ownedCardCount} carte(s) de ce Pokemon dans votre collection|">
+                        0 carte(s)
+                    </p>
+
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-outline-dark w-100"
+                           th:href="@{/pokedex/{pokemonId}(pokemonId=${pokemon.species.id})}">
+                            <i class="fas fa-eye"></i> Ouvrir la fiche
+                        </a>
+                        <a class="btn btn-outline-primary w-100"
+                           th:href="${pokemon.species.pokepediaUrl}"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            <i class="fas fa-up-right-from-square"></i> Voir sur Pokepedia
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4" th:if="${totalPages > 1}">
+        <div class="col-12">
+            <nav aria-label="Navigation Pokedex">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/pokedex(page=${currentPage - 1}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, regionalMode=${regionalMode})}">
+                            Precedent
+                        </a>
+                    </li>
+                    <th:block th:each="pageNumber : ${pageNumbers}">
+                        <li class="page-item disabled" th:if="${pageNumber == null}">
+                            <span class="page-link">...</span>
+                        </li>
+                        <li class="page-item" th:if="${pageNumber != null}"
+                            th:classappend="${pageNumber == currentPage} ? 'active'">
+                            <a class="page-link"
+                               th:text="${pageNumber}"
+                               th:href="@{/pokedex(page=${pageNumber}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, regionalMode=${regionalMode})}">
+                                1
+                            </a>
+                        </li>
+                    </th:block>
+                    <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/pokedex(page=${currentPage + 1}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, regionalMode=${regionalMode})}">
+                            Suivant
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <form class="row g-2 justify-content-center mt-3" method="get" th:action="@{/pokedex}">
+                <input type="hidden" name="search" th:value="${search}">
+                <input type="hidden" name="generation" th:value="${generation}">
+                <input type="hidden" name="assignedOnly" th:value="${assignedOnly}">
+                <input type="hidden" name="unassignedOnly" th:value="${unassignedOnly}">
+                <input type="hidden" name="regionalMode" th:value="${regionalMode}">
+                <div class="col-auto">
+                    <label class="col-form-label" for="pokedexPageJump">Aller a la page</label>
+                </div>
+                <div class="col-auto">
+                    <input id="pokedexPageJump"
+                           class="form-control"
+                           type="number"
+                           name="page"
+                           min="1"
+                           th:attr="max=${totalPages}"
+                           th:value="${currentPage}">
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-secondary" type="submit">Aller</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div layout:fragment="scripts">
+    <script>
+        function setupHoverZoom(selector) {
+            const images = document.querySelectorAll(selector);
+            if (!images.length || !window.matchMedia('(hover: hover)').matches) {
+                return;
+            }
+
+            const preview = document.createElement('div');
+            preview.className = 'card-zoom-preview';
+            preview.innerHTML = '<img alt=""><div class="card-zoom-preview-title"></div>';
+            document.body.appendChild(preview);
+
+            const previewImage = preview.querySelector('img');
+            const previewTitle = preview.querySelector('.card-zoom-preview-title');
+
+            let hoverTimer = null;
+            let activeImage = null;
+
+            function positionPreview(event) {
+                const offset = 24;
+                const previewWidth = preview.offsetWidth || 320;
+                const previewHeight = preview.offsetHeight || 460;
+                const maxLeft = window.innerWidth - previewWidth - 16;
+                const maxTop = window.innerHeight - previewHeight - 16;
+                const left = Math.min(event.clientX + offset, Math.max(16, maxLeft));
+                const top = Math.min(event.clientY + offset, Math.max(16, maxTop));
+
+                preview.style.left = left + 'px';
+                preview.style.top = top + 'px';
+            }
+
+            function hidePreview() {
+                if (hoverTimer) {
+                    clearTimeout(hoverTimer);
+                    hoverTimer = null;
+                }
+                preview.style.display = 'none';
+                activeImage = null;
+            }
+
+            images.forEach(image => {
+                image.addEventListener('mouseenter', event => {
+                    hidePreview();
+                    activeImage = image;
+                    hoverTimer = window.setTimeout(() => {
+                        if (activeImage !== image) {
+                            return;
+                        }
+                        previewImage.src = image.dataset.zoomSrc || image.src;
+                        previewImage.alt = image.alt || '';
+                        previewTitle.textContent = image.dataset.zoomTitle || image.alt || '';
+                        preview.style.display = 'block';
+                        positionPreview(event);
+                    }, 500);
+                });
+
+                image.addEventListener('mousemove', event => {
+                    if (preview.style.display === 'block') {
+                        positionPreview(event);
+                    }
+                });
+
+                image.addEventListener('mouseleave', hidePreview);
+            });
+        }
+
+        function setupClickZoom(selector) {
+            const images = document.querySelectorAll(selector);
+            if (!images.length) {
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'card-zoom-modal';
+            modal.innerHTML = '' +
+                '<div class="card-zoom-modal-dialog" role="dialog" aria-modal="true" aria-label="Zoom carte">' +
+                '<button type="button" class="card-zoom-modal-close" aria-label="Fermer">&times;</button>' +
+                '<img class="card-zoom-modal-image" alt="">' +
+                '<div class="card-zoom-modal-title"></div>' +
+                '</div>';
+            document.body.appendChild(modal);
+
+            const dialog = modal.querySelector('.card-zoom-modal-dialog');
+            const imageElement = modal.querySelector('.card-zoom-modal-image');
+            const titleElement = modal.querySelector('.card-zoom-modal-title');
+            const closeButton = modal.querySelector('.card-zoom-modal-close');
+
+            function closeModal() {
+                modal.classList.remove('is-open');
+                document.body.classList.remove('overflow-hidden');
+                imageElement.src = '';
+            }
+
+            function openModal(image) {
+                imageElement.src = image.dataset.zoomSrc || image.src;
+                imageElement.alt = image.alt || '';
+                titleElement.textContent = image.dataset.zoomTitle || image.alt || '';
+                modal.classList.add('is-open');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            closeButton.addEventListener('click', closeModal);
+            modal.addEventListener('click', event => {
+                if (!dialog.contains(event.target) || event.target === modal) {
+                    closeModal();
+                }
+            });
+
+            document.addEventListener('keydown', event => {
+                if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                    closeModal();
+                }
+            });
+
+            images.forEach(image => {
+                image.addEventListener('click', () => openModal(image));
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupHoverZoom('.zoom-hover-image');
+            setupClickZoom('.zoom-hover-image');
+        });
+    </script>
+</div>
+</body>
+</html>
