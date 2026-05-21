@@ -113,6 +113,7 @@ public class PokedexService {
         List<CardBrief> availableCards = getCardsForPokemon(species).stream()
                 .sorted(Comparator.comparing(CardBrief::getEnglishName, String.CASE_INSENSITIVE_ORDER))
                 .toList();
+        tcgdexService.enrichRarities(availableCards);
 
         return new PokedexDetailView(species, assignedCard, ownedCards, availableCards, ownedCardCounts, missingCardMarked);
     }

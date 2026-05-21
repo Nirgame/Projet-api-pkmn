@@ -259,17 +259,23 @@
                             <span class="badge bg-primary" th:text="|${detail.availableCards.size()} carte(s)|">0</span>
                         </div>
                         <div class="row g-3 mb-3" th:if="${!detail.availableCards.isEmpty()}">
-                            <div class="col-lg-4">
+                            <div class="col-lg-3">
                                 <label class="form-label" for="available-card-search">Recherche rapide</label>
                                 <input id="available-card-search"
                                        type="search"
                                        class="form-control"
                                        placeholder="Nom FR/EN, set, id...">
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-3">
                                 <label class="form-label" for="available-card-set-filter">Set</label>
                                 <select id="available-card-set-filter" class="form-select">
                                     <option value="">Tous les sets</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-2">
+                                <label class="form-label" for="available-card-rarity-filter">Rareté</label>
+                                <select id="available-card-rarity-filter" class="form-select">
+                                    <option value="">Toutes les raretés</option>
                                 </select>
                             </div>
                             <div class="col-lg-2">
@@ -301,6 +307,7 @@
                                           data-secondary=${card.secondaryName},
                                           data-card-id=${card.id},
                                           data-set=${#strings.contains(card.id, '-') ? #strings.substringBefore(card.id, '-') : card.id},
+                                          data-rarity=${card.displayRarity},
                                           data-form=${card.variantLabel}">
                                 <div class="border rounded p-3 h-100">
                                     <div class="d-flex gap-3">
@@ -316,6 +323,12 @@
                                                  th:if="${card.secondaryName != null}"
                                                  th:text="${card.secondaryName}">
                                                 Bulbasaur
+                                            </div>
+                                            <div class="small mb-1" th:if="${card.hasRarity()}">
+                                                <span class="badge bg-secondary-subtle text-dark border"
+                                                      th:text="${card.displayRarity}">
+                                                    Peu Commune
+                                                </span>
                                             </div>
                                             <div class="small text-muted" th:text="${card.id}">base1-44</div>
                                             <div class="mt-2 d-flex gap-2 flex-wrap pokedex-detail-actions">
@@ -372,6 +385,7 @@
 
             const searchInput = document.getElementById('available-card-search');
             const setSelect = document.getElementById('available-card-set-filter');
+            const raritySelect = document.getElementById('available-card-rarity-filter');
             const formSelect = document.getElementById('available-card-form-filter');
             const resetButton = document.getElementById('available-card-filter-reset');
             const visibleCount = document.getElementById('available-card-visible-count');
@@ -382,6 +396,10 @@
                 .sort((left, right) => left.localeCompare(right, 'fr', { sensitivity: 'base' }));
             const uniqueForms = [...new Set(items
                 .map(item => item.dataset.form)
+                .filter(value => value && value.trim() !== ''))]
+                .sort((left, right) => left.localeCompare(right, 'fr', { sensitivity: 'base' }));
+            const uniqueRarities = [...new Set(items
+                .map(item => item.dataset.rarity)
                 .filter(value => value && value.trim() !== ''))]
                 .sort((left, right) => left.localeCompare(right, 'fr', { sensitivity: 'base' }));
 
@@ -399,9 +417,17 @@
                 formSelect.appendChild(option);
             });
 
+            uniqueRarities.forEach(rarityName => {
+                const option = document.createElement('option');
+                option.value = rarityName;
+                option.textContent = rarityName;
+                raritySelect.appendChild(option);
+            });
+
             function applyFilters() {
                 const searchValue = normalizeText(searchInput.value);
                 const setValue = normalizeText(setSelect.value);
+                const rarityValue = normalizeText(raritySelect.value);
                 const formValue = normalizeText(formSelect.value);
                 let visible = 0;
 
@@ -411,13 +437,15 @@
                         item.dataset.secondary,
                         item.dataset.cardId,
                         item.dataset.set,
+                        item.dataset.rarity,
                         item.dataset.form
                     ].join(' '));
 
                     const matchesSearch = !searchValue || haystack.includes(searchValue);
                     const matchesSet = !setValue || normalizeText(item.dataset.set) === setValue;
+                    const matchesRarity = !rarityValue || normalizeText(item.dataset.rarity) === rarityValue;
                     const matchesForm = !formValue || normalizeText(item.dataset.form) === formValue;
-                    const shouldShow = matchesSearch && matchesSet && matchesForm;
+                    const shouldShow = matchesSearch && matchesSet && matchesRarity && matchesForm;
 
                     item.style.display = shouldShow ? '' : 'none';
                     if (shouldShow) {
@@ -430,10 +458,12 @@
 
             searchInput.addEventListener('input', applyFilters);
             setSelect.addEventListener('change', applyFilters);
+            raritySelect.addEventListener('change', applyFilters);
             formSelect.addEventListener('change', applyFilters);
             resetButton.addEventListener('click', () => {
                 searchInput.value = '';
                 setSelect.value = '';
+                raritySelect.value = '';
                 formSelect.value = '';
                 applyFilters();
             });

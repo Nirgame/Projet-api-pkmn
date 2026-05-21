@@ -1,11 +1,14 @@
 package net.tcgdex.service;
 
 import net.tcgdex.TCGdexClient;
+import net.tcgdex.util.HttpClientUtil;
 import net.tcgdex.model.Card;
 import net.tcgdex.model.CardBrief;
 import net.tcgdex.model.Set;
 import net.tcgdex.model.Serie;
 import net.tcgdex.util.CardNameUtils;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -27,7 +30,10 @@ public class TCGdexService {
     private final Map<String, Card> cardCache = new ConcurrentHashMap<>();
     private final Map<String, List<Set>> setListCache = new ConcurrentHashMap<>();
     private final Map<String, List<CardBrief>> cardSearchCache = new ConcurrentHashMap<>();
+    private final Map<String, List<CardBrief>> cardRaritySearchCache = new ConcurrentHashMap<>();
+    private final Gson gson = new Gson();
     private volatile List<CardBrief> mergedCardsCache;
+    private volatile List<String> frenchRarityOptionsCache;
 
     public TCGdexService() {
         this.englishClient = new TCGdexClient("en");
@@ -117,6 +123,52 @@ public class TCGdexService {
                 .toList();
     }
 
+    public List<String> getAvailableRarities() throws IOException {
+        List<String> cachedRarities = frenchRarityOptionsCache;
+        if (cachedRarities != null) {
+            return cachedRarities;
+        }
+
+        synchronized (this) {
+            if (frenchRarityOptionsCache != null) {
+                return frenchRarityOptionsCache;
+            }
+
+            String response = HttpClientUtil.get("/fr/rarities");
+            List<String> rarities = gson.fromJson(response, new TypeToken<List<String>>() {
+            }.getType());
+            frenchRarityOptionsCache = rarities == null ? List.of() : rarities.stream()
+                    .filter(rarity -> rarity != null && !rarity.isBlank())
+                    .distinct()
+                    .sorted(String.CASE_INSENSITIVE_ORDER)
+                    .toList();
+            return frenchRarityOptionsCache;
+        }
+    }
+
+    public List<CardBrief> getCardsByRarity(String frenchRarity) throws IOException {
+        if (frenchRarity == null || frenchRarity.isBlank()) {
+            return getCards();
+        }
+
+        List<CardBrief> cachedResults = cardRaritySearchCache.get(frenchRarity);
+        if (cachedResults != null) {
+            return cachedResults;
+        }
+
+        List<CardBrief> frenchCards = frenchClient.getCardService().listCards("rarity=" + frenchRarity);
+        Map<String, CardBrief> allCardsById = getCards().stream()
+                .collect(Collectors.toMap(CardBrief::getId, card -> card, (left, right) -> left, LinkedHashMap::new));
+
+        List<CardBrief> mergedResults = frenchCards.stream()
+                .map(card -> allCardsById.get(card.getId()))
+                .filter(card -> card != null)
+                .toList();
+
+        cardRaritySearchCache.put(frenchRarity, mergedResults);
+        return mergedResults;
+    }
+
     public Card getCard(String cardId) throws IOException {
         Card cachedCard = cardCache.get(cardId);
         if (cachedCard != null) {
@@ -128,6 +180,8 @@ public class TCGdexService {
 
         englishCard.setEnglishName(englishCard.getName());
         englishCard.setFrenchName(frenchCard.getName());
+        englishCard.setEnglishRarity(englishCard.getRarity());
+        englishCard.setFrenchRarity(frenchCard.getRarity());
         englishCard.setFormLabel(CardNameUtils.inferFormLabel(englishCard));
 
         cardCache.put(cardId, copyCard(englishCard));
@@ -203,6 +257,18 @@ public class TCGdexService {
         }
     }
 
+    public void enrichRarities(List<CardBrief> cards) throws IOException {
+        for (CardBrief card : cards) {
+            if (card.getDisplayRarity() != null && !card.getDisplayRarity().isBlank()) {
+                continue;
+            }
+
+            Card detailedCard = getCard(card.getId());
+            card.setEnglishRarity(detailedCard.getEnglishRarity());
+            card.setFrenchRarity(detailedCard.getFrenchRarity());
+        }
+    }
+
     private List<CardBrief> mergeCardBriefs(List<CardBrief> englishCards, List<CardBrief> frenchCards) {
         Map<String, CardBrief> frenchById = frenchCards.stream()
                 .filter(card -> card.getId() != null)
@@ -214,6 +280,11 @@ public class TCGdexService {
                     CardBrief frenchCard = frenchById.get(englishCard.getId());
                     if (frenchCard != null) {
                         englishCard.setFrenchName(frenchCard.getName());
+                    }
+                    Card cachedCard = cardCache.get(englishCard.getId());
+                    if (cachedCard != null) {
+                        englishCard.setEnglishRarity(cachedCard.getEnglishRarity());
+                        englishCard.setFrenchRarity(cachedCard.getFrenchRarity());
                     }
                     englishCard.setFormLabel(CardNameUtils.extractNamedFormLabel(
                             englishCard.getEnglishName(),
@@ -327,6 +398,12 @@ public class TCGdexService {
                 if ((mergedCard.getLocalId() == null || mergedCard.getLocalId().isBlank()) && localizedCard.getLocalId() != null) {
                     mergedCard.setLocalId(localizedCard.getLocalId());
                 }
+
+                Card cachedCard = cardCache.get(mergedCard.getId());
+                if (cachedCard != null) {
+                    mergedCard.setEnglishRarity(cachedCard.getEnglishRarity());
+                    mergedCard.setFrenchRarity(cachedCard.getFrenchRarity());
+                }
             }
         }
 
@@ -357,6 +434,8 @@ public class TCGdexService {
         copy.setName(source.getName());
         copy.setEnglishName(source.getEnglishName());
         copy.setFrenchName(source.getFrenchName());
+        copy.setEnglishRarity(source.getEnglishRarity());
+        copy.setFrenchRarity(source.getFrenchRarity());
         copy.setFormLabel(source.getFormLabel());
         copy.setImage(source.getImage());
         return copy;

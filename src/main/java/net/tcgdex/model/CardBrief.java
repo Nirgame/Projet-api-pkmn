@@ -11,6 +11,8 @@ public class CardBrief {
     private String name;
     private String englishName;
     private String frenchName;
+    private String englishRarity;
+    private String frenchRarity;
     private String formLabel;
     private String image;
 
@@ -108,6 +110,33 @@ public class CardBrief {
         return CardNameUtils.extractVariantLabel(getEnglishName(), frenchName);
     }
 
+    public String getEnglishRarity() {
+        return englishRarity;
+    }
+
+    public void setEnglishRarity(String englishRarity) {
+        this.englishRarity = englishRarity;
+    }
+
+    public String getFrenchRarity() {
+        return frenchRarity;
+    }
+
+    public void setFrenchRarity(String frenchRarity) {
+        this.frenchRarity = frenchRarity;
+    }
+
+    public String getDisplayRarity() {
+        if (frenchRarity != null && !frenchRarity.isBlank()) {
+            return frenchRarity;
+        }
+        return englishRarity;
+    }
+
+    public boolean hasRarity() {
+        return getDisplayRarity() != null && !getDisplayRarity().isBlank();
+    }
+
     public String getImage() {
         return image;
     }
@@ -133,6 +162,8 @@ public class CardBrief {
                 ", localId='" + localId + '\'' +
                 ", englishName='" + getEnglishName() + '\'' +
                 ", frenchName='" + frenchName + '\'' +
+                ", englishRarity='" + englishRarity + '\'' +
+                ", frenchRarity='" + frenchRarity + '\'' +
                 ", formLabel='" + formLabel + '\'' +
                 ", image='" + image + '\'' +
                 '}';

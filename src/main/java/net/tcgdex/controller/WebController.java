@@ -103,6 +103,7 @@ public class WebController {
             @RequestParam(defaultValue = "50") int size,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String setId,
+            @RequestParam(required = false) String rarity,
             Authentication authentication,
             Model model) {
         Map<String, Integer> ownedCardCounts = Collections.emptyMap();
@@ -126,6 +127,15 @@ public class WebController {
             if (setId != null && !setId.trim().isEmpty()) {
                 String normalizedSetId = setId.trim();
                 cards = tcgdexService.getCardsBySet(normalizedSetId);
+                if (rarity != null && !rarity.trim().isEmpty()) {
+                    List<CardBrief> rarityCards = tcgdexService.getCardsByRarity(rarity.trim());
+                    java.util.Set<String> rarityCardIds = rarityCards.stream()
+                            .map(CardBrief::getId)
+                            .collect(java.util.stream.Collectors.toSet());
+                    cards = cards.stream()
+                            .filter(card -> rarityCardIds.contains(card.getId()))
+                            .toList();
+                }
                 if (cards.isEmpty()) {
                     try {
                         Set selectedSet = tcgdexService.getSet(normalizedSetId);
@@ -138,7 +148,11 @@ public class WebController {
                     }
                 }
             } else {
-                cards = tcgdexService.getCards();
+                if (rarity != null && !rarity.trim().isEmpty()) {
+                    cards = tcgdexService.getCardsByRarity(rarity.trim());
+                } else {
+                    cards = tcgdexService.getCards();
+                }
             }
 
             if (search != null && !search.trim().isEmpty()) {
@@ -170,6 +184,8 @@ public class WebController {
             model.addAttribute("pageNumbers", buildCompactPageNumbers(safePage, totalPages));
             model.addAttribute("search", search);
             model.addAttribute("setId", setId);
+            model.addAttribute("rarity", rarity);
+            model.addAttribute("rarityOptions", tcgdexService.getAvailableRarities());
             model.addAttribute("ownedCardCounts", ownedCardCounts);
 
         } catch (IOException e) {
