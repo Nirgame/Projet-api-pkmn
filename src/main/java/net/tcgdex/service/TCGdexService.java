@@ -176,12 +176,14 @@ public class TCGdexService {
         }
 
         Card englishCard = englishClient.getCardService().getCard(cardId);
-        Card frenchCard = frenchClient.getCardService().getCard(cardId);
+        Card frenchCard = tryGetCard("fr", cardId);
 
         englishCard.setEnglishName(englishCard.getName());
-        englishCard.setFrenchName(frenchCard.getName());
+        if (frenchCard != null) {
+            englishCard.setFrenchName(frenchCard.getName());
+            englishCard.setFrenchRarity(frenchCard.getRarity());
+        }
         englishCard.setEnglishRarity(englishCard.getRarity());
-        englishCard.setFrenchRarity(frenchCard.getRarity());
         englishCard.setFormLabel(CardNameUtils.inferFormLabel(englishCard));
 
         cardCache.put(cardId, copyCard(englishCard));
@@ -263,9 +265,13 @@ public class TCGdexService {
                 continue;
             }
 
-            Card detailedCard = getCard(card.getId());
-            card.setEnglishRarity(detailedCard.getEnglishRarity());
-            card.setFrenchRarity(detailedCard.getFrenchRarity());
+            try {
+                Card detailedCard = getCard(card.getId());
+                card.setEnglishRarity(detailedCard.getEnglishRarity());
+                card.setFrenchRarity(detailedCard.getFrenchRarity());
+            } catch (IOException ignored) {
+                // Best-effort enrichment: a missing localized detail must not block the whole page.
+            }
         }
     }
 
@@ -318,6 +324,22 @@ public class TCGdexService {
 
         try {
             return client.getSetService().getSet(setId);
+        } catch (IOException exception) {
+            if (exception.getMessage() != null && exception.getMessage().contains("404")) {
+                return null;
+            }
+            throw exception;
+        }
+    }
+
+    private Card tryGetCard(String language, String cardId) throws IOException {
+        TCGdexClient client = clientsByLanguage.get(language);
+        if (client == null) {
+            return null;
+        }
+
+        try {
+            return client.getCardService().getCard(cardId);
         } catch (IOException exception) {
             if (exception.getMessage() != null && exception.getMessage().contains("404")) {
                 return null;
