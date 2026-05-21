@@ -365,15 +365,15 @@ public class WebController {
     }
 
     private List<Integer> buildCompactPageNumbers(int currentPage, int totalPages) {
-        if (totalPages <= 15) {
+        if (totalPages <= 9) {
             return java.util.stream.IntStream.rangeClosed(1, totalPages).boxed().toList();
         }
 
         List<Integer> pageNumbers = new ArrayList<>();
         pageNumbers.add(1);
 
-        int start = Math.max(2, currentPage - 5);
-        int end = Math.min(totalPages - 1, currentPage + 5);
+        int start = Math.max(2, currentPage - 2);
+        int end = Math.min(totalPages - 1, currentPage + 2);
 
         if (start > 2) {
             pageNumbers.add(null);

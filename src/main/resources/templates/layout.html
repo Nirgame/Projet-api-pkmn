@@ -43,6 +43,53 @@
             font-weight: 700;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
+        .compact-pagination .pagination {
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+        .compact-pagination .page-link {
+            min-width: 2.35rem;
+            padding: 0.45rem 0.7rem;
+            text-align: center;
+        }
+        .page-jump-form {
+            align-items: center;
+        }
+        .page-jump-label {
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+        .page-jump-input {
+            width: 5.25rem;
+        }
+        @media (max-width: 576px) {
+            .compact-pagination .pagination {
+                justify-content: center;
+            }
+            .compact-pagination .page-link {
+                min-width: 2rem;
+                padding: 0.35rem 0.55rem;
+                font-size: 0.9rem;
+            }
+            .compact-pagination .page-item:first-child .page-link,
+            .compact-pagination .page-item:last-child .page-link {
+                padding-left: 0.6rem;
+                padding-right: 0.6rem;
+            }
+            .page-jump-form {
+                row-gap: 0.5rem;
+            }
+            .page-jump-label {
+                font-size: 0.9rem;
+            }
+            .page-jump-input {
+                width: 4.5rem;
+            }
+            .page-jump-button {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+        }
     </style>
 </head>
 <body>

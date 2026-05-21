@@ -75,7 +75,7 @@
             </div>
         </div>
 
-        <div class="row" th:if="${totalPages > 1}">
+        <div class="row compact-pagination" th:if="${totalPages > 1}">
             <div class="col-12">
                 <nav aria-label="Page navigation">
                     <ul class="pagination justify-content-center">
@@ -98,15 +98,15 @@
                         </li>
                     </ul>
                 </nav>
-                <form class="row g-2 justify-content-center mt-3" method="get" th:action="@{/browse}">
+                <form class="row g-2 justify-content-center mt-3 page-jump-form" method="get" th:action="@{/browse}">
                     <input type="hidden" name="search" th:value="${search}">
                     <input type="hidden" name="setId" th:value="${setId}">
                     <div class="col-auto">
-                        <label class="col-form-label" for="browsePageJump">Aller a la page</label>
+                        <label class="col-form-label page-jump-label" for="browsePageJump">Page</label>
                     </div>
                     <div class="col-auto">
                         <input id="browsePageJump"
-                               class="form-control"
+                               class="form-control page-jump-input"
                                type="number"
                                name="page"
                                min="1"
@@ -114,7 +114,7 @@
                                th:value="${currentPage}">
                     </div>
                     <div class="col-auto">
-                        <button class="btn btn-outline-secondary" type="submit">Aller</button>
+                        <button class="btn btn-outline-secondary page-jump-button" type="submit">OK</button>
                     </div>
                 </form>
             </div>

@@ -255,7 +255,7 @@
         </div>
     </div>
 
-    <div class="row mt-4" th:if="${totalPages > 1}">
+    <div class="row mt-4 compact-pagination" th:if="${totalPages > 1}">
         <div class="col-12">
             <nav aria-label="Navigation Pokedex">
                 <ul class="pagination justify-content-center">
@@ -286,18 +286,18 @@
                     </li>
                 </ul>
             </nav>
-            <form class="row g-2 justify-content-center mt-3" method="get" th:action="@{/pokedex}">
+            <form class="row g-2 justify-content-center mt-3 page-jump-form" method="get" th:action="@{/pokedex}">
                 <input type="hidden" name="search" th:value="${search}">
                 <input type="hidden" name="generation" th:value="${generation}">
                 <input type="hidden" name="assignedOnly" th:value="${assignedOnly}">
                 <input type="hidden" name="unassignedOnly" th:value="${unassignedOnly}">
                 <input type="hidden" name="regionalMode" th:value="${regionalMode}">
                 <div class="col-auto">
-                    <label class="col-form-label" for="pokedexPageJump">Aller a la page</label>
+                    <label class="col-form-label page-jump-label" for="pokedexPageJump">Page</label>
                 </div>
                 <div class="col-auto">
                     <input id="pokedexPageJump"
-                           class="form-control"
+                           class="form-control page-jump-input"
                            type="number"
                            name="page"
                            min="1"
@@ -305,7 +305,7 @@
                            th:value="${currentPage}">
                 </div>
                 <div class="col-auto">
-                    <button class="btn btn-outline-secondary" type="submit">Aller</button>
+                    <button class="btn btn-outline-secondary page-jump-button" type="submit">OK</button>
                 </div>
             </form>
         </div>
