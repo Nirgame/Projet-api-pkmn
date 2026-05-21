@@ -13,7 +13,7 @@
             </div>
         </div>
 
-        <div class="alert alert-info d-flex justify-content-between align-items-center"
+        <div class="alert alert-info d-flex justify-content-between align-items-center gap-3 mobile-stack-md"
              th:if="${selectedSerieId != null}">
             <div>
                 <i class="fas fa-filter"></i>
@@ -22,7 +22,7 @@
                     <strong th:text="${selectedSerieName != null ? selectedSerieName : selectedSerieId}">Serie</strong>
                 </span>
             </div>
-            <a class="btn btn-sm btn-outline-primary" href="/sets">
+            <a class="btn btn-sm btn-outline-primary mobile-stack-item" href="/sets">
                 Voir tous les sets
             </a>
         </div>
@@ -50,7 +50,7 @@
                         </div>
 
                         <div class="col-12">
-                            <div class="d-flex flex-wrap gap-3">
+                            <div class="d-flex flex-wrap gap-2 gap-md-3">
                                 <div class="form-check" th:each="languageCode : ${availableLanguageOptions}">
                                     <input class="form-check-input"
                                            type="checkbox"
@@ -68,7 +68,7 @@
                         </div>
 
                         <div class="col-12">
-                            <div class="d-flex flex-wrap gap-3">
+                            <div class="d-flex flex-wrap gap-2 gap-md-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="mcdoOnly" name="mcdoOnly" value="true" th:checked="${mcdoOnly}">
                                     <label class="form-check-label" for="mcdoOnly">MCDO</label>
@@ -88,7 +88,7 @@
                             </div>
                         </div>
 
-                        <div class="col-12 d-flex gap-2">
+                        <div class="col-12 mobile-inline-actions">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-check"></i> Appliquer
                             </button>
@@ -103,7 +103,7 @@
         </div>
 
         <div class="row" th:if="${sets != null}">
-            <div class="col-md-4 mb-4" th:each="set : ${sets}">
+            <div class="col-sm-6 col-xl-4 mb-4" th:each="set : ${sets}">
                 <div class="card h-100">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-3">

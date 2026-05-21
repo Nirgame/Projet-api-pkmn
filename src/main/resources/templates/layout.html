@@ -62,6 +62,17 @@
         .page-jump-input {
             width: 5.25rem;
         }
+        .mobile-stack-md {
+            display: flex;
+        }
+        .mobile-inline-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .mobile-inline-actions > * {
+            flex: 0 0 auto;
+        }
         @media (max-width: 576px) {
             .compact-pagination .pagination {
                 justify-content: center;
@@ -88,6 +99,22 @@
             .page-jump-button {
                 padding-left: 0.75rem;
                 padding-right: 0.75rem;
+            }
+        }
+        @media (max-width: 767.98px) {
+            .mobile-stack-md {
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+            .mobile-stack-md > .mobile-stack-item,
+            .mobile-stack-md > * {
+                width: 100%;
+            }
+            .mobile-inline-actions {
+                width: 100%;
+            }
+            .mobile-inline-actions > * {
+                flex: 1 1 100%;
             }
         }
     </style>

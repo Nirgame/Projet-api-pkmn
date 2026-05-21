@@ -90,6 +90,21 @@
             margin-top: 12px;
             font-size: 0.98rem;
         }
+
+        @media (max-width: 767.98px) {
+            .pokedex-detail-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+
+            .pokedex-detail-actions {
+                width: 100%;
+            }
+
+            .pokedex-detail-actions > * {
+                flex: 1 1 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -99,7 +114,7 @@
     </div>
 
     <div th:if="${detail != null}">
-        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4 pokedex-detail-header">
             <div>
                 <a class="btn btn-link ps-0" href="/pokedex">
                     <i class="fas fa-arrow-left"></i> Retour au pokedex
@@ -216,7 +231,7 @@
                                                 Bulbasaur
                                             </div>
                                             <div class="small text-muted" th:text="${card.cardId}">base1-44</div>
-                                            <div class="mt-2 d-flex gap-2 flex-wrap">
+                            <div class="mt-2 d-flex gap-2 flex-wrap pokedex-detail-actions">
                                                 <span class="badge bg-success" th:text="|x${card.quantity}|">x1</span>
                                                 <button class="btn btn-sm btn-outline-danger"
                                                         th:attr="data-card-id=${card.cardId}"
@@ -303,7 +318,7 @@
                                                 Bulbasaur
                                             </div>
                                             <div class="small text-muted" th:text="${card.id}">base1-44</div>
-                                            <div class="mt-2 d-flex gap-2 flex-wrap">
+                                            <div class="mt-2 d-flex gap-2 flex-wrap pokedex-detail-actions">
                                                 <span class="badge bg-success"
                                                       th:if="${detail.ownedCardCounts.containsKey(card.id)}"
                                                       th:text="|x${detail.ownedCardCounts.get(card.id)}|">
