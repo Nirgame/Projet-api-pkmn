@@ -8,6 +8,18 @@ Pour ce projet, le chemin le plus simple est :
 2. utiliser PostgreSQL en production
 3. garder H2 uniquement pour le developpement local
 
+## Option gratuite recommandee
+
+Si tu veux limiter les couts au maximum, le meilleur compromis est :
+
+1. heberger l'application sur Koyeb
+2. utiliser Neon pour PostgreSQL
+
+Attention :
+
+- Koyeb gratuit peut mettre l'application en veille apres inactivite
+- Neon gratuit reste persistant, mais il faut bien utiliser la connexion PostgreSQL avec `sslmode=require`
+
 Le projet est deja pret pour ce schema :
 
 - profil local par defaut : `dev`
@@ -91,3 +103,37 @@ Optionnel selon la plateforme :
 3. verifier que `h2-console` est inaccessible en production
 4. verifier que `/actuator/health` repond bien
 5. verifier que la collection reste bien persistante apres un redemarrage
+
+## Koyeb + Neon
+
+### Base Neon
+
+1. creer un projet Neon
+2. cliquer sur `Connect`
+3. recuperer les informations de connexion :
+   - host
+   - database
+   - user
+   - password
+4. verifier que la connexion contient bien `sslmode=require`
+
+### Application Koyeb
+
+1. connecter ton repo GitHub a Koyeb
+2. creer une `Web Service` depuis le repo
+3. utiliser le `Dockerfile` du projet
+4. exposer le port `9012` en `HTTP` sur le chemin `/`
+5. definir ces variables d'environnement :
+
+```text
+SPRING_PROFILES_ACTIVE=prod
+DATABASE_HOST=<host Neon>
+DATABASE_PORT=5432
+DATABASE_NAME=<database Neon>
+DATABASE_USERNAME=<user Neon>
+DATABASE_PASSWORD=<password Neon>
+SPRING_DATASOURCE_URL=jdbc:postgresql://<host Neon>:5432/<database Neon>?sslmode=require
+```
+
+6. configurer un health check HTTP sur `/actuator/health`
+7. deployer puis tester l'URL publique `.koyeb.app`

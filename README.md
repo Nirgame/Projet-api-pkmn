@@ -171,14 +171,6 @@ src/main/resources/
 - **users**: Utilisateurs (username, password hashé)
 - **user_cards**: Cartes possédées (user_id, card_id, quantity, etc.)
 
-### Accès H2 Console
-
-Pendant le développement : http://localhost:8080/h2-console
-
-- JDBC URL: `jdbc:h2:mem:pokemon_tcg_db`
-- Username: `sa`
-- Password: (vide)
-
 ## 🧪 Tests
 
 ```bash
