@@ -15,6 +15,7 @@ import net.tcgdex.service.TCGdexService;
 import net.tcgdex.service.UserService;
 import net.tcgdex.util.PokepediaUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -45,13 +46,14 @@ public class WebController {
     private PokedexService pokedexService;
 
     @GetMapping("/")
-    public String home(Model model) {
+    public String home(Authentication authentication, Model model) {
         try {
             List<Serie> series = tcgdexService.getSeries();
             model.addAttribute("series", series.subList(0, Math.min(10, series.size())));
         } catch (IOException e) {
             model.addAttribute("error", "Unable to load series");
         }
+        model.addAttribute("authenticated", isAuthenticated(authentication));
         return "home";
     }
 
@@ -85,7 +87,7 @@ public class WebController {
 
     @GetMapping("/dashboard")
     public String dashboard(Authentication authentication, Model model) {
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (!isAuthenticated(authentication)) {
             return "redirect:/login";
         }
 
@@ -107,7 +109,7 @@ public class WebController {
             Authentication authentication,
             Model model) {
         Map<String, Integer> ownedCardCounts = Collections.emptyMap();
-        if (authentication != null && authentication.isAuthenticated()) {
+        if (isAuthenticated(authentication)) {
             model.addAttribute("authenticated", true);
             model.addAttribute("username", authentication.getName());
 
@@ -176,6 +178,7 @@ public class WebController {
             }
 
             tcgdexService.enrichFormLabels(pageCards);
+            tcgdexService.enrichSetMetadata(pageCards);
 
             int totalPages = Math.max(1, (int) Math.ceil((double) cards.size() / safeSize));
             model.addAttribute("cards", pageCards);
@@ -185,6 +188,9 @@ public class WebController {
             model.addAttribute("search", search);
             model.addAttribute("setId", setId);
             model.addAttribute("rarity", rarity);
+            model.addAttribute("setOptions", tcgdexService.getSets().stream()
+                    .sorted(Comparator.comparing(Set::getDisplayName, String.CASE_INSENSITIVE_ORDER))
+                    .toList());
             model.addAttribute("rarityOptions", tcgdexService.getAvailableRarities());
             model.addAttribute("ownedCardCounts", ownedCardCounts);
 
@@ -196,6 +202,7 @@ public class WebController {
 
     @GetMapping("/sets")
     public String sets(@RequestParam(required = false) String serieId,
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) List<String> languages,
             @RequestParam(defaultValue = "false") boolean mcdoOnly,
             @RequestParam(defaultValue = "false") boolean exclusiveOnly,
@@ -224,6 +231,12 @@ public class WebController {
                         .toList();
             }
 
+            if (search != null && !search.trim().isEmpty()) {
+                sets = sets.stream()
+                        .filter(set -> set.matchesSearch(search))
+                        .toList();
+            }
+
             if (mcdoOnly) {
                 sets = sets.stream()
                         .filter(Set::isMcdoSet)
@@ -249,6 +262,7 @@ public class WebController {
             }
 
             model.addAttribute("sets", sets);
+            model.addAttribute("search", search);
             model.addAttribute("availableLanguageOptions", List.of("en", "fr", "ja", "ko", "zh-cn", "zh-tw"));
             model.addAttribute("selectedLanguages", languages == null ? List.of() : languages);
             model.addAttribute("mcdoOnly", mcdoOnly);
@@ -263,7 +277,7 @@ public class WebController {
 
     @GetMapping("/collection")
     public String collection(Authentication authentication, Model model) {
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (!isAuthenticated(authentication)) {
             return "redirect:/login";
         }
 
@@ -289,7 +303,7 @@ public class WebController {
             @RequestParam(required = false) String regionalForm,
             Authentication authentication,
             Model model) {
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (!isAuthenticated(authentication)) {
             return "redirect:/login";
         }
 
@@ -333,7 +347,7 @@ public class WebController {
     public String pokedexPokemon(@PathVariable int pokemonId,
             Authentication authentication,
             Model model) {
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (!isAuthenticated(authentication)) {
             return "redirect:/login";
         }
 
@@ -354,7 +368,7 @@ public class WebController {
             @RequestParam(required = false) String form,
             Authentication authentication,
             Model model) {
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (!isAuthenticated(authentication)) {
             return "redirect:/login";
         }
 
@@ -405,5 +419,11 @@ public class WebController {
 
         pageNumbers.add(totalPages);
         return pageNumbers;
+    }
+
+    private boolean isAuthenticated(Authentication authentication) {
+        return authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken);
     }
 }

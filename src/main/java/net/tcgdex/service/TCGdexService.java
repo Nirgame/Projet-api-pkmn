@@ -275,6 +275,33 @@ public class TCGdexService {
         }
     }
 
+    public void enrichSetMetadata(List<CardBrief> cards) throws IOException {
+        if (cards == null || cards.isEmpty()) {
+            return;
+        }
+
+        Map<String, String> setNamesById = getSets().stream()
+                .filter(set -> set.getId() != null && !set.getId().isBlank())
+                .collect(Collectors.toMap(
+                        Set::getId,
+                        Set::getDisplayName,
+                        (left, right) -> left,
+                        LinkedHashMap::new));
+
+        for (CardBrief card : cards) {
+            String resolvedSetId = card.getResolvedSetId();
+            if (resolvedSetId == null || resolvedSetId.isBlank()) {
+                continue;
+            }
+
+            card.setSetId(resolvedSetId);
+            String setName = setNamesById.get(resolvedSetId);
+            if (setName != null && !setName.isBlank()) {
+                card.setSetName(setName);
+            }
+        }
+    }
+
     private List<CardBrief> mergeCardBriefs(List<CardBrief> englishCards, List<CardBrief> frenchCards) {
         Map<String, CardBrief> frenchById = frenchCards.stream()
                 .filter(card -> card.getId() != null)
@@ -283,9 +310,14 @@ public class TCGdexService {
         return englishCards.stream()
                 .map(englishCard -> {
                     englishCard.setEnglishName(englishCard.getName());
+                    copyRarityFromSummary(englishCard, true);
                     CardBrief frenchCard = frenchById.get(englishCard.getId());
                     if (frenchCard != null) {
                         englishCard.setFrenchName(frenchCard.getName());
+                        copyRarityFromSummary(frenchCard, false);
+                        if (englishCard.getFrenchRarity() == null || englishCard.getFrenchRarity().isBlank()) {
+                            englishCard.setFrenchRarity(frenchCard.getFrenchRarity());
+                        }
                     }
                     Card cachedCard = cardCache.get(englishCard.getId());
                     if (cachedCard != null) {
@@ -349,6 +381,8 @@ public class TCGdexService {
     }
 
     private void mergeLocalizedSet(Set mergedSet, Set localizedSet, String language) {
+        mergedSet.setLocalizedName(language, localizedSet.getName());
+
         if (mergedSet.getName() == null || mergedSet.getName().isBlank()) {
             mergedSet.setName(localizedSet.getName());
         }
@@ -401,6 +435,7 @@ public class TCGdexService {
                 }
 
                 CardBrief mergedCard = cardsById.computeIfAbsent(localizedCard.getId(), ignored -> copyCardBrief(localizedCard));
+                copyRarityFromSummary(localizedCard, "en".equals(language));
 
                 if (("en".equals(language) || mergedCard.getName() == null || mergedCard.getName().isBlank())
                         && localizedCard.getName() != null) {
@@ -419,6 +454,13 @@ public class TCGdexService {
 
                 if ((mergedCard.getLocalId() == null || mergedCard.getLocalId().isBlank()) && localizedCard.getLocalId() != null) {
                     mergedCard.setLocalId(localizedCard.getLocalId());
+                }
+
+                if ("en".equals(language) && (mergedCard.getEnglishRarity() == null || mergedCard.getEnglishRarity().isBlank())) {
+                    mergedCard.setEnglishRarity(localizedCard.getEnglishRarity());
+                }
+                if ("fr".equals(language) && (mergedCard.getFrenchRarity() == null || mergedCard.getFrenchRarity().isBlank())) {
+                    mergedCard.setFrenchRarity(localizedCard.getFrenchRarity());
                 }
 
                 Card cachedCard = cardCache.get(mergedCard.getId());
@@ -446,6 +488,7 @@ public class TCGdexService {
         copy.setReleaseDate(source.getReleaseDate());
         copy.setCards(source.getCards());
         copy.setAvailableLanguages(source.getAvailableLanguages());
+        copy.setLocalizedNames(source.getLocalizedNames());
         return copy;
     }
 
@@ -460,7 +503,27 @@ public class TCGdexService {
         copy.setFrenchRarity(source.getFrenchRarity());
         copy.setFormLabel(source.getFormLabel());
         copy.setImage(source.getImage());
+        copy.setSetId(source.getSetId());
+        copy.setSetName(source.getSetName());
         return copy;
+    }
+
+    private void copyRarityFromSummary(CardBrief card, boolean englishLanguage) {
+        if (!(card instanceof Card summaryCard)) {
+            return;
+        }
+
+        String rarity = summaryCard.getRarity();
+        if (rarity == null || rarity.isBlank()) {
+            return;
+        }
+
+        if (englishLanguage) {
+            card.setEnglishRarity(rarity);
+            return;
+        }
+
+        card.setFrenchRarity(rarity);
     }
 
     private Card copyCard(Card source) {
@@ -472,6 +535,8 @@ public class TCGdexService {
         copy.setFrenchName(source.getFrenchName());
         copy.setFormLabel(source.getFormLabel());
         copy.setImage(source.getImage());
+        copy.setSetId(source.getSetId());
+        copy.setSetName(source.getSetName());
         copy.setCategory(source.getCategory());
         copy.setIllustrator(source.getIllustrator());
         copy.setRarity(source.getRarity());

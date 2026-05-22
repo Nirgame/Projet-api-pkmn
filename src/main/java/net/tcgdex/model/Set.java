@@ -1,8 +1,13 @@
 package net.tcgdex.model;
 
+import net.tcgdex.util.CardNameUtils;
+
+import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Représente un ensemble (Set) de cartes Pokémon
@@ -22,6 +27,7 @@ public class Set {
     private String releaseDate;
     private List<CardBrief> cards;
     private List<String> availableLanguages = new ArrayList<>();
+    private Map<String, String> localizedNames = new LinkedHashMap<>();
 
     public Set() {
     }
@@ -237,6 +243,68 @@ public class Set {
         LinkedHashSet<String> orderedLanguages = new LinkedHashSet<>(availableLanguages);
         orderedLanguages.add(languageCode);
         setAvailableLanguages(new ArrayList<>(orderedLanguages));
+    }
+
+    public Map<String, String> getLocalizedNames() {
+        return localizedNames;
+    }
+
+    public void setLocalizedNames(Map<String, String> localizedNames) {
+        this.localizedNames = new LinkedHashMap<>();
+        if (localizedNames == null || localizedNames.isEmpty()) {
+            return;
+        }
+
+        for (String languageCode : LANGUAGE_ORDER) {
+            String localizedName = localizedNames.get(languageCode);
+            if (localizedName != null && !localizedName.isBlank()) {
+                this.localizedNames.put(languageCode, localizedName);
+            }
+        }
+    }
+
+    public void setLocalizedName(String languageCode, String localizedName) {
+        if (languageCode == null || languageCode.isBlank() || localizedName == null || localizedName.isBlank()) {
+            return;
+        }
+
+        LinkedHashMap<String, String> orderedNames = new LinkedHashMap<>(localizedNames);
+        orderedNames.put(languageCode, localizedName);
+        setLocalizedNames(orderedNames);
+    }
+
+    public List<String> getLocalizedAliases() {
+        String displayName = CardNameUtils.normalizeForSearch(getDisplayName());
+        String secondaryName = CardNameUtils.normalizeForSearch(getSecondaryName());
+
+        return localizedNames.values().stream()
+                .filter(name -> name != null && !name.isBlank())
+                .filter(name -> {
+                    String normalized = CardNameUtils.normalizeForSearch(name);
+                    return !normalized.equals(displayName) && !normalized.equals(secondaryName);
+                })
+                .distinct()
+                .toList();
+    }
+
+    public boolean matchesSearch(String search) {
+        String normalizedSearch = CardNameUtils.normalizeForSearch(search);
+        if (normalizedSearch.isBlank()) {
+            return true;
+        }
+
+        String haystack = String.join(" ",
+                CardNameUtils.normalizeForSearch(id),
+                CardNameUtils.normalizeForSearch(name),
+                CardNameUtils.normalizeForSearch(englishName),
+                CardNameUtils.normalizeForSearch(frenchName),
+                localizedNames.values().stream()
+                        .map(CardNameUtils::normalizeForSearch)
+                        .reduce("", (left, right) -> left + " " + right));
+
+        return Arrays.stream(normalizedSearch.split(" "))
+                .filter(token -> !token.isBlank())
+                .allMatch(haystack::contains);
     }
 
     public boolean isAvailableIn(String languageCode) {

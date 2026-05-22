@@ -11,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.when;
@@ -94,5 +95,24 @@ class SetsPageIntegrationTest {
                 .andExpect(content().string(containsString("拡張パック")))
                 .andExpect(content().string(containsString("Pas de nom EN/FR dans TCGdex")))
                 .andExpect(content().string(containsString("Exclu Japon")));
+    }
+
+    @Test
+    void setsPageShouldSearchAcrossLocalizedAliases() throws Exception {
+        Set koreanSet = new Set();
+        koreanSet.setId("sv-k1");
+        koreanSet.setName("Scarlet ex");
+        koreanSet.setEnglishName("Scarlet ex");
+        koreanSet.setAvailableLanguages(List.of("en", "ko"));
+        koreanSet.setLocalizedNames(Map.of(
+                "en", "Scarlet ex",
+                "ko", "스칼렛 ex"));
+
+        when(tcgdexService.getSets()).thenReturn(List.of(koreanSet));
+
+        mockMvc.perform(get("/sets").param("search", "스칼렛"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Scarlet ex")))
+                .andExpect(content().string(containsString("스칼렛 ex")));
     }
 }

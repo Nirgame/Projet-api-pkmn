@@ -114,8 +114,18 @@ public class PokedexService {
                 .sorted(Comparator.comparing(CardBrief::getEnglishName, String.CASE_INSENSITIVE_ORDER))
                 .toList();
         tcgdexService.enrichRarities(availableCards);
+        tcgdexService.enrichSetMetadata(availableCards);
+        PokemonSpeciesInfo[] adjacentSpecies = getAdjacentSpecies(pokemonId);
 
-        return new PokedexDetailView(species, assignedCard, ownedCards, availableCards, ownedCardCounts, missingCardMarked);
+        return new PokedexDetailView(
+                species,
+                assignedCard,
+                ownedCards,
+                availableCards,
+                ownedCardCounts,
+                missingCardMarked,
+                adjacentSpecies[0],
+                adjacentSpecies[1]);
     }
 
     public UserPokemonCardAssignment assignCard(User user, int pokemonId, String cardId) throws IOException {
@@ -299,6 +309,25 @@ public class PokedexService {
         return assignmentRepository.findByUserAndPokemonId(user, pokemonId);
     }
 
+    private PokemonSpeciesInfo[] getAdjacentSpecies(int pokemonId) throws IOException {
+        List<PokemonIndexEntry> entries = pokeApiService.getPokedexEntries();
+        for (int index = 0; index < entries.size(); index++) {
+            if (entries.get(index).id() != pokemonId) {
+                continue;
+            }
+
+            PokemonSpeciesInfo previousSpecies = index > 0
+                    ? pokeApiService.getPokemonSpecies(entries.get(index - 1).id())
+                    : null;
+            PokemonSpeciesInfo nextSpecies = index + 1 < entries.size()
+                    ? pokeApiService.getPokemonSpecies(entries.get(index + 1).id())
+                    : null;
+            return new PokemonSpeciesInfo[] { previousSpecies, nextSpecies };
+        }
+
+        return new PokemonSpeciesInfo[] { null, null };
+    }
+
     private List<CardBrief> getCardsForPokemon(PokemonSpeciesInfo species) throws IOException {
         List<CardBrief> cachedCards = availableCardsCache.get(species.id());
         if (cachedCards != null) {
@@ -380,6 +409,8 @@ public class PokedexService {
         brief.setFrenchName(card.getFrenchName());
         brief.setFormLabel(card.getFormLabel());
         brief.setImage(card.getImage());
+        brief.setSetId(card.getSetId());
+        brief.setSetName(card.getSetName());
         return brief;
     }
 }

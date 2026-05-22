@@ -140,11 +140,27 @@
                     <i class="fas fa-up-right-from-square"></i> Voir sur Pokepedia
                 </a>
             </div>
-            <span class="badge bg-dark fs-6"
-                  th:if="${detail.species.generationLabel != null and !detail.species.generationLabel.isBlank()}"
-                  th:text="${detail.species.generationLabel}">
-                Generation I
-            </span>
+            <div class="d-flex flex-column align-items-start align-items-lg-end gap-2">
+                <span class="badge bg-dark fs-6"
+                      th:if="${detail.species.generationLabel != null and !detail.species.generationLabel.isBlank()}"
+                      th:text="${detail.species.generationLabel}">
+                    Generation I
+                </span>
+                <div class="d-flex flex-wrap gap-2">
+                    <a class="btn btn-outline-secondary btn-sm"
+                       th:if="${detail.hasPreviousSpecies()}"
+                       th:href="@{/pokedex/{pokemonId}(pokemonId=${detail.previousSpecies.id})}">
+                        <i class="fas fa-chevron-left"></i>
+                        <span th:text="${detail.previousSpecies.displayName}">Precedent</span>
+                    </a>
+                    <a class="btn btn-outline-secondary btn-sm"
+                       th:if="${detail.hasNextSpecies()}"
+                       th:href="@{/pokedex/{pokemonId}(pokemonId=${detail.nextSpecies.id})}">
+                        <span th:text="${detail.nextSpecies.displayName}">Suivant</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
         </div>
 
         <div class="row g-4 mb-4">
@@ -306,7 +322,8 @@
                                  th:attr="data-name=${card.displayName},
                                           data-secondary=${card.secondaryName},
                                           data-card-id=${card.id},
-                                          data-set=${#strings.contains(card.id, '-') ? #strings.substringBefore(card.id, '-') : card.id},
+                                          data-set-id=${card.resolvedSetId},
+                                          data-set-name=${card.displaySetName},
                                           data-rarity=${card.displayRarity},
                                           data-form=${card.variantLabel}">
                                 <div class="border rounded p-3 h-100">
@@ -329,6 +346,9 @@
                                                       th:text="${card.displayRarity}">
                                                     Peu Commune
                                                 </span>
+                                            </div>
+                                            <div class="small text-muted" th:if="${card.displaySetName != null}" th:text="${card.displaySetName}">
+                                                Set de Base
                                             </div>
                                             <div class="small text-muted" th:text="${card.id}">base1-44</div>
                                             <div class="mt-2 d-flex gap-2 flex-wrap pokedex-detail-actions">
@@ -390,10 +410,11 @@
             const resetButton = document.getElementById('available-card-filter-reset');
             const visibleCount = document.getElementById('available-card-visible-count');
 
-            const uniqueSets = [...new Set(items
-                .map(item => item.dataset.set)
-                .filter(value => value && value.trim() !== ''))]
-                .sort((left, right) => left.localeCompare(right, 'fr', { sensitivity: 'base' }));
+            const uniqueSets = [...new Map(items
+                .map(item => [item.dataset.setId, item.dataset.setName])
+                .filter(([setId, setName]) => setId && setName && setId.trim() !== ''))
+                .entries()]
+                .sort((left, right) => left[1].localeCompare(right[1], 'fr', { sensitivity: 'base' }));
             const uniqueForms = [...new Set(items
                 .map(item => item.dataset.form)
                 .filter(value => value && value.trim() !== ''))]
@@ -403,9 +424,9 @@
                 .filter(value => value && value.trim() !== ''))]
                 .sort((left, right) => left.localeCompare(right, 'fr', { sensitivity: 'base' }));
 
-            uniqueSets.forEach(setName => {
+            uniqueSets.forEach(([setId, setName]) => {
                 const option = document.createElement('option');
-                option.value = setName;
+                option.value = setId;
                 option.textContent = setName;
                 setSelect.appendChild(option);
             });
@@ -436,13 +457,14 @@
                         item.dataset.name,
                         item.dataset.secondary,
                         item.dataset.cardId,
-                        item.dataset.set,
+                        item.dataset.setId,
+                        item.dataset.setName,
                         item.dataset.rarity,
                         item.dataset.form
                     ].join(' '));
 
                     const matchesSearch = !searchValue || haystack.includes(searchValue);
-                    const matchesSet = !setValue || normalizeText(item.dataset.set) === setValue;
+                    const matchesSet = !setValue || normalizeText(item.dataset.setId) === setValue;
                     const matchesRarity = !rarityValue || normalizeText(item.dataset.rarity) === rarityValue;
                     const matchesForm = !formValue || normalizeText(item.dataset.form) === formValue;
                     const shouldShow = matchesSearch && matchesSet && matchesRarity && matchesForm;

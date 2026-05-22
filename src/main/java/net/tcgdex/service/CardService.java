@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,12 +54,12 @@ public class CardService {
             response = HttpClientUtil.get("/" + language + "/cards");
         }
 
-        List<CardBrief> cards = gson.fromJson(response,
-                new TypeToken<List<CardBrief>>() {
+        List<Card> cards = gson.fromJson(response,
+                new TypeToken<List<Card>>() {
                 }.getType());
 
         logger.info("Cartes récupérées: {}", cards.size());
-        return cards;
+        return new ArrayList<>(cards);
     }
 
     private String encodeQuery(String queryParams) {

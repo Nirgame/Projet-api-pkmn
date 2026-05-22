@@ -3,6 +3,7 @@ package net.tcgdex;
 import net.tcgdex.entity.User;
 import net.tcgdex.entity.UserCard;
 import net.tcgdex.model.CardBrief;
+import net.tcgdex.model.Set;
 import net.tcgdex.repository.UserCardRepository;
 import net.tcgdex.repository.UserRepository;
 import net.tcgdex.service.TCGdexService;
@@ -63,13 +64,24 @@ class BrowsePageIntegrationTest {
 
         CardBrief card = new CardBrief("base1-4", "4", "Charmander", "https://assets.tcgdex.net/en/base/base1/4");
         card.setFrenchName("Salameche");
+        card.setSetId("base1");
+        card.setSetName("Set de Base");
+
+        Set set = new Set();
+        set.setId("base1");
+        set.setEnglishName("Base Set");
+        set.setFrenchName("Set de Base");
 
         when(tcgdexService.getCards()).thenReturn(List.of(card));
+        when(tcgdexService.getSets()).thenReturn(List.of(set));
         doNothing().when(tcgdexService).enrichFormLabels(anyList());
+        doNothing().when(tcgdexService).enrichSetMetadata(anyList());
 
         mockMvc.perform(get("/browse")
                         .with(user("ash").roles("USER")))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("browseSet")))
+                .andExpect(content().string(containsString("Set de Base")))
                 .andExpect(content().string(containsString("owned-badge-base1-4")))
                 .andExpect(content().string(containsString(">3<")));
     }

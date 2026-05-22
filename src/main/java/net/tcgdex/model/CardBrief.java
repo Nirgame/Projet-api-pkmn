@@ -15,6 +15,8 @@ public class CardBrief {
     private String frenchRarity;
     private String formLabel;
     private String image;
+    private String setId;
+    private String setName;
 
     public CardBrief() {
     }
@@ -155,6 +157,39 @@ public class CardBrief {
         return image + "/high.webp";
     }
 
+    public String getSetId() {
+        return setId;
+    }
+
+    public void setSetId(String setId) {
+        this.setId = setId;
+    }
+
+    public String getResolvedSetId() {
+        if (setId != null && !setId.isBlank()) {
+            return setId;
+        }
+        if (id == null || id.isBlank() || !id.contains("-")) {
+            return null;
+        }
+        return id.substring(0, id.indexOf('-'));
+    }
+
+    public String getSetName() {
+        return setName;
+    }
+
+    public void setSetName(String setName) {
+        this.setName = setName;
+    }
+
+    public String getDisplaySetName() {
+        if (setName != null && !setName.isBlank()) {
+            return setName;
+        }
+        return getResolvedSetId();
+    }
+
     @Override
     public String toString() {
         return "CardBrief{" +
@@ -166,6 +201,8 @@ public class CardBrief {
                 ", frenchRarity='" + frenchRarity + '\'' +
                 ", formLabel='" + formLabel + '\'' +
                 ", image='" + image + '\'' +
+                ", setId='" + setId + '\'' +
+                ", setName='" + setName + '\'' +
                 '}';
     }
 }

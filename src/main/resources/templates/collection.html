@@ -43,26 +43,57 @@
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h5><i class="fas fa-filter"></i> Filtrer par Pokemon</h5>
-                    </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-sm-6 col-xl-3 mb-2" th:each="pokemon : ${pokemonCards}">
-                                <a th:href="@{/pokemon(name=${pokemon.name}, form=${pokemon.formLabel})}"
-                                   class="btn btn-outline-primary btn-sm w-100 text-start">
-                                    <span class="d-block fw-semibold" th:text="${pokemon.displayName}">Pokemon</span>
-                                    <span class="d-block small text-muted"
-                                          th:if="${pokemon.secondaryName != null}"
-                                          th:text="${pokemon.secondaryName}">
-                                        English name
-                                    </span>
-                                    <span class="d-inline-block mt-1 badge bg-light text-dark border"
-                                          th:if="${pokemon.variantLabel != null}"
-                                          th:text="${pokemon.variantLabel}">
-                                        Forme
-                                    </span>
-                                </a>
+                        <div class="row g-3 align-items-end">
+                            <div class="col-12">
+                                <h5 class="mb-1"><i class="fas fa-filter"></i> Filtres de collection</h5>
+                                <p class="text-muted small mb-0">Recherche rapide, filtres compacts et acces direct a la fiche d'un Pokemon.</p>
+                            </div>
+                            <div class="col-lg-4">
+                                <label class="form-label" for="collection-search">Recherche</label>
+                                <input id="collection-search"
+                                       type="search"
+                                       class="form-control"
+                                       placeholder="Nom, id carte, set...">
+                            </div>
+                            <div class="col-lg-3">
+                                <label class="form-label" for="collection-pokemon-filter">Pokemon</label>
+                                <select id="collection-pokemon-filter" class="form-select">
+                                    <option value="">Tous les Pokemon</option>
+                                    <option th:each="pokemon : ${pokemonCards}"
+                                            th:value="${pokemon.name + '||' + (pokemon.formLabel != null ? pokemon.formLabel : '')}"
+                                            th:attr="data-url=@{/pokemon(name=${pokemon.name}, form=${pokemon.formLabel})}"
+                                            th:text="${pokemon.variantLabel != null ? pokemon.displayName + ' (' + pokemon.variantLabel + ')' : pokemon.displayName}">
+                                        Pokemon
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-lg-2">
+                                <label class="form-label" for="collection-set-filter">Set</label>
+                                <select id="collection-set-filter" class="form-select">
+                                    <option value="">Tous les sets</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-2">
+                                <label class="form-label" for="collection-form-filter">Forme</label>
+                                <select id="collection-form-filter" class="form-select">
+                                    <option value="">Toutes les formes</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-1 d-grid">
+                                <label class="form-label invisible" for="collection-filter-reset">Reset</label>
+                                <button id="collection-filter-reset" type="button" class="btn btn-outline-secondary">RAZ</button>
+                            </div>
+                            <div class="col-lg-4">
+                                <button id="collection-open-pokemon" type="button" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-up-right-from-square"></i> Ouvrir la fiche du Pokemon
+                                </button>
+                            </div>
+                            <div class="col-lg-8">
+                                <div class="small text-muted">
+                                    <span id="collection-visible-count" th:text="${collection.size()}">0</span>
+                                    carte(s) affichee(s)
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -77,7 +108,15 @@
         </div>
 
         <div class="row" th:if="${collection != null and !collection.empty}">
-            <div class="col-6 col-lg-4 col-xl-3 mb-4" th:each="card : ${collection}">
+            <div class="col-6 col-lg-4 col-xl-3 mb-4 collection-card-item"
+                 th:each="card : ${collection}"
+                 th:attr="data-name=${card.displayName},
+                          data-secondary=${card.secondaryName},
+                          data-card-id=${card.cardId},
+                          data-set-id=${card.resolvedSetId},
+                          data-set-name=${card.displaySetName},
+                          data-form=${card.variantLabel},
+                          data-pokemon-key=${card.name + '||' + (card.formLabel != null ? card.formLabel : '')}">
                 <div class="card h-100">
                     <img th:src="${card.displayImage}"
                          th:alt="${card.displayName}" class="card-img-top"
@@ -101,7 +140,7 @@
                         <p class="card-text text-muted small" th:text="${card.cardId}">card-id</p>
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">
-                                <span th:if="${card.setName != null}" th:text="${card.setName}">Set</span>
+                                <span th:text="${card.displaySetName}">Set</span>
                             </small>
                             <div class="btn-group btn-group-sm" role="group">
                                 <button class="btn btn-sm btn-outline-danger"
@@ -140,6 +179,105 @@
 
     <div layout:fragment="scripts">
         <script>
+            function normalizeText(value) {
+                return (value || '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase()
+                    .trim();
+            }
+
+            function setupCollectionFilters() {
+                const items = Array.from(document.querySelectorAll('.collection-card-item'));
+                if (!items.length) {
+                    return;
+                }
+
+                const searchInput = document.getElementById('collection-search');
+                const pokemonSelect = document.getElementById('collection-pokemon-filter');
+                const setSelect = document.getElementById('collection-set-filter');
+                const formSelect = document.getElementById('collection-form-filter');
+                const resetButton = document.getElementById('collection-filter-reset');
+                const openPokemonButton = document.getElementById('collection-open-pokemon');
+                const visibleCount = document.getElementById('collection-visible-count');
+
+                const uniqueSets = [...new Set(items
+                    .map(item => item.dataset.setName || item.dataset.setId)
+                    .filter(value => value && value.trim() !== ''))]
+                    .sort((left, right) => left.localeCompare(right, 'fr', { sensitivity: 'base' }));
+                const uniqueForms = [...new Set(items
+                    .map(item => item.dataset.form)
+                    .filter(value => value && value.trim() !== ''))]
+                    .sort((left, right) => left.localeCompare(right, 'fr', { sensitivity: 'base' }));
+
+                uniqueSets.forEach(setName => {
+                    const option = document.createElement('option');
+                    option.value = setName;
+                    option.textContent = setName;
+                    setSelect.appendChild(option);
+                });
+
+                uniqueForms.forEach(formName => {
+                    const option = document.createElement('option');
+                    option.value = formName;
+                    option.textContent = formName;
+                    formSelect.appendChild(option);
+                });
+
+                function applyFilters() {
+                    const searchValue = normalizeText(searchInput.value);
+                    const pokemonValue = pokemonSelect.value;
+                    const setValue = normalizeText(setSelect.value);
+                    const formValue = normalizeText(formSelect.value);
+                    let visible = 0;
+
+                    items.forEach(item => {
+                        const haystack = normalizeText([
+                            item.dataset.name,
+                            item.dataset.secondary,
+                            item.dataset.cardId,
+                            item.dataset.setName,
+                            item.dataset.setId,
+                            item.dataset.form
+                        ].join(' '));
+
+                        const matchesSearch = !searchValue || haystack.includes(searchValue);
+                        const matchesPokemon = !pokemonValue || item.dataset.pokemonKey === pokemonValue;
+                        const matchesSet = !setValue || normalizeText(item.dataset.setName || item.dataset.setId) === setValue;
+                        const matchesForm = !formValue || normalizeText(item.dataset.form) === formValue;
+                        const shouldShow = matchesSearch && matchesPokemon && matchesSet && matchesForm;
+
+                        item.style.display = shouldShow ? '' : 'none';
+                        if (shouldShow) {
+                            visible += 1;
+                        }
+                    });
+
+                    visibleCount.textContent = String(visible);
+                }
+
+                searchInput.addEventListener('input', applyFilters);
+                pokemonSelect.addEventListener('change', applyFilters);
+                setSelect.addEventListener('change', applyFilters);
+                formSelect.addEventListener('change', applyFilters);
+                resetButton.addEventListener('click', () => {
+                    searchInput.value = '';
+                    pokemonSelect.value = '';
+                    setSelect.value = '';
+                    formSelect.value = '';
+                    applyFilters();
+                });
+                openPokemonButton.addEventListener('click', () => {
+                    const selectedOption = pokemonSelect.options[pokemonSelect.selectedIndex];
+                    const targetUrl = selectedOption?.dataset?.url;
+                    if (targetUrl) {
+                        window.location.href = targetUrl;
+                    }
+                });
+
+                applyFilters();
+            }
+
             function addToCollection(cardId, button) {
                 fetch('/api/collection/cards/' + cardId, withCsrf({
                     method: 'POST',
@@ -181,6 +319,10 @@
                     alert('Erreur lors de la suppression de la collection');
                 });
             }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                setupCollectionFilters();
+            });
         </script>
     </div>
 </body>

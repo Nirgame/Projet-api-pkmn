@@ -168,12 +168,29 @@ public class UserCard {
         this.setId = setId;
     }
 
+    public String getResolvedSetId() {
+        if (setId != null && !setId.isBlank()) {
+            return setId;
+        }
+        if (cardId == null || cardId.isBlank() || !cardId.contains("-")) {
+            return null;
+        }
+        return cardId.substring(0, cardId.indexOf('-'));
+    }
+
     public String getSetName() {
         return setName;
     }
 
     public void setSetName(String setName) {
         this.setName = setName;
+    }
+
+    public String getDisplaySetName() {
+        if (setName != null && !setName.isBlank()) {
+            return setName;
+        }
+        return getResolvedSetId();
     }
 
     public LocalDateTime getAddedAt() {

@@ -15,8 +15,9 @@ public final class PokepediaUtils {
             query = "Pokemon";
         }
 
-        return "https://www.pokepedia.fr/index.php?search="
-                + URLEncoder.encode(query, StandardCharsets.UTF_8);
+        return "https://www.pokepedia.fr/"
+                + URLEncoder.encode(query.trim().replace(' ', '_'), StandardCharsets.UTF_8)
+                .replace("+", "_");
     }
 
     public static String deriveBasePokemonName(String preferredName, String fallbackName) {

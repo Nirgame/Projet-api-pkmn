@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -34,6 +35,8 @@ class CollectionPageIntegrationTest {
 
         mockMvc.perform(get("/collection")
                         .with(user("brock").roles("USER")))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Filtres de collection")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Ouvrir la fiche du Pokemon")));
     }
 }

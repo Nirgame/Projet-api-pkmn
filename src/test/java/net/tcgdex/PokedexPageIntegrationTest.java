@@ -128,15 +128,20 @@ class PokedexPageIntegrationTest {
 
         CardBrief availableCard = new CardBrief("base1-44", "44", "Bulbasaur", "https://assets.tcgdex.net/en/base/base1/44");
         availableCard.setFrenchName("Bulbizarre");
+        availableCard.setSetId("base1");
+        availableCard.setSetName("Set de Base");
 
         PokemonSpeciesInfo species = new PokemonSpeciesInfo(1, 1, "bulbasaur", "Bulbasaur", "Bulbizarre", 1, "Generation I", null);
+        PokemonSpeciesInfo nextSpecies = new PokemonSpeciesInfo(2, 2, "ivysaur", "Ivysaur", "Herbizarre", 1, "Generation I", null);
         PokedexDetailView detailView = new PokedexDetailView(
                 species,
                 ownedCard,
                 List.of(ownedCard),
                 List.of(availableCard),
                 Map.of("base1-44", 1),
-                false);
+                false,
+                null,
+                nextSpecies);
 
         when(pokedexService.getPokemonDetail(any(User.class), eq(1))).thenReturn(detailView);
 
@@ -145,6 +150,8 @@ class PokedexPageIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Cartes deja dans ma collection")))
                 .andExpect(content().string(containsString("Cartes TCG disponibles pour ce Pokemon")))
-                .andExpect(content().string(containsString("Assigner")));
+                .andExpect(content().string(containsString("Assigner")))
+                .andExpect(content().string(containsString("Herbizarre")))
+                .andExpect(content().string(containsString("Set de Base")));
     }
 }

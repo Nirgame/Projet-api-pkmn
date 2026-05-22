@@ -15,11 +15,22 @@
         <div class="row mb-4">
             <div class="col-12">
                 <form class="row g-2 align-items-end" th:action="@{/browse}" method="get">
-                    <input type="hidden" name="setId" th:value="${setId}" />
-                    <div class="col-lg-7">
+                    <div class="col-lg-5">
                         <label class="form-label" for="browseSearch">Recherche</label>
                         <input id="browseSearch" class="form-control" type="search" name="search"
                                th:value="${search}" placeholder="Rechercher une carte en francais ou en anglais..." aria-label="Search">
+                    </div>
+                    <div class="col-lg-3">
+                        <label class="form-label" for="browseSet">Set</label>
+                        <select id="browseSet" class="form-select" name="setId">
+                            <option value="">Tous les sets</option>
+                            <option th:each="setOption : ${setOptions}"
+                                    th:value="${setOption.id}"
+                                    th:text="${setOption.displayName}"
+                                    th:selected="${setId != null and setId == setOption.id}">
+                                Set de Base
+                            </option>
+                        </select>
                     </div>
                     <div class="col-lg-3">
                         <label class="form-label" for="browseRarity">Rareté</label>

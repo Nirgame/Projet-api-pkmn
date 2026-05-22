@@ -3,6 +3,7 @@ package net.tcgdex.service;
 import net.tcgdex.entity.User;
 import net.tcgdex.entity.UserCard;
 import net.tcgdex.model.Card;
+import net.tcgdex.model.Set;
 import net.tcgdex.repository.UserCardRepository;
 import net.tcgdex.repository.UserPokemonCardAssignmentRepository;
 import net.tcgdex.util.CardNameUtils;
@@ -15,10 +16,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Transactional
 public class CollectionService {
+    private final Map<String, String> setNameCache = new ConcurrentHashMap<>();
 
     @Autowired
     private UserCardRepository userCardRepository;
@@ -54,11 +57,11 @@ public class CollectionService {
             userCard.setFrenchName(cardDetails.getFrenchName());
             userCard.setFormLabel(cardDetails.getFormLabel());
             userCard.setImage(cardDetails.getImage());
-            userCard.setSetId(null);
-            userCard.setSetName(null);
+            applySetMetadata(userCard);
             return userCardRepository.save(userCard);
         } catch (Exception e) {
             UserCard userCard = new UserCard(user, cardId, "Unknown Card");
+            applySetMetadata(userCard);
             return userCardRepository.save(userCard);
         }
     }
@@ -134,13 +137,18 @@ public class CollectionService {
     private void refreshStoredMetadataIfNeeded(UserCard card) {
         boolean needsFrenchName = card.getFrenchName() == null || card.getFrenchName().isBlank();
         boolean needsFormLabel = card.getFormLabel() == null || card.getFormLabel().isBlank();
-        String namedFormLabel = needsFormLabel
-                ? CardNameUtils.extractNamedFormLabel(card.getName(), card.getFrenchName())
-                : null;
+        boolean needsSetId = card.getSetId() == null || card.getSetId().isBlank();
+        boolean needsSetName = card.getSetName() == null || card.getSetName().isBlank();
 
-        if (namedFormLabel != null) {
-            card.setFormLabel(namedFormLabel);
-            return;
+        if (needsSetId || needsSetName) {
+            applySetMetadata(card);
+        }
+
+        if (needsFormLabel) {
+            String namedFormLabel = CardNameUtils.extractNamedFormLabel(card.getName(), card.getFrenchName());
+            if (namedFormLabel != null) {
+                card.setFormLabel(namedFormLabel);
+            }
         }
 
         if (!needsFrenchName) {
@@ -151,11 +159,43 @@ public class CollectionService {
             Card details = tcgdexService.getCard(card.getCardId());
             card.setName(details.getName());
             card.setFrenchName(details.getFrenchName());
-            card.setFormLabel(details.getFormLabel());
+            if (card.getFormLabel() == null || card.getFormLabel().isBlank()) {
+                card.setFormLabel(details.getFormLabel());
+            }
             if (card.getImage() == null || card.getImage().isBlank()) {
                 card.setImage(details.getImage());
             }
+            applySetMetadata(card);
         } catch (Exception ignored) {
+        }
+    }
+
+    private void applySetMetadata(UserCard card) {
+        String resolvedSetId = card.getResolvedSetId();
+        if (resolvedSetId == null || resolvedSetId.isBlank()) {
+            return;
+        }
+
+        if (card.getSetId() == null || card.getSetId().isBlank()) {
+            card.setSetId(resolvedSetId);
+        }
+
+        if (card.getSetName() != null && !card.getSetName().isBlank()) {
+            return;
+        }
+
+        try {
+            card.setSetName(setNameCache.computeIfAbsent(resolvedSetId, this::loadSetName));
+        } catch (Exception ignored) {
+        }
+    }
+
+    private String loadSetName(String setId) {
+        try {
+            Set set = tcgdexService.getSet(setId);
+            return set != null ? set.getDisplayName() : setId;
+        } catch (Exception ignored) {
+            return setId;
         }
     }
 }

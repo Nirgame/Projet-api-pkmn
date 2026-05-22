@@ -46,7 +46,17 @@
                     <div class="row g-3 align-items-end">
                         <div class="col-12">
                             <h5 class="mb-1"><i class="fas fa-filter"></i> Filtres</h5>
-                            <p class="text-muted small mb-0">Combine les langues de disponibilite et les familles de sets.</p>
+                            <p class="text-muted small mb-0">Recherche sur les ids et noms EN/FR/JP/KR/ZH, puis combine les langues de disponibilite et les familles de sets.</p>
+                        </div>
+
+                        <div class="col-12 col-lg-5">
+                            <label class="form-label" for="set-search">Recherche</label>
+                            <input id="set-search"
+                                   type="search"
+                                   name="search"
+                                   class="form-control"
+                                   th:value="${search}"
+                                   placeholder="Nom localise, alias, id du set...">
                         </div>
 
                         <div class="col-12">
@@ -150,6 +160,14 @@
                                    th:text="${set.secondaryName}">
                                     Secondary name
                                 </p>
+                                <div class="d-flex flex-wrap gap-1 mt-1"
+                                     th:if="${!set.localizedAliases.isEmpty()}">
+                                    <span class="badge bg-light text-dark border"
+                                          th:each="alias : ${set.localizedAliases}"
+                                          th:text="${alias}">
+                                        Alias
+                                    </span>
+                                </div>
                                 <p class="card-text text-warning small mb-0"
                                    th:if="${set.translationNotice != null}"
                                    th:text="${set.translationNotice}">
