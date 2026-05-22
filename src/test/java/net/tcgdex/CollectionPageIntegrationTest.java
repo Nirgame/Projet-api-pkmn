@@ -37,6 +37,6 @@ class CollectionPageIntegrationTest {
                         .with(user("brock").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Filtres de collection")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Ouvrir la fiche du Pokemon")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Reinitialiser")));
     }
 }

@@ -47,7 +47,7 @@
                         <div class="row g-3 align-items-end">
                             <div class="col-12">
                                 <h5 class="mb-1"><i class="fas fa-filter"></i> Filtres de collection</h5>
-                                <p class="text-muted small mb-0">Recherche rapide, filtres compacts et acces direct a la fiche d'un Pokemon.</p>
+                                <p class="text-muted small mb-0">Recherche rapide et filtres compacts pour retrouver une carte sans prendre toute la page.</p>
                             </div>
                             <div class="col-lg-4">
                                 <label class="form-label" for="collection-search">Recherche</label>
@@ -62,7 +62,6 @@
                                     <option value="">Tous les Pokemon</option>
                                     <option th:each="pokemon : ${pokemonCards}"
                                             th:value="${pokemon.name + '||' + (pokemon.formLabel != null ? pokemon.formLabel : '')}"
-                                            th:attr="data-url=@{/pokemon(name=${pokemon.name}, form=${pokemon.formLabel})}"
                                             th:text="${pokemon.variantLabel != null ? pokemon.displayName + ' (' + pokemon.variantLabel + ')' : pokemon.displayName}">
                                         Pokemon
                                     </option>
@@ -82,14 +81,9 @@
                             </div>
                             <div class="col-lg-1 d-grid">
                                 <label class="form-label invisible" for="collection-filter-reset">Reset</label>
-                                <button id="collection-filter-reset" type="button" class="btn btn-outline-secondary">RAZ</button>
+                                <button id="collection-filter-reset" type="button" class="btn btn-danger">Reinitialiser</button>
                             </div>
-                            <div class="col-lg-4">
-                                <button id="collection-open-pokemon" type="button" class="btn btn-outline-primary w-100">
-                                    <i class="fas fa-up-right-from-square"></i> Ouvrir la fiche du Pokemon
-                                </button>
-                            </div>
-                            <div class="col-lg-8">
+                            <div class="col-lg-12">
                                 <div class="small text-muted">
                                     <span id="collection-visible-count" th:text="${collection.size()}">0</span>
                                     carte(s) affichee(s)
@@ -119,7 +113,8 @@
                           data-pokemon-key=${card.name + '||' + (card.formLabel != null ? card.formLabel : '')}">
                 <div class="card h-100">
                     <img th:src="${card.displayImage}"
-                         th:alt="${card.displayName}" class="card-img-top"
+                         th:alt="${card.displayName}" class="card-img-top zoom-hover-image"
+                         th:attr="data-zoom-src=${card.displayImage},data-zoom-title=${card.displayName}"
                          onerror="this.onerror=null;this.src='/images/placeholder.svg'">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
@@ -187,6 +182,124 @@
                     .trim();
             }
 
+            function setupHoverZoom(selector) {
+                const images = document.querySelectorAll(selector);
+                if (!images.length || !window.matchMedia('(hover: hover)').matches) {
+                    return;
+                }
+
+                const preview = document.createElement('div');
+                preview.className = 'card-zoom-preview';
+                preview.innerHTML = '<img alt=""><div class="card-zoom-preview-title"></div>';
+                document.body.appendChild(preview);
+
+                const previewImage = preview.querySelector('img');
+                const previewTitle = preview.querySelector('.card-zoom-preview-title');
+
+                let hoverTimer = null;
+                let activeImage = null;
+
+                function positionPreview(event) {
+                    const offset = 24;
+                    const previewWidth = preview.offsetWidth || 320;
+                    const previewHeight = preview.offsetHeight || 460;
+                    const maxLeft = window.innerWidth - previewWidth - 16;
+                    const maxTop = window.innerHeight - previewHeight - 16;
+                    const left = Math.min(event.clientX + offset, Math.max(16, maxLeft));
+                    const top = Math.min(event.clientY + offset, Math.max(16, maxTop));
+
+                    preview.style.left = left + 'px';
+                    preview.style.top = top + 'px';
+                }
+
+                function hidePreview() {
+                    if (hoverTimer) {
+                        clearTimeout(hoverTimer);
+                        hoverTimer = null;
+                    }
+                    preview.style.display = 'none';
+                    activeImage = null;
+                }
+
+                images.forEach(image => {
+                    image.addEventListener('mouseenter', event => {
+                        hidePreview();
+                        activeImage = image;
+                        hoverTimer = window.setTimeout(() => {
+                            if (activeImage !== image) {
+                                return;
+                            }
+                            previewImage.src = image.dataset.zoomSrc || image.src;
+                            previewImage.alt = image.alt || '';
+                            previewTitle.textContent = image.dataset.zoomTitle || image.alt || '';
+                            preview.style.display = 'block';
+                            positionPreview(event);
+                        }, 500);
+                    });
+
+                    image.addEventListener('mousemove', event => {
+                        if (preview.style.display === 'block') {
+                            positionPreview(event);
+                        }
+                    });
+
+                    image.addEventListener('mouseleave', hidePreview);
+                });
+            }
+
+            function setupClickZoom(selector) {
+                const images = document.querySelectorAll(selector);
+                if (!images.length) {
+                    return;
+                }
+
+                const modal = document.createElement('div');
+                modal.className = 'card-zoom-modal';
+                modal.innerHTML = '' +
+                    '<div class="card-zoom-modal-dialog" role="dialog" aria-modal="true" aria-label="Zoom carte">' +
+                    '<button type="button" class="card-zoom-modal-close" aria-label="Fermer">&times;</button>' +
+                    '<img class="card-zoom-modal-image" alt="">' +
+                    '<div class="card-zoom-modal-title"></div>' +
+                    '</div>';
+                document.body.appendChild(modal);
+
+                const dialog = modal.querySelector('.card-zoom-modal-dialog');
+                const imageElement = modal.querySelector('.card-zoom-modal-image');
+                const titleElement = modal.querySelector('.card-zoom-modal-title');
+                const closeButton = modal.querySelector('.card-zoom-modal-close');
+
+                function closeModal() {
+                    modal.classList.remove('is-open');
+                    document.body.classList.remove('overflow-hidden');
+                    imageElement.src = '';
+                }
+
+                function openModal(image) {
+                    imageElement.src = image.dataset.zoomSrc || image.src;
+                    imageElement.alt = image.alt || '';
+                    titleElement.textContent = image.dataset.zoomTitle || image.alt || '';
+                    modal.classList.add('is-open');
+                    document.body.classList.add('overflow-hidden');
+                }
+
+                closeButton.addEventListener('click', closeModal);
+                modal.addEventListener('click', event => {
+                    if (!dialog.contains(event.target) || event.target === modal) {
+                        closeModal();
+                    }
+                });
+
+                document.addEventListener('keydown', event => {
+                    if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                        closeModal();
+                    }
+                });
+
+                images.forEach(image => {
+                    image.addEventListener('click', () => openModal(image));
+                });
+            }
+
             function setupCollectionFilters() {
                 const items = Array.from(document.querySelectorAll('.collection-card-item'));
                 if (!items.length) {
@@ -198,7 +311,6 @@
                 const setSelect = document.getElementById('collection-set-filter');
                 const formSelect = document.getElementById('collection-form-filter');
                 const resetButton = document.getElementById('collection-filter-reset');
-                const openPokemonButton = document.getElementById('collection-open-pokemon');
                 const visibleCount = document.getElementById('collection-visible-count');
 
                 const uniqueSets = [...new Set(items
@@ -267,13 +379,6 @@
                     formSelect.value = '';
                     applyFilters();
                 });
-                openPokemonButton.addEventListener('click', () => {
-                    const selectedOption = pokemonSelect.options[pokemonSelect.selectedIndex];
-                    const targetUrl = selectedOption?.dataset?.url;
-                    if (targetUrl) {
-                        window.location.href = targetUrl;
-                    }
-                });
 
                 applyFilters();
             }
@@ -322,6 +427,8 @@
 
             document.addEventListener('DOMContentLoaded', function() {
                 setupCollectionFilters();
+                setupHoverZoom('.zoom-hover-image');
+                setupClickZoom('.zoom-hover-image');
             });
         </script>
     </div>
