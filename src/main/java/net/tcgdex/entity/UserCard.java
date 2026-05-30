@@ -6,8 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import net.tcgdex.util.CardNameUtils;
 import net.tcgdex.util.PokepediaUtils;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 @Entity
@@ -201,19 +199,6 @@ public class UserCard {
             return setName;
         }
         return getResolvedSetId();
-    }
-
-    public String getCardmarketUrl() {
-        String query = getDisplayName();
-        if (query == null || query.isBlank()) {
-            query = name;
-        }
-        if (query == null || query.isBlank()) {
-            query = cardId;
-        }
-        return "https://www.cardmarket.com/fr/Pokemon/Products/Search?category=-1&searchString="
-                + URLEncoder.encode(query == null ? "" : query, StandardCharsets.UTF_8)
-                + "&searchMode=v2";
     }
 
     public LocalDateTime getAddedAt() {

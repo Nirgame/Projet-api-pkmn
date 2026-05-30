@@ -174,12 +174,11 @@
                                  th:alt="${detail.assignedCard.name}"
                                  th:attr="data-zoom-src=${detail.assignedCard.displayImage},
                                           data-zoom-title=${detail.assignedCard.displayName},
-                                          data-zoom-subtitle=${detail.assignedCard.secondaryName},
+                                         data-zoom-subtitle=${detail.assignedCard.secondaryName},
                                           data-zoom-card-id=${detail.assignedCard.cardId},
                                           data-zoom-set-name=${detail.assignedCard.displaySetName},
                                           data-zoom-quantity=${'x' + detail.assignedCard.quantity},
-                                          data-zoom-variant=${detail.assignedCard.variantLabel},
-                                          data-zoom-cardmarket-url=${detail.assignedCard.cardmarketUrl}"
+                                          data-zoom-variant=${detail.assignedCard.variantLabel}"
                                  th:classappend="' zoom-hover-image'"
                                  onerror="this.onerror=null;this.src='/images/placeholder.svg'">
                             <h4 class="h6 mb-1" th:text="${detail.assignedCard.displayName}">Bulbasaur</h4>
@@ -270,8 +269,7 @@
                                                       data-zoom-card-id=${card.cardId},
                                                       data-zoom-set-name=${card.displaySetName},
                                                       data-zoom-quantity=${'x' + card.quantity},
-                                                      data-zoom-variant=${card.variantLabel},
-                                                      data-zoom-cardmarket-url=${card.cardmarketUrl}"
+                                                      data-zoom-variant=${card.variantLabel}"
                                              th:classappend="' zoom-hover-image'"
                                              style="width: 72px; height: 100px; object-fit: contain;"
                                              onerror="this.onerror=null;this.src='/images/placeholder.svg'">
@@ -373,8 +371,7 @@
                                                       data-zoom-local-id=${card.localId},
                                                       data-zoom-set-name=${card.displaySetName},
                                                       data-zoom-rarity=${card.displayRarity},
-                                                      data-zoom-variant=${card.variantLabel},
-                                                      data-zoom-cardmarket-url=${card.cardmarketUrl}"
+                                                      data-zoom-variant=${card.variantLabel}"
                                              th:classappend="' zoom-hover-image'"
                                              style="width: 72px; height: 100px; object-fit: contain;"
                                              onerror="this.onerror=null;this.src='/images/placeholder.svg'">

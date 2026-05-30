@@ -2,8 +2,6 @@ package net.tcgdex.model;
 
 import net.tcgdex.util.CardNameUtils;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 /**
  * ReprÃ©sente une brÃ¨ve information sur une carte PokÃ©mon
@@ -191,19 +189,6 @@ public class CardBrief {
             return setName;
         }
         return getResolvedSetId();
-    }
-
-    public String getCardmarketUrl() {
-        String query = getDisplayName();
-        if (query == null || query.isBlank()) {
-            query = getEnglishName();
-        }
-        if (query == null || query.isBlank()) {
-            query = id;
-        }
-        return "https://www.cardmarket.com/fr/Pokemon/Products/Search?category=-1&searchString="
-                + URLEncoder.encode(query == null ? "" : query, StandardCharsets.UTF_8)
-                + "&searchMode=v2";
     }
 
     @Override

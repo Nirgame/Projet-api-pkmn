@@ -120,16 +120,18 @@
         .card-zoom-modal-dialog {
             position: relative;
             width: min(460px, 92vw);
-            max-height: 92vh;
+            max-height: calc(100vh - 32px);
             border-radius: 22px;
             background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(30,41,59,0.98));
             box-shadow: 0 28px 80px rgba(15, 23, 42, 0.45);
-            padding: 18px 18px 14px;
+            padding: 56px 18px 18px;
+            overflow-y: auto;
         }
         .card-zoom-modal-close {
             position: absolute;
             top: 10px;
             right: 10px;
+            z-index: 3;
             border: 0;
             width: 38px;
             height: 38px;
@@ -137,10 +139,11 @@
             background: rgba(255,255,255,0.14);
             color: #f8fafc;
             font-size: 1.1rem;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.28);
         }
         .card-zoom-modal-image {
             width: 100%;
-            max-height: 76vh;
+            max-height: min(56vh, 700px);
             object-fit: contain;
             border-radius: 16px;
             background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(226,232,240,0.96));
@@ -151,6 +154,7 @@
             align-items: center;
             justify-content: center;
             margin-bottom: 14px;
+            padding: 0 12px;
         }
         .card-zoom-modal-nav {
             position: absolute;
@@ -224,6 +228,20 @@
             background: #dc2626;
         }
         @media (max-width: 576px) {
+            .card-zoom-modal {
+                padding: 12px;
+            }
+            .card-zoom-modal-dialog {
+                width: 100%;
+                max-height: calc(100vh - 24px);
+                padding: 52px 14px 16px;
+            }
+            .card-zoom-modal-image {
+                max-height: 46vh;
+            }
+            .card-zoom-modal-media {
+                padding: 0 6px;
+            }
             .compact-pagination .pagination {
                 justify-content: center;
             }
@@ -251,10 +269,10 @@
                 padding-right: 0.75rem;
             }
             .card-zoom-modal-nav.prev {
-                left: 6px;
+                left: 0;
             }
             .card-zoom-modal-nav.next {
-                right: 6px;
+                right: 0;
             }
         }
         @media (max-width: 767.98px) {
@@ -361,34 +379,17 @@
         }
 
         (() => {
-            let hoverPreview = null;
-            let hoverPreviewImage = null;
-            let hoverPreviewTitle = null;
             let zoomModal = null;
             let zoomDialog = null;
             let zoomImage = null;
             let zoomTitle = null;
             let zoomSubtitle = null;
             let zoomMeta = null;
-            let zoomCardmarketLink = null;
             let zoomPrevButton = null;
             let zoomNextButton = null;
             let activeSelector = null;
             let activeImages = [];
             let activeIndex = -1;
-
-            function ensureHoverPreview() {
-                if (hoverPreview) {
-                    return;
-                }
-
-                hoverPreview = document.createElement('div');
-                hoverPreview.className = 'card-zoom-preview';
-                hoverPreview.innerHTML = '<img alt=""><div class="card-zoom-preview-title"></div>';
-                document.body.appendChild(hoverPreview);
-                hoverPreviewImage = hoverPreview.querySelector('img');
-                hoverPreviewTitle = hoverPreview.querySelector('.card-zoom-preview-title');
-            }
 
             function ensureZoomModal() {
                 if (zoomModal) {
@@ -408,9 +409,6 @@
                     '<div class="card-zoom-modal-title"></div>' +
                     '<div class="card-zoom-modal-subtitle"></div>' +
                     '<div class="card-zoom-modal-meta"></div>' +
-                    '<div class="card-zoom-modal-actions">' +
-                    '<a class="card-zoom-modal-link" target="_blank" rel="noopener noreferrer"><i class="fas fa-store"></i> Cardmarket</a>' +
-                    '</div>' +
                     '</div>';
                 document.body.appendChild(zoomModal);
 
@@ -419,7 +417,6 @@
                 zoomTitle = zoomModal.querySelector('.card-zoom-modal-title');
                 zoomSubtitle = zoomModal.querySelector('.card-zoom-modal-subtitle');
                 zoomMeta = zoomModal.querySelector('.card-zoom-modal-meta');
-                zoomCardmarketLink = zoomModal.querySelector('.card-zoom-modal-link');
                 zoomPrevButton = zoomModal.querySelector('.card-zoom-modal-nav.prev');
                 zoomNextButton = zoomModal.querySelector('.card-zoom-modal-nav.next');
 
@@ -487,10 +484,6 @@
                     buildMetaItem('Quantité', dataset.zoomQuantity)
                 ].join('');
 
-                const cardmarketUrl = dataset.zoomCardmarketUrl || '';
-                zoomCardmarketLink.href = cardmarketUrl || '#';
-                zoomCardmarketLink.style.display = cardmarketUrl ? 'inline-flex' : 'none';
-
                 zoomPrevButton.style.display = activeIndex > 0 ? '' : 'none';
                 zoomNextButton.style.display = activeIndex < activeImages.length - 1 ? '' : 'none';
             }
@@ -530,66 +523,6 @@
                 zoomImage.src = '';
             }
 
-            function setupHoverZoom(selector) {
-                const images = document.querySelectorAll(selector);
-                if (!images.length || !window.matchMedia('(hover: hover)').matches) {
-                    return;
-                }
-
-                ensureHoverPreview();
-                let hoverTimer = null;
-                let activeImage = null;
-
-                function positionPreview(event) {
-                    const offset = 24;
-                    const previewWidth = hoverPreview.offsetWidth || 320;
-                    const previewHeight = hoverPreview.offsetHeight || 460;
-                    const maxLeft = window.innerWidth - previewWidth - 16;
-                    const maxTop = window.innerHeight - previewHeight - 16;
-                    const left = Math.min(event.clientX + offset, Math.max(16, maxLeft));
-                    const top = Math.min(event.clientY + offset, Math.max(16, maxTop));
-
-                    hoverPreview.style.left = left + 'px';
-                    hoverPreview.style.top = top + 'px';
-                }
-
-                function hidePreview() {
-                    if (hoverTimer) {
-                        clearTimeout(hoverTimer);
-                        hoverTimer = null;
-                    }
-                    hoverPreview.style.display = 'none';
-                    activeImage = null;
-                }
-
-                images.forEach(image => {
-                    if (image.dataset.zoomHoverBound === 'true') {
-                        return;
-                    }
-                    image.dataset.zoomHoverBound = 'true';
-                    image.addEventListener('mouseenter', event => {
-                        hidePreview();
-                        activeImage = image;
-                        hoverTimer = window.setTimeout(() => {
-                            if (activeImage !== image) {
-                                return;
-                            }
-                            hoverPreviewImage.src = image.dataset.zoomSrc || image.src;
-                            hoverPreviewImage.alt = image.alt || '';
-                            hoverPreviewTitle.textContent = image.dataset.zoomTitle || image.alt || '';
-                            hoverPreview.style.display = 'block';
-                            positionPreview(event);
-                        }, 500);
-                    });
-                    image.addEventListener('mousemove', event => {
-                        if (hoverPreview.style.display === 'block') {
-                            positionPreview(event);
-                        }
-                    });
-                    image.addEventListener('mouseleave', hidePreview);
-                });
-            }
-
             function setupClickZoom(selector) {
                 const images = document.querySelectorAll(selector);
                 if (!images.length) {
@@ -606,7 +539,6 @@
             }
 
             window.initializeCardZoom = function(selector) {
-                setupHoverZoom(selector);
                 setupClickZoom(selector);
             };
         })();
