@@ -151,7 +151,12 @@ public final class PokemonNameUtils {
                     || hasRegionalMarker(card, species.regionalForm());
         }
 
-        return !hasAnyRegionalMarker(card)
+        RegionalForm intrinsicRegionalForm = getIntrinsicRegionalForm(species);
+        boolean regionalMatch = intrinsicRegionalForm == null
+                ? !hasAnyRegionalMarker(card)
+                : !hasAnyRegionalMarker(card) || hasRegionalMarker(card, intrinsicRegionalForm);
+
+        return regionalMatch
                 && !PokemonAlternativeForms.hasAnyMarker(
                         card.getEnglishName(),
                         card.getFrenchName(),
@@ -171,6 +176,11 @@ public final class PokemonNameUtils {
 
         if (species.isRegionalForm()) {
             return hasRegionalMarker(card, species.regionalForm());
+        }
+
+        RegionalForm intrinsicRegionalForm = getIntrinsicRegionalForm(species);
+        if (intrinsicRegionalForm != null) {
+            return !hasAnyRegionalMarker(card) || hasRegionalMarker(card, intrinsicRegionalForm);
         }
 
         return !hasAnyRegionalMarker(card);
@@ -232,5 +242,12 @@ public final class PokemonNameUtils {
         String paddedHaystack = " " + haystack.trim() + " ";
         String paddedPhrase = " " + phrase.trim() + " ";
         return paddedHaystack.contains(paddedPhrase);
+    }
+
+    private static RegionalForm getIntrinsicRegionalForm(PokemonSpeciesInfo species) {
+        return switch (species.speciesId()) {
+            case 899, 900, 901, 902, 903, 904, 905 -> RegionalForm.HISUI;
+            default -> null;
+        };
     }
 }

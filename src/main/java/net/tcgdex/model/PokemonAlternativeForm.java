@@ -10,7 +10,9 @@ public record PokemonAlternativeForm(
         String formLabel,
         RegionalForm regionalForm,
         boolean replacesBaseEntry,
-        List<String> aliases) {
+        List<String> aliases,
+        boolean megaForm,
+        boolean gigantamaxForm) {
 
     private static final int ENTRY_ID_PREFIX = 2_000_000;
     private static final int SPECIES_MULTIPLIER = 100;
@@ -23,7 +25,19 @@ public record PokemonAlternativeForm(
             String formLabel,
             boolean replacesBaseEntry,
             List<String> aliases) {
-        this(speciesId, localCode, englishName, frenchName, formLabel, null, replacesBaseEntry, aliases);
+        this(speciesId, localCode, englishName, frenchName, formLabel, null, replacesBaseEntry, aliases, false, false);
+    }
+
+    public PokemonAlternativeForm(
+            int speciesId,
+            int localCode,
+            String englishName,
+            String frenchName,
+            String formLabel,
+            RegionalForm regionalForm,
+            boolean replacesBaseEntry,
+            List<String> aliases) {
+        this(speciesId, localCode, englishName, frenchName, formLabel, regionalForm, replacesBaseEntry, aliases, false, false);
     }
 
     public int toEntryId() {
@@ -32,6 +46,10 @@ public record PokemonAlternativeForm(
 
     public boolean isDefaultForm() {
         return replacesBaseEntry;
+    }
+
+    public boolean isMegaOrGigantamaxForm() {
+        return megaForm || gigantamaxForm;
     }
 
     public static boolean isAlternativeEntryId(int entryId) {

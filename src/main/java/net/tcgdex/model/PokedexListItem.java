@@ -6,7 +6,8 @@ public record PokedexListItem(
         PokemonSpeciesInfo species,
         UserCard assignedCard,
         long ownedCardCount,
-        boolean missingCardMarked) {
+        boolean missingCardMarked,
+        String comment) {
 
     public boolean hasAssignedCard() {
         return assignedCard != null;
@@ -14,5 +15,9 @@ public record PokedexListItem(
 
     public boolean hasMissingCardMarked() {
         return missingCardMarked;
+    }
+
+    public boolean hasComment() {
+        return comment != null && !comment.isBlank();
     }
 }

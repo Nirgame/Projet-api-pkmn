@@ -114,7 +114,14 @@
                 <div class="card h-100">
                     <img th:src="${card.displayImage}"
                          th:alt="${card.displayName}" class="card-img-top zoom-hover-image"
-                         th:attr="data-zoom-src=${card.displayImage},data-zoom-title=${card.displayName}"
+                         th:attr="data-zoom-src=${card.displayImage},
+                                  data-zoom-title=${card.displayName},
+                                  data-zoom-subtitle=${card.secondaryName},
+                                  data-zoom-card-id=${card.cardId},
+                                  data-zoom-set-name=${card.displaySetName},
+                                  data-zoom-quantity=${'x' + card.quantity},
+                                  data-zoom-variant=${card.variantLabel},
+                                  data-zoom-cardmarket-url=${card.cardmarketUrl}"
                          onerror="this.onerror=null;this.src='/images/placeholder.svg'">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
@@ -427,8 +434,7 @@
 
             document.addEventListener('DOMContentLoaded', function() {
                 setupCollectionFilters();
-                setupHoverZoom('.zoom-hover-image');
-                setupClickZoom('.zoom-hover-image');
+                initializeCardZoom('.zoom-hover-image');
             });
         </script>
     </div>

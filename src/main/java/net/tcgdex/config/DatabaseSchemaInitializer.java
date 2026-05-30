@@ -36,6 +36,7 @@ public class DatabaseSchemaInitializer {
                     )
                     """);
             jdbcTemplate.execute("ALTER TABLE user_pokemon_card_assignments ADD COLUMN IF NOT EXISTS card_missing BOOLEAN DEFAULT FALSE");
+            jdbcTemplate.execute("ALTER TABLE user_pokemon_card_assignments ADD COLUMN IF NOT EXISTS comment VARCHAR(1000)");
             jdbcTemplate.execute("UPDATE user_pokemon_card_assignments SET card_missing = FALSE WHERE card_missing IS NULL");
             try {
                 jdbcTemplate.execute("ALTER TABLE user_pokemon_card_assignments ALTER COLUMN assigned_card_id DROP NOT NULL");

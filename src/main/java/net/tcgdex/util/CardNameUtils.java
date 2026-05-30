@@ -25,6 +25,8 @@ public final class CardNameUtils {
                 .replace("galarian", "galar")
                 .replace("hisuian", "hisui")
                 .replace("paldean", "paldea")
+                .replace("gigantamax", "gigamax")
+                .replace("g-max", "gigamax")
                 .replaceAll("[^a-z0-9]+", " ")
                 .trim();
 

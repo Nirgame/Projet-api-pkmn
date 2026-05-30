@@ -90,6 +90,37 @@
             margin-top: 12px;
             font-size: 0.98rem;
         }
+        .pokedex-card-aside {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.65rem;
+            min-width: 142px;
+        }
+        .pokedex-comment-note {
+            width: 142px;
+            min-height: 74px;
+            padding: 0.7rem 0.8rem;
+            border-radius: 12px;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            background: linear-gradient(180deg, #fffef7, #fff8df);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.55);
+        }
+        .pokedex-comment-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #8a6a06;
+            margin-bottom: 0.25rem;
+        }
+        .pokedex-comment-text {
+            font-size: 0.86rem;
+            line-height: 1.35;
+            color: #3f3a24;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
     </style>
 </head>
 <body>
@@ -102,7 +133,10 @@
             </p>
         </div>
         <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-            <span class="badge bg-dark fs-6" th:text="|${totalResults} Pokemon|">0 Pokemon</span>
+            <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
+                <span class="badge bg-dark fs-6" th:text="|${totalResults} Pokemon|">0 Pokemon</span>
+                <span class="badge bg-secondary fs-6" th:text="|${unassignedCount} non assignes|">0 non assignes</span>
+            </div>
         </div>
     </div>
 
@@ -113,7 +147,7 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="get" th:action="@{/pokedex}" class="row g-3 align-items-end">
-                <div class="col-lg-4">
+                <div class="col-lg-3">
                     <label class="form-label" for="pokedex-search">Recherche</label>
                     <input id="pokedex-search"
                            type="search"
@@ -146,6 +180,17 @@
                     </select>
                 </div>
                 <div class="col-lg-2">
+                    <label class="form-label" for="megaGigantamaxMode">Megas et Gigamax</label>
+                    <select id="megaGigantamaxMode" name="megaGigantamaxMode" class="form-select">
+                        <option th:each="mode : ${megaGigantamaxModes}"
+                                th:value="${mode.name()}"
+                                th:text="${mode.label()}"
+                                th:selected="${megaGigantamaxMode != null and megaGigantamaxMode == mode.name()}">
+                            Inclure
+                        </option>
+                    </select>
+                </div>
+                <div class="col-lg-2">
                     <div class="form-check pt-2 mb-2">
                         <input id="assignedOnly" class="form-check-input" type="checkbox" name="assignedOnly" value="true"
                                th:checked="${assignedOnly}">
@@ -156,8 +201,13 @@
                                th:checked="${unassignedOnly}">
                         <label class="form-check-label" for="unassignedOnly">Non assignes seulement</label>
                     </div>
+                    <div class="form-check pt-1">
+                        <input id="missingCardOnly" class="form-check-input" type="checkbox" name="missingCardOnly" value="true"
+                               th:checked="${missingCardOnly}">
+                        <label class="form-check-label" for="missingCardOnly">Pas de cartes disponibles</label>
+                    </div>
                 </div>
-                <div class="col-lg-2 d-grid">
+                <div class="col-lg-1 d-grid">
                     <button class="btn btn-primary" type="submit">
                         <i class="fas fa-search"></i> Filtrer
                     </button>
@@ -184,17 +234,23 @@
                                 Bulbasaur
                             </div>
                         </div>
-                        <div class="d-flex gap-2 flex-wrap justify-content-end">
-                            <span class="badge bg-light text-dark border"
-                                  th:if="${pokemon.species.formLabel != null and !pokemon.species.formLabel.isBlank()}"
-                                  th:text="${pokemon.species.formLabel}">
-                                Alola
-                            </span>
-                            <span class="badge bg-light text-dark border"
-                                  th:if="${pokemon.species.generationLabel != null and !pokemon.species.generationLabel.isBlank()}"
-                                  th:text="${pokemon.species.generationLabel}">
-                                Generation I
-                            </span>
+                        <div class="pokedex-card-aside">
+                            <div class="d-flex gap-2 flex-wrap justify-content-end">
+                                <span class="badge bg-light text-dark border"
+                                      th:if="${pokemon.species.formLabel != null and !pokemon.species.formLabel.isBlank()}"
+                                      th:text="${pokemon.species.formLabel}">
+                                    Alola
+                                </span>
+                                <span class="badge bg-light text-dark border"
+                                      th:if="${pokemon.species.generationLabel != null and !pokemon.species.generationLabel.isBlank()}"
+                                      th:text="${pokemon.species.generationLabel}">
+                                    Generation I
+                                </span>
+                            </div>
+                            <div th:if="${pokemon.hasComment()}" class="pokedex-comment-note">
+                                <div class="pokedex-comment-label">Commentaire</div>
+                                <div class="pokedex-comment-text" th:text="${pokemon.comment}">Commentaire</div>
+                            </div>
                         </div>
                     </div>
 
@@ -202,7 +258,14 @@
                         <div class="d-flex gap-3 align-items-center">
                             <img th:src="${pokemon.assignedCard.displayImage}"
                                  th:alt="${pokemon.assignedCard.name}"
-                                 th:attr="data-zoom-src=${pokemon.assignedCard.displayImage},data-zoom-title=${pokemon.assignedCard.displayName}"
+                                 th:attr="data-zoom-src=${pokemon.assignedCard.displayImage},
+                                          data-zoom-title=${pokemon.assignedCard.displayName},
+                                          data-zoom-subtitle=${pokemon.assignedCard.secondaryName},
+                                          data-zoom-card-id=${pokemon.assignedCard.cardId},
+                                          data-zoom-set-name=${pokemon.assignedCard.displaySetName},
+                                          data-zoom-quantity=${'x' + pokemon.assignedCard.quantity},
+                                          data-zoom-variant=${pokemon.assignedCard.variantLabel},
+                                          data-zoom-cardmarket-url=${pokemon.assignedCard.cardmarketUrl}"
                                  th:classappend="' zoom-hover-image'"
                                  style="width: 84px; height: 118px; object-fit: contain;"
                                  onerror="this.onerror=null;this.src='/images/placeholder.svg'">
@@ -261,7 +324,7 @@
                 <ul class="pagination justify-content-center">
                     <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/pokedex(page=${currentPage - 1}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, regionalMode=${regionalMode})}">
+                           th:href="@{/pokedex(page=${currentPage - 1}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, megaGigantamaxMode=${megaGigantamaxMode})}">
                             Precedent
                         </a>
                     </li>
@@ -273,14 +336,14 @@
                             th:classappend="${pageNumber == currentPage} ? 'active'">
                             <a class="page-link"
                                th:text="${pageNumber}"
-                               th:href="@{/pokedex(page=${pageNumber}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, regionalMode=${regionalMode})}">
+                               th:href="@{/pokedex(page=${pageNumber}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, megaGigantamaxMode=${megaGigantamaxMode})}">
                                 1
                             </a>
                         </li>
                     </th:block>
                     <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/pokedex(page=${currentPage + 1}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, regionalMode=${regionalMode})}">
+                           th:href="@{/pokedex(page=${currentPage + 1}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, megaGigantamaxMode=${megaGigantamaxMode})}">
                             Suivant
                         </a>
                     </li>
@@ -291,7 +354,9 @@
                 <input type="hidden" name="generation" th:value="${generation}">
                 <input type="hidden" name="assignedOnly" th:value="${assignedOnly}">
                 <input type="hidden" name="unassignedOnly" th:value="${unassignedOnly}">
+                <input type="hidden" name="missingCardOnly" th:value="${missingCardOnly}">
                 <input type="hidden" name="regionalMode" th:value="${regionalMode}">
+                <input type="hidden" name="megaGigantamaxMode" th:value="${megaGigantamaxMode}">
                 <div class="col-auto">
                     <label class="col-form-label page-jump-label" for="pokedexPageJump">Page</label>
                 </div>
@@ -432,8 +497,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            setupHoverZoom('.zoom-hover-image');
-            setupClickZoom('.zoom-hover-image');
+            initializeCardZoom('.zoom-hover-image');
         });
     </script>
 </div>

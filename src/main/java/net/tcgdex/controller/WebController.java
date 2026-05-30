@@ -299,8 +299,10 @@ public class WebController {
             @RequestParam(required = false) Integer generation,
             @RequestParam(defaultValue = "false") boolean assignedOnly,
             @RequestParam(defaultValue = "false") boolean unassignedOnly,
+            @RequestParam(defaultValue = "false") boolean missingCardOnly,
             @RequestParam(defaultValue = "INCLUDE") String regionalMode,
             @RequestParam(required = false) String regionalForm,
+            @RequestParam(defaultValue = "INCLUDE") String megaGigantamaxMode,
             Authentication authentication,
             Model model) {
         if (!isAuthenticated(authentication)) {
@@ -312,14 +314,17 @@ public class WebController {
         try {
             RegionalForm selectedRegionalForm = RegionalForm.fromFilterValue(regionalForm);
             RegionalDisplayMode selectedRegionalMode = RegionalDisplayMode.fromFilterValue(regionalMode);
+            RegionalDisplayMode selectedMegaGigantamaxMode = RegionalDisplayMode.fromFilterValue(megaGigantamaxMode);
             PokedexPageResult pageResult = pokedexService.getPokedexPage(
                     user,
                     search,
                     generation,
                     assignedOnly,
                     unassignedOnly,
+                    missingCardOnly,
                     selectedRegionalMode,
                     selectedRegionalForm,
+                    selectedMegaGigantamaxMode,
                     page,
                     size);
             model.addAttribute("pokemons", pageResult.pokemons());
@@ -328,13 +333,17 @@ public class WebController {
             model.addAttribute("currentPage", pageResult.currentPage());
             model.addAttribute("totalPages", pageResult.totalPages());
             model.addAttribute("totalResults", pageResult.totalResults());
+            model.addAttribute("unassignedCount", pageResult.unassignedCount());
             model.addAttribute("pageNumbers", buildCompactPageNumbers(pageResult.currentPage(), pageResult.totalPages()));
             model.addAttribute("search", search);
             model.addAttribute("generation", generation);
             model.addAttribute("assignedOnly", assignedOnly);
             model.addAttribute("unassignedOnly", unassignedOnly);
+            model.addAttribute("missingCardOnly", missingCardOnly);
             model.addAttribute("regionalModes", RegionalDisplayMode.values());
             model.addAttribute("regionalMode", selectedRegionalMode.name());
+            model.addAttribute("megaGigantamaxModes", RegionalDisplayMode.values());
+            model.addAttribute("megaGigantamaxMode", selectedMegaGigantamaxMode.name());
             model.addAttribute("regionalForm", regionalForm);
         } catch (IOException exception) {
             model.addAttribute("error", "Impossible de charger le Pokedex pour le moment.");

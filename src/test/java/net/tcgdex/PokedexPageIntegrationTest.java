@@ -60,14 +60,15 @@ class PokedexPageIntegrationTest {
 
         PokemonSpeciesInfo species = new PokemonSpeciesInfo(1, 1, "bulbasaur", "Bulbasaur", "Bulbizarre", 1, "Generation I", null);
         PokedexPageResult pageResult = new PokedexPageResult(
-                List.of(new PokedexListItem(species, assignedCard, 2, false)),
+                List.of(new PokedexListItem(species, assignedCard, 2, false, "Carte brillante")),
                 List.of(new GenerationOption(1, "Generation I")),
                 List.of(RegionalForm.values()),
                 1,
                 1,
-                1);
+                1,
+                0);
 
-        when(pokedexService.getPokedexPage(any(User.class), eq(null), eq(null), eq(false), eq(false), eq(RegionalDisplayMode.INCLUDE), eq(null), eq(1), eq(24))).thenReturn(pageResult);
+        when(pokedexService.getPokedexPage(any(User.class), eq(null), eq(null), eq(false), eq(false), eq(false), eq(RegionalDisplayMode.INCLUDE), eq(null), eq(RegionalDisplayMode.INCLUDE), eq(1), eq(24))).thenReturn(pageResult);
 
         mockMvc.perform(get("/pokedex")
                         .with(user("gary").roles("USER")))
@@ -76,6 +77,8 @@ class PokedexPageIntegrationTest {
                 .andExpect(content().string(containsString("Carte assignee")))
                 .andExpect(content().string(containsString("Generation I")))
                 .andExpect(content().string(containsString("Non assignes seulement")))
+                .andExpect(content().string(containsString("Carte brillante")))
+                .andExpect(content().string(containsString("Megas et Gigamax")))
                 .andExpect(content().string(containsString("Formes alternatives")))
                 .andExpect(content().string(containsString("Inclure")));
     }
@@ -96,14 +99,15 @@ class PokedexPageIntegrationTest {
                 RegionalForm.ALOLA);
 
         PokedexPageResult pageResult = new PokedexPageResult(
-                List.of(new PokedexListItem(regionalSpecies, null, 0, false)),
+                List.of(new PokedexListItem(regionalSpecies, null, 0, false, null)),
                 List.of(new GenerationOption(7, "Generation VII")),
                 List.of(RegionalForm.values()),
                 1,
                 1,
+                1,
                 1);
 
-        when(pokedexService.getPokedexPage(any(User.class), eq(null), eq(null), eq(false), eq(false), eq(RegionalDisplayMode.ONLY), eq(null), eq(1), eq(24)))
+        when(pokedexService.getPokedexPage(any(User.class), eq(null), eq(null), eq(false), eq(false), eq(false), eq(RegionalDisplayMode.ONLY), eq(null), eq(RegionalDisplayMode.INCLUDE), eq(1), eq(24)))
                 .thenReturn(pageResult);
 
         mockMvc.perform(get("/pokedex")
@@ -140,6 +144,7 @@ class PokedexPageIntegrationTest {
                 List.of(availableCard),
                 Map.of("base1-44", 1),
                 false,
+                "Mon commentaire",
                 null,
                 nextSpecies);
 
@@ -151,6 +156,7 @@ class PokedexPageIntegrationTest {
                 .andExpect(content().string(containsString("Cartes deja dans ma collection")))
                 .andExpect(content().string(containsString("Cartes TCG disponibles pour ce Pokemon")))
                 .andExpect(content().string(containsString("Assigner")))
+                .andExpect(content().string(containsString("Mon commentaire")))
                 .andExpect(content().string(containsString("Herbizarre")))
                 .andExpect(content().string(containsString("Set de Base")));
     }

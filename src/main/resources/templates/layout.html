@@ -145,11 +145,83 @@
             border-radius: 16px;
             background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(226,232,240,0.96));
         }
+        .card-zoom-modal-media {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+        .card-zoom-modal-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 0;
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.72);
+            color: #f8fafc;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.3);
+        }
+        .card-zoom-modal-nav.prev {
+            left: -10px;
+        }
+        .card-zoom-modal-nav.next {
+            right: -10px;
+        }
         .card-zoom-modal-title {
             color: #f8fafc;
             text-align: center;
             margin-top: 12px;
             font-size: 0.98rem;
+        }
+        .card-zoom-modal-subtitle {
+            color: rgba(226, 232, 240, 0.8);
+            text-align: center;
+            margin-top: 4px;
+            font-size: 0.9rem;
+        }
+        .card-zoom-modal-meta {
+            display: grid;
+            gap: 0.45rem;
+            margin-top: 14px;
+        }
+        .card-zoom-modal-meta-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            color: #e2e8f0;
+            font-size: 0.92rem;
+            padding: 0.45rem 0.65rem;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            background: rgba(51, 65, 85, 0.28);
+        }
+        .card-zoom-modal-meta-label {
+            color: rgba(226, 232, 240, 0.72);
+        }
+        .card-zoom-modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        .card-zoom-modal-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.65rem 0.95rem;
+            border-radius: 999px;
+            text-decoration: none;
+            background: #ef4444;
+            color: #fff;
+            font-weight: 600;
+        }
+        .card-zoom-modal-link:hover {
+            color: #fff;
+            background: #dc2626;
         }
         @media (max-width: 576px) {
             .compact-pagination .pagination {
@@ -177,6 +249,12 @@
             .page-jump-button {
                 padding-left: 0.75rem;
                 padding-right: 0.75rem;
+            }
+            .card-zoom-modal-nav.prev {
+                left: 6px;
+            }
+            .card-zoom-modal-nav.next {
+                right: 6px;
             }
         }
         @media (max-width: 767.98px) {
@@ -281,6 +359,257 @@
             }
             return requestInit;
         }
+
+        (() => {
+            let hoverPreview = null;
+            let hoverPreviewImage = null;
+            let hoverPreviewTitle = null;
+            let zoomModal = null;
+            let zoomDialog = null;
+            let zoomImage = null;
+            let zoomTitle = null;
+            let zoomSubtitle = null;
+            let zoomMeta = null;
+            let zoomCardmarketLink = null;
+            let zoomPrevButton = null;
+            let zoomNextButton = null;
+            let activeSelector = null;
+            let activeImages = [];
+            let activeIndex = -1;
+
+            function ensureHoverPreview() {
+                if (hoverPreview) {
+                    return;
+                }
+
+                hoverPreview = document.createElement('div');
+                hoverPreview.className = 'card-zoom-preview';
+                hoverPreview.innerHTML = '<img alt=""><div class="card-zoom-preview-title"></div>';
+                document.body.appendChild(hoverPreview);
+                hoverPreviewImage = hoverPreview.querySelector('img');
+                hoverPreviewTitle = hoverPreview.querySelector('.card-zoom-preview-title');
+            }
+
+            function ensureZoomModal() {
+                if (zoomModal) {
+                    return;
+                }
+
+                zoomModal = document.createElement('div');
+                zoomModal.className = 'card-zoom-modal';
+                zoomModal.innerHTML = '' +
+                    '<div class="card-zoom-modal-dialog" role="dialog" aria-modal="true" aria-label="Zoom carte">' +
+                    '<button type="button" class="card-zoom-modal-close" aria-label="Fermer">&times;</button>' +
+                    '<div class="card-zoom-modal-media">' +
+                    '<button type="button" class="card-zoom-modal-nav prev" aria-label="Carte precedente"><i class="fas fa-chevron-left"></i></button>' +
+                    '<img class="card-zoom-modal-image" alt="">' +
+                    '<button type="button" class="card-zoom-modal-nav next" aria-label="Carte suivante"><i class="fas fa-chevron-right"></i></button>' +
+                    '</div>' +
+                    '<div class="card-zoom-modal-title"></div>' +
+                    '<div class="card-zoom-modal-subtitle"></div>' +
+                    '<div class="card-zoom-modal-meta"></div>' +
+                    '<div class="card-zoom-modal-actions">' +
+                    '<a class="card-zoom-modal-link" target="_blank" rel="noopener noreferrer"><i class="fas fa-store"></i> Cardmarket</a>' +
+                    '</div>' +
+                    '</div>';
+                document.body.appendChild(zoomModal);
+
+                zoomDialog = zoomModal.querySelector('.card-zoom-modal-dialog');
+                zoomImage = zoomModal.querySelector('.card-zoom-modal-image');
+                zoomTitle = zoomModal.querySelector('.card-zoom-modal-title');
+                zoomSubtitle = zoomModal.querySelector('.card-zoom-modal-subtitle');
+                zoomMeta = zoomModal.querySelector('.card-zoom-modal-meta');
+                zoomCardmarketLink = zoomModal.querySelector('.card-zoom-modal-link');
+                zoomPrevButton = zoomModal.querySelector('.card-zoom-modal-nav.prev');
+                zoomNextButton = zoomModal.querySelector('.card-zoom-modal-nav.next');
+
+                zoomModal.querySelector('.card-zoom-modal-close').addEventListener('click', closeCardZoomModal);
+                zoomPrevButton.addEventListener('click', () => moveCardZoom(-1));
+                zoomNextButton.addEventListener('click', () => moveCardZoom(1));
+                zoomModal.addEventListener('click', event => {
+                    if (!zoomDialog.contains(event.target) || event.target === zoomModal) {
+                        closeCardZoomModal();
+                    }
+                });
+
+                document.addEventListener('keydown', event => {
+                    if (!zoomModal.classList.contains('is-open')) {
+                        return;
+                    }
+                    if (event.key === 'Escape') {
+                        closeCardZoomModal();
+                    } else if (event.key === 'ArrowLeft') {
+                        moveCardZoom(-1);
+                    } else if (event.key === 'ArrowRight') {
+                        moveCardZoom(1);
+                    }
+                });
+            }
+
+            function getVisibleImages(selector) {
+                return Array.from(document.querySelectorAll(selector))
+                    .filter(image => image.offsetParent !== null);
+            }
+
+            function buildMetaItem(label, value) {
+                if (!value) {
+                    return '';
+                }
+                const safeLabel = String(label)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+                const safeValue = String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+                return '<div class="card-zoom-modal-meta-item"><span class="card-zoom-modal-meta-label">'
+                    + safeLabel
+                    + '</span><span>'
+                    + safeValue
+                    + '</span></div>';
+            }
+
+            function updateCardZoomModal(image) {
+                const dataset = image.dataset;
+                zoomImage.src = dataset.zoomSrc || image.src;
+                zoomImage.alt = image.alt || '';
+                zoomTitle.textContent = dataset.zoomTitle || image.alt || '';
+                zoomSubtitle.textContent = dataset.zoomSubtitle || '';
+                zoomSubtitle.style.display = zoomSubtitle.textContent ? '' : 'none';
+
+                zoomMeta.innerHTML = [
+                    buildMetaItem('Carte', dataset.zoomCardId),
+                    buildMetaItem('Numero local', dataset.zoomLocalId),
+                    buildMetaItem('Set', dataset.zoomSetName),
+                    buildMetaItem('Rareté', dataset.zoomRarity),
+                    buildMetaItem('Forme', dataset.zoomVariant),
+                    buildMetaItem('Quantité', dataset.zoomQuantity)
+                ].join('');
+
+                const cardmarketUrl = dataset.zoomCardmarketUrl || '';
+                zoomCardmarketLink.href = cardmarketUrl || '#';
+                zoomCardmarketLink.style.display = cardmarketUrl ? 'inline-flex' : 'none';
+
+                zoomPrevButton.style.display = activeIndex > 0 ? '' : 'none';
+                zoomNextButton.style.display = activeIndex < activeImages.length - 1 ? '' : 'none';
+            }
+
+            function openCardZoomModal(selector, image) {
+                ensureZoomModal();
+                activeSelector = selector;
+                activeImages = getVisibleImages(selector);
+                activeIndex = activeImages.indexOf(image);
+                if (activeIndex < 0) {
+                    activeImages = Array.from(document.querySelectorAll(selector));
+                    activeIndex = activeImages.indexOf(image);
+                }
+                updateCardZoomModal(image);
+                zoomModal.classList.add('is-open');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function moveCardZoom(direction) {
+                if (!activeImages.length) {
+                    return;
+                }
+                const nextIndex = activeIndex + direction;
+                if (nextIndex < 0 || nextIndex >= activeImages.length) {
+                    return;
+                }
+                activeIndex = nextIndex;
+                updateCardZoomModal(activeImages[activeIndex]);
+            }
+
+            function closeCardZoomModal() {
+                if (!zoomModal) {
+                    return;
+                }
+                zoomModal.classList.remove('is-open');
+                document.body.classList.remove('overflow-hidden');
+                zoomImage.src = '';
+            }
+
+            function setupHoverZoom(selector) {
+                const images = document.querySelectorAll(selector);
+                if (!images.length || !window.matchMedia('(hover: hover)').matches) {
+                    return;
+                }
+
+                ensureHoverPreview();
+                let hoverTimer = null;
+                let activeImage = null;
+
+                function positionPreview(event) {
+                    const offset = 24;
+                    const previewWidth = hoverPreview.offsetWidth || 320;
+                    const previewHeight = hoverPreview.offsetHeight || 460;
+                    const maxLeft = window.innerWidth - previewWidth - 16;
+                    const maxTop = window.innerHeight - previewHeight - 16;
+                    const left = Math.min(event.clientX + offset, Math.max(16, maxLeft));
+                    const top = Math.min(event.clientY + offset, Math.max(16, maxTop));
+
+                    hoverPreview.style.left = left + 'px';
+                    hoverPreview.style.top = top + 'px';
+                }
+
+                function hidePreview() {
+                    if (hoverTimer) {
+                        clearTimeout(hoverTimer);
+                        hoverTimer = null;
+                    }
+                    hoverPreview.style.display = 'none';
+                    activeImage = null;
+                }
+
+                images.forEach(image => {
+                    if (image.dataset.zoomHoverBound === 'true') {
+                        return;
+                    }
+                    image.dataset.zoomHoverBound = 'true';
+                    image.addEventListener('mouseenter', event => {
+                        hidePreview();
+                        activeImage = image;
+                        hoverTimer = window.setTimeout(() => {
+                            if (activeImage !== image) {
+                                return;
+                            }
+                            hoverPreviewImage.src = image.dataset.zoomSrc || image.src;
+                            hoverPreviewImage.alt = image.alt || '';
+                            hoverPreviewTitle.textContent = image.dataset.zoomTitle || image.alt || '';
+                            hoverPreview.style.display = 'block';
+                            positionPreview(event);
+                        }, 500);
+                    });
+                    image.addEventListener('mousemove', event => {
+                        if (hoverPreview.style.display === 'block') {
+                            positionPreview(event);
+                        }
+                    });
+                    image.addEventListener('mouseleave', hidePreview);
+                });
+            }
+
+            function setupClickZoom(selector) {
+                const images = document.querySelectorAll(selector);
+                if (!images.length) {
+                    return;
+                }
+
+                images.forEach(image => {
+                    if (image.dataset.zoomClickBound === 'true') {
+                        return;
+                    }
+                    image.dataset.zoomClickBound = 'true';
+                    image.addEventListener('click', () => openCardZoomModal(selector, image));
+                });
+            }
+
+            window.initializeCardZoom = function(selector) {
+                setupHoverZoom(selector);
+                setupClickZoom(selector);
+            };
+        })();
     </script>
     <th:block layout:fragment="scripts"></th:block>
 </body>

@@ -287,7 +287,6 @@ public class TCGdexService {
                         Set::getDisplayName,
                         (left, right) -> left,
                         LinkedHashMap::new));
-
         for (CardBrief card : cards) {
             String resolvedSetId = card.getResolvedSetId();
             if (resolvedSetId == null || resolvedSetId.isBlank()) {

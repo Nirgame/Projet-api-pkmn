@@ -66,6 +66,14 @@ public record PokemonSpeciesInfo(
         return alternativeForm != null;
     }
 
+    public boolean isMegaForm() {
+        return alternativeForm != null && alternativeForm.megaForm();
+    }
+
+    public boolean isGigantamaxForm() {
+        return alternativeForm != null && alternativeForm.gigantamaxForm();
+    }
+
     public String getRegionalFormLabel() {
         return regionalForm != null ? regionalForm.label() : "";
     }

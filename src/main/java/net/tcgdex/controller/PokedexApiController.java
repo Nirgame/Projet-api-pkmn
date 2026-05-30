@@ -26,10 +26,11 @@ public class PokedexApiController {
     @PostMapping("/pokemon/{pokemonId}/assign/{cardId}")
     public ResponseEntity<?> assignCard(@PathVariable int pokemonId,
             @PathVariable String cardId,
+            @RequestBody(required = false) PokedexAssignmentRequest request,
             Authentication authentication) {
         try {
             User user = getCurrentUser(authentication);
-            UserCard assignedCard = pokedexService.assignCard(user, pokemonId, cardId) != null
+            UserCard assignedCard = pokedexService.assignCard(user, pokemonId, cardId, request != null ? request.comment() : null) != null
                     ? pokedexService.getAssignedCard(user, pokemonId).orElse(null)
                     : null;
 
@@ -37,7 +38,8 @@ public class PokedexApiController {
                     "success", true,
                     "pokemonId", pokemonId,
                     "cardId", cardId,
-                    "cardName", assignedCard != null ? assignedCard.getName() : ""));
+                    "cardName", assignedCard != null ? assignedCard.getName() : "",
+                    "comment", request != null && request.comment() != null ? request.comment() : ""));
         } catch (IllegalArgumentException exception) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", exception.getMessage()));
         } catch (IOException exception) {
@@ -46,15 +48,37 @@ public class PokedexApiController {
     }
 
     @PostMapping("/pokemon/{pokemonId}/mark-missing")
-    public ResponseEntity<?> markMissingCard(@PathVariable int pokemonId, Authentication authentication) {
+    public ResponseEntity<?> markMissingCard(@PathVariable int pokemonId,
+            @RequestBody(required = false) PokedexAssignmentRequest request,
+            Authentication authentication) {
         try {
             User user = getCurrentUser(authentication);
-            pokedexService.markMissingCard(user, pokemonId);
+            pokedexService.markMissingCard(user, pokemonId, request != null ? request.comment() : null);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "pokemonId", pokemonId,
-                    "missingCard", true));
+                    "missingCard", true,
+                    "comment", request != null && request.comment() != null ? request.comment() : ""));
+        } catch (IllegalArgumentException exception) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", exception.getMessage()));
+        } catch (IOException exception) {
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "error", exception.getMessage()));
+        }
+    }
+
+    @PutMapping("/pokemon/{pokemonId}/comment")
+    public ResponseEntity<?> saveComment(@PathVariable int pokemonId,
+            @RequestBody(required = false) PokedexAssignmentRequest request,
+            Authentication authentication) {
+        try {
+            User user = getCurrentUser(authentication);
+            String comment = request != null ? request.comment() : null;
+            pokedexService.saveComment(user, pokemonId, comment);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "pokemonId", pokemonId,
+                    "comment", comment == null ? "" : comment));
         } catch (IllegalArgumentException exception) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", exception.getMessage()));
         } catch (IOException exception) {

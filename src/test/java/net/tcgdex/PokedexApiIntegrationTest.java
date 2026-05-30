@@ -52,18 +52,22 @@ class PokedexApiIntegrationTest {
         assignment.setUser(user);
         assignment.setPokemonId(1);
         assignment.setAssignedCardId("base1-44");
+        assignment.setComment("Commentaire test");
 
         UserCard userCard = new UserCard(user, "base1-44", "Bulbasaur");
 
-        when(pokedexService.assignCard(any(User.class), eq(1), eq("base1-44"))).thenReturn(assignment);
+        when(pokedexService.assignCard(any(User.class), eq(1), eq("base1-44"), eq("Commentaire test"))).thenReturn(assignment);
         when(pokedexService.getAssignedCard(any(User.class), eq(1))).thenReturn(Optional.of(userCard));
 
         mockMvc.perform(post("/api/pokedex/pokemon/1/assign/base1-44")
+                        .contentType("application/json")
+                        .content("{\"comment\":\"Commentaire test\"}")
                         .with(csrf())
                         .with(user("leaf").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("\"success\":true")))
-                .andExpect(content().string(containsString("\"cardId\":\"base1-44\"")));
+                .andExpect(content().string(containsString("\"cardId\":\"base1-44\"")))
+                .andExpect(content().string(containsString("\"comment\":\"Commentaire test\"")));
     }
 
     @Test
@@ -89,14 +93,18 @@ class PokedexApiIntegrationTest {
         assignment.setUser(user);
         assignment.setPokemonId(25);
         assignment.setCardMissing(true);
+        assignment.setComment("Aucune carte");
 
-        when(pokedexService.markMissingCard(any(User.class), eq(25))).thenReturn(assignment);
+        when(pokedexService.markMissingCard(any(User.class), eq(25), eq("Aucune carte"))).thenReturn(assignment);
 
         mockMvc.perform(post("/api/pokedex/pokemon/25/mark-missing")
+                        .contentType("application/json")
+                        .content("{\"comment\":\"Aucune carte\"}")
                         .with(csrf())
                         .with(user("crystal").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("\"success\":true")))
-                .andExpect(content().string(containsString("\"missingCard\":true")));
+                .andExpect(content().string(containsString("\"missingCard\":true")))
+                .andExpect(content().string(containsString("\"comment\":\"Aucune carte\"")));
     }
 }

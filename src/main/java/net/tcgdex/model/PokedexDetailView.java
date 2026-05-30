@@ -12,6 +12,7 @@ public record PokedexDetailView(
         List<CardBrief> availableCards,
         Map<String, Integer> ownedCardCounts,
         boolean missingCardMarked,
+        String comment,
         PokemonSpeciesInfo previousSpecies,
         PokemonSpeciesInfo nextSpecies) {
 
@@ -21,6 +22,10 @@ public record PokedexDetailView(
 
     public boolean hasMissingCardMarked() {
         return missingCardMarked;
+    }
+
+    public boolean hasComment() {
+        return comment != null && !comment.isBlank();
     }
 
     public boolean hasPreviousSpecies() {

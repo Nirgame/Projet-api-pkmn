@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -59,7 +60,18 @@ class PokedexServiceTest {
                 userCardRepository,
                 assignmentRepository);
 
-        PokedexPageResult result = service.getPokedexPage(user, null, 2, false, false, RegionalDisplayMode.EXCLUDE, null, 1, 24);
+        PokedexPageResult result = service.getPokedexPage(
+                user,
+                null,
+                2,
+                false,
+                false,
+                false,
+                RegionalDisplayMode.EXCLUDE,
+                null,
+                RegionalDisplayMode.INCLUDE,
+                1,
+                24);
 
         assertThat(result.totalResults()).isEqualTo(2);
         assertThat(result.pokemons())
@@ -137,7 +149,18 @@ class PokedexServiceTest {
                 userCardRepository,
                 assignmentRepository);
 
-        PokedexPageResult result = service.getPokedexPage(user, null, 7, false, false, RegionalDisplayMode.ONLY, null, 1, 24);
+        PokedexPageResult result = service.getPokedexPage(
+                user,
+                null,
+                7,
+                false,
+                false,
+                false,
+                RegionalDisplayMode.ONLY,
+                null,
+                RegionalDisplayMode.INCLUDE,
+                1,
+                24);
 
         assertThat(result.totalResults()).isEqualTo(1);
         assertThat(result.pokemons().getFirst().species().generationLabel()).isEqualTo("Generation VII");
@@ -183,11 +206,58 @@ class PokedexServiceTest {
                 userCardRepository,
                 assignmentRepository);
 
-        PokedexPageResult result = service.getPokedexPage(user, null, null, false, false, RegionalDisplayMode.EXCLUDE, null, 1, 24);
+        PokedexPageResult result = service.getPokedexPage(
+                user,
+                null,
+                null,
+                false,
+                false,
+                false,
+                RegionalDisplayMode.EXCLUDE,
+                null,
+                RegionalDisplayMode.INCLUDE,
+                1,
+                24);
 
         assertThat(result.pokemons())
                 .extracting(item -> item.species().frenchName())
                 .contains("Cheniselle Cape Plante", "Plumeline Style Pom-Pom")
                 .doesNotContain("Lougaroc Forme Nocturne");
+    }
+
+    @Test
+    void hisuiNativeSpeciesShouldKeepCardsWithHisuiMarker() throws IOException {
+        PokeApiService pokeApiService = mock(PokeApiService.class);
+        TCGdexService tcgdexService = mock(TCGdexService.class);
+        CollectionService collectionService = mock(CollectionService.class);
+        UserCardRepository userCardRepository = mock(UserCardRepository.class);
+        UserPokemonCardAssignmentRepository assignmentRepository = mock(UserPokemonCardAssignmentRepository.class);
+        User user = mock(User.class);
+
+        PokemonSpeciesInfo sneasler = new PokemonSpeciesInfo(
+                903, 903, "sneasler", "Sneasler", "Farfurex", 8, "Generation VIII", null);
+        CardBrief hisuianCard = new CardBrief();
+        hisuianCard.setId("swsh10-95");
+        hisuianCard.setEnglishName("Sneasler");
+        hisuianCard.setFrenchName("Farfurex de Hisui");
+
+        when(collectionService.getUserCollection(user)).thenReturn(List.of());
+        when(assignmentRepository.findByUserAndPokemonId(user, 903)).thenReturn(Optional.empty());
+        when(pokeApiService.getPokemonSpecies(903)).thenReturn(sneasler);
+        when(pokeApiService.getBasePokemonSpecies(903)).thenReturn(sneasler);
+        when(tcgdexService.searchCards("Sneasler")).thenReturn(List.of(hisuianCard));
+        when(tcgdexService.searchCards("Farfurex")).thenReturn(List.of(hisuianCard));
+        when(tcgdexService.searchCards("sneasler")).thenReturn(List.of(hisuianCard));
+
+        PokedexService service = new PokedexService(
+                pokeApiService,
+                tcgdexService,
+                collectionService,
+                userCardRepository,
+                assignmentRepository);
+
+        PokedexDetailView detail = service.getPokemonDetail(user, 903);
+
+        assertThat(detail.availableCards()).extracting(CardBrief::getId).containsExactly("swsh10-95");
     }
 }

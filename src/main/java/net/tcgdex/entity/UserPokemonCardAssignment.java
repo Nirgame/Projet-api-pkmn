@@ -26,6 +26,9 @@ public class UserPokemonCardAssignment {
     @Column(name = "card_missing", nullable = false)
     private boolean cardMissing;
 
+    @Column(name = "comment", length = 1000)
+    private String comment;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -98,5 +101,13 @@ public class UserPokemonCardAssignment {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }

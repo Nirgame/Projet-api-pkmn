@@ -8,5 +8,6 @@ public record PokedexPageResult(
         List<RegionalForm> availableRegionalForms,
         int currentPage,
         int totalPages,
-        int totalResults) {
+        int totalResults,
+        int unassignedCount) {
 }
