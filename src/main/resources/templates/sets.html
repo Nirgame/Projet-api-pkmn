@@ -41,7 +41,7 @@
 
         <div class="card mb-4">
             <div class="card-body">
-                <form th:action="@{/sets}" method="get">
+                <form id="sets-filter-form" th:action="@{/sets}" method="get">
                     <input type="hidden" name="serieId" th:if="${selectedSerieId != null}" th:value="${selectedSerieId}">
                     <div class="row g-3 align-items-end">
                         <div class="col-12">
@@ -197,6 +197,14 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                initializeAutoSubmitForm('#sets-filter-form', { debounceMs: 280 });
+            });
+        </script>
     </div>
 </body>
 </html>

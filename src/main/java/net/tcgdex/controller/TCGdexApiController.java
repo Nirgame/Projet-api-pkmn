@@ -2,8 +2,10 @@ package net.tcgdex.controller;
 
 import net.tcgdex.model.Card;
 import net.tcgdex.model.CardBrief;
+import net.tcgdex.model.CardPriceView;
 import net.tcgdex.model.Set;
 import net.tcgdex.model.Serie;
+import net.tcgdex.service.CardPriceService;
 import net.tcgdex.service.TCGdexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,9 @@ public class TCGdexApiController {
 
     @Autowired
     private TCGdexService tcgdexService;
+
+    @Autowired
+    private CardPriceService cardPriceService;
 
     @GetMapping("/cards")
     public ResponseEntity<?> getCards(@RequestParam(required = false) String q) {
@@ -42,6 +47,16 @@ public class TCGdexApiController {
             return ResponseEntity.ok(card);
         } catch (IOException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/cards/{cardId}/prices")
+    public ResponseEntity<?> getCardPrices(@PathVariable String cardId) {
+        try {
+            CardPriceView priceView = cardPriceService.getPrices(cardId);
+            return ResponseEntity.ok(priceView);
+        } catch (IOException e) {
+            return ResponseEntity.ok(new CardPriceView(cardId, null, null));
         }
     }
 

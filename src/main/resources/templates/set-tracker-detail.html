@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Checklist set - Pokemon TCG Collection</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div th:if="${error}" class="alert alert-warning" th:text="${error}">Erreur</div>
+
+    <div th:if="${detail != null}">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+            <div>
+                <a class="btn btn-link ps-0" href="/set-tracker">
+                    <i class="fas fa-arrow-left"></i> Retour au suivi des sets
+                </a>
+                <h1 class="mb-1" th:text="${detail.set.displayName}">Set Name</h1>
+                <div class="text-muted" th:text="${detail.set.id}">set-id</div>
+                <div class="text-muted"
+                     th:if="${detail.set.secondaryName != null}"
+                     th:text="${detail.set.secondaryName}">
+                    Secondary name
+                </div>
+            </div>
+            <div class="sticky-inline-actions">
+                <div class="d-flex gap-2 flex-wrap">
+                    <span class="badge bg-dark fs-6" th:text="|${detail.ownedDistinctCards}/${detail.totalCards()} cartes|">0/0 cartes</span>
+                    <span class="badge bg-success fs-6" th:text="|${detail.progressPercent()}% complete|">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-5">
+                        <label class="form-label" for="tracked-set-detail-search">Recherche dynamique</label>
+                        <input id="tracked-set-detail-search" type="search" class="form-control" placeholder="Nom FR/EN, set, id, numero local...">
+                    </div>
+                    <div class="col-lg-3">
+                        <label class="form-label" for="tracked-set-owned-filter">Affichage</label>
+                        <select id="tracked-set-owned-filter" class="form-select">
+                            <option value="">Toutes les cartes</option>
+                            <option value="owned">Possedees seulement</option>
+                            <option value="missing">Manquantes seulement</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <label class="form-label" for="tracked-set-rarity-filter">Raret&eacute;</label>
+                        <select id="tracked-set-rarity-filter" class="form-select">
+                            <option value="">Toutes les raret&eacute;s</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 d-grid">
+                        <label class="form-label invisible" for="tracked-set-detail-reset">Reset</label>
+                        <button id="tracked-set-detail-reset" type="button" class="btn btn-danger">Reinitialiser</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-sm-6 col-xl-3 tracked-set-detail-card"
+                 th:each="card : ${detail.cards}"
+                 th:attr="data-search=${card.displayName + ' ' + card.secondaryName + ' ' + card.id + ' ' + card.localId + ' ' + card.displaySetName + ' ' + card.displayRarity + ' ' + card.variantLabel},
+                          data-owned=${detail.ownedCardCounts.containsKey(card.id)},
+                          data-rarity=${card.displayRarity}">
+                <div class="card h-100 shadow-sm position-relative">
+                    <div class="owned-badge"
+                         th:if="${detail.ownedCardCounts.containsKey(card.id)}"
+                         th:text="${detail.ownedCardCounts.get(card.id)}">
+                        1
+                    </div>
+                    <img th:src="${card.displayImage}"
+                         th:alt="${card.displayName}"
+                         class="card-img-top zoom-hover-image"
+                         th:attr="data-zoom-src=${card.displayImage},
+                                  data-zoom-title=${card.displayName},
+                                  data-zoom-subtitle=${card.secondaryName},
+                                  data-zoom-card-id=${card.id},
+                                  data-zoom-local-id=${card.localId},
+                                  data-zoom-set-name=${card.displaySetName},
+                                  data-zoom-rarity=${card.displayRarity},
+                                  data-zoom-variant=${card.variantLabel},
+                                  data-zoom-owned-count=${detail.ownedCardCounts.containsKey(card.id) ? detail.ownedCardCounts.get(card.id) : 0},
+                                  data-zoom-can-add=true,
+                                  data-zoom-can-remove=${detail.ownedCardCounts.containsKey(card.id)}"
+                         onerror="this.onerror=null;this.src='/images/placeholder.svg'">
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="card-title mb-1" th:text="${card.displayName}">Card Name</h6>
+                        <div class="text-muted small mb-1"
+                             th:if="${card.secondaryName != null}"
+                             th:text="${card.secondaryName}">
+                            Secondary name
+                        </div>
+                        <div class="d-flex flex-wrap gap-1 mb-2">
+                            <span class="badge bg-secondary-subtle text-dark border"
+                                  th:if="${card.hasRarity()}"
+                                  th:text="${card.displayRarity}">
+                                Rare
+                            </span>
+                            <span class="badge bg-light text-dark border"
+                                  th:if="${card.variantLabel != null}"
+                                  th:text="${card.variantLabel}">
+                                Alola
+                            </span>
+                        </div>
+                        <div class="text-muted small" th:text="${card.id}">card-id</div>
+                        <div class="text-muted small mb-3">
+                            <span th:text="${card.displaySetName}">Set</span>
+                            <span th:if="${card.localId != null}" th:text="|' • ' + ${card.localId}"> • 1</span>
+                        </div>
+                        <div class="mt-auto d-flex justify-content-between align-items-center gap-2">
+                            <span class="small fw-semibold"
+                                  th:text="${detail.ownedCardCounts.containsKey(card.id)} ? 'Possedee' : 'Manquante'">
+                                Possedee
+                            </span>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-danger"
+                                        th:if="${detail.ownedCardCounts.containsKey(card.id)}"
+                                        th:attr="data-card-id=${card.id}"
+                                        onclick="removeFromCollection(this.dataset.cardId)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <button class="btn btn-outline-success"
+                                        th:attr="data-card-id=${card.id}"
+                                        onclick="addToCollection(this.dataset.cardId)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div layout:fragment="scripts">
+    <script>
+        function normalizeTrackedCardText(value) {
+            return (value || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
+        function addToCollection(cardId) {
+            fetch('/api/collection/cards/' + cardId, withCsrf({
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            }))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                    return;
+                }
+                alert('Erreur: ' + data.error);
+            })
+            .catch(() => alert('Erreur lors de l ajout a la collection'));
+        }
+
+        function removeFromCollection(cardId) {
+            fetch('/api/collection/cards/' + cardId, withCsrf({
+                method: 'DELETE',
+                credentials: 'same-origin'
+            }))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                    return;
+                }
+                alert('Erreur lors de la suppression');
+            })
+            .catch(() => alert('Erreur lors de la suppression de la collection'));
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCardZoom('.zoom-hover-image');
+
+            const cards = Array.from(document.querySelectorAll('.tracked-set-detail-card'));
+            const searchInput = document.getElementById('tracked-set-detail-search');
+            const ownedFilter = document.getElementById('tracked-set-owned-filter');
+            const rarityFilter = document.getElementById('tracked-set-rarity-filter');
+            const resetButton = document.getElementById('tracked-set-detail-reset');
+
+            if (!cards.length) {
+                return;
+            }
+
+            const rarities = [...new Set(cards
+                .map(card => card.dataset.rarity)
+                .filter(value => value && value.trim() !== ''))]
+                .sort((left, right) => left.localeCompare(right, 'fr', { sensitivity: 'base' }));
+
+            rarities.forEach(rarity => {
+                const option = document.createElement('option');
+                option.value = rarity;
+                option.textContent = rarity;
+                rarityFilter.appendChild(option);
+            });
+
+            function applyFilters() {
+                const searchValue = normalizeTrackedCardText(searchInput.value);
+                const ownedValue = ownedFilter.value;
+                const rarityValue = normalizeTrackedCardText(rarityFilter.value);
+
+                cards.forEach(card => {
+                    const haystack = normalizeTrackedCardText(card.dataset.search);
+                    const matchesSearch = !searchValue || haystack.includes(searchValue);
+                    const matchesOwned = !ownedValue
+                        || (ownedValue === 'owned' && card.dataset.owned === 'true')
+                        || (ownedValue === 'missing' && card.dataset.owned !== 'true');
+                    const matchesRarity = !rarityValue || normalizeTrackedCardText(card.dataset.rarity) === rarityValue;
+                    card.style.display = matchesSearch && matchesOwned && matchesRarity ? '' : 'none';
+                });
+            }
+
+            searchInput.addEventListener('input', applyFilters);
+            ownedFilter.addEventListener('change', applyFilters);
+            rarityFilter.addEventListener('change', applyFilters);
+            resetButton.addEventListener('click', () => {
+                searchInput.value = '';
+                ownedFilter.value = '';
+                rarityFilter.value = '';
+                applyFilters();
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

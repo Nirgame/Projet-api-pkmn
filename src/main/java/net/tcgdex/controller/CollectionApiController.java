@@ -51,7 +51,13 @@ public class CollectionApiController {
         try {
             User user = getCurrentUser(authentication);
             boolean removed = collectionService.removeCardFromCollection(user, cardId);
-            return ResponseEntity.ok(Map.of("success", removed));
+            int quantity = collectionService.getUserCard(user, cardId)
+                    .map(UserCard::getQuantity)
+                    .orElse(0);
+            return ResponseEntity.ok(Map.of(
+                    "success", removed,
+                    "cardId", cardId,
+                    "quantity", quantity));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", e.getMessage()));
         }

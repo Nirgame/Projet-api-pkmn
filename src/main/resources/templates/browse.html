@@ -14,7 +14,7 @@
 
         <div class="row mb-4">
             <div class="col-12">
-                <form class="row g-2 align-items-end" th:action="@{/browse}" method="get">
+                <form id="browse-filter-form" class="row g-2 align-items-end" th:action="@{/browse}" method="get">
                     <div class="col-lg-5">
                         <label class="form-label" for="browseSearch">Recherche</label>
                         <input id="browseSearch" class="form-control" type="search" name="search"
@@ -79,7 +79,10 @@
                                       data-zoom-local-id=${card.localId},
                                       data-zoom-set-name=${card.displaySetName},
                                       data-zoom-rarity=${card.displayRarity},
-                                      data-zoom-variant=${card.variantLabel}"
+                                      data-zoom-variant=${card.variantLabel},
+                                      data-zoom-owned-count=${ownedCardCounts != null and ownedCardCounts.containsKey(card.id) ? ownedCardCounts.get(card.id) : 0},
+                                      data-zoom-can-add=${authenticated},
+                                      data-zoom-can-remove=${authenticated and ownedCardCounts != null and ownedCardCounts.containsKey(card.id)}"
                              onerror="this.onerror=null;this.src='/images/placeholder.svg'">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
@@ -343,6 +346,7 @@
 
             document.addEventListener('DOMContentLoaded', function() {
                 initializeCardZoom('.zoom-hover-image');
+                initializeAutoSubmitForm('#browse-filter-form', { debounceMs: 280 });
                 document.querySelectorAll('.add-to-collection-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const cardId = this.getAttribute('data-card-id');

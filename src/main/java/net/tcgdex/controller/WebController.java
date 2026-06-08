@@ -9,8 +9,11 @@ import net.tcgdex.model.RegionalDisplayMode;
 import net.tcgdex.model.RegionalForm;
 import net.tcgdex.model.Set;
 import net.tcgdex.model.Serie;
+import net.tcgdex.model.TrackedSetDetailView;
+import net.tcgdex.model.TrackedSetSummaryView;
 import net.tcgdex.service.CollectionService;
 import net.tcgdex.service.PokedexService;
+import net.tcgdex.service.SetTrackerService;
 import net.tcgdex.service.TCGdexService;
 import net.tcgdex.service.UserService;
 import net.tcgdex.util.PokepediaUtils;
@@ -44,6 +47,9 @@ public class WebController {
 
     @Autowired
     private PokedexService pokedexService;
+
+    @Autowired
+    private SetTrackerService setTrackerService;
 
     @GetMapping("/")
     public String home(Authentication authentication, Model model) {
@@ -290,6 +296,81 @@ public class WebController {
         model.addAttribute("pokemonNames", collectionService.getDistinctPokemonNames(user));
 
         return "collection";
+    }
+
+    @GetMapping("/set-tracker")
+    public String setTracker(Authentication authentication, Model model) {
+        if (!isAuthenticated(authentication)) {
+            return "redirect:/login";
+        }
+
+        User user = userService.findByUsername(authentication.getName()).orElseThrow();
+
+        try {
+            List<TrackedSetSummaryView> trackedSets = setTrackerService.getTrackedSets(user);
+            model.addAttribute("trackedSets", trackedSets);
+            model.addAttribute("trackedSetCount", trackedSets.size());
+            model.addAttribute("completedTrackedSetCount", trackedSets.stream().filter(TrackedSetSummaryView::isComplete).count());
+            model.addAttribute("trackedSetOwnedCards", trackedSets.stream().mapToLong(TrackedSetSummaryView::ownedDistinctCards).sum());
+            model.addAttribute("setOptions", tcgdexService.getSets().stream()
+                    .sorted(Comparator.comparing(Set::getDisplayName, String.CASE_INSENSITIVE_ORDER))
+                    .toList());
+        } catch (IOException exception) {
+            model.addAttribute("error", "Impossible de charger le suivi des sets pour le moment.");
+        }
+
+        return "set-tracker";
+    }
+
+    @PostMapping("/set-tracker/{setId}")
+    public String addTrackedSet(@PathVariable String setId,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        if (!isAuthenticated(authentication)) {
+            return "redirect:/login";
+        }
+
+        User user = userService.findByUsername(authentication.getName()).orElseThrow();
+        try {
+            setTrackerService.trackSet(user, setId);
+            redirectAttributes.addFlashAttribute("success", "Set ajoute au suivi.");
+        } catch (IOException | IllegalArgumentException exception) {
+            redirectAttributes.addFlashAttribute("error", exception.getMessage());
+        }
+        return "redirect:/set-tracker";
+    }
+
+    @PostMapping("/set-tracker/{setId}/remove")
+    public String removeTrackedSet(@PathVariable String setId,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        if (!isAuthenticated(authentication)) {
+            return "redirect:/login";
+        }
+
+        User user = userService.findByUsername(authentication.getName()).orElseThrow();
+        setTrackerService.untrackSet(user, setId);
+        redirectAttributes.addFlashAttribute("success", "Set retire du suivi.");
+        return "redirect:/set-tracker";
+    }
+
+    @GetMapping("/set-tracker/{setId}")
+    public String trackedSetDetail(@PathVariable String setId,
+            Authentication authentication,
+            Model model) {
+        if (!isAuthenticated(authentication)) {
+            return "redirect:/login";
+        }
+
+        User user = userService.findByUsername(authentication.getName()).orElseThrow();
+        try {
+            TrackedSetDetailView detailView = setTrackerService.getTrackedSetDetail(user, setId);
+            model.addAttribute("detail", detailView);
+        } catch (IOException | IllegalArgumentException exception) {
+            model.addAttribute("error", "Impossible de charger ce set pour le moment.");
+        }
+
+        return "set-tracker-detail";
     }
 
     @GetMapping("/pokedex")

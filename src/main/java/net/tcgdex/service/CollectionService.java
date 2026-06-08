@@ -129,6 +129,12 @@ public class CollectionService {
         return userCardRepository.countByUser(user);
     }
 
+    public Map<String, Integer> getOwnedCardCounts(User user) {
+        LinkedHashMap<String, Integer> ownedCardCounts = new LinkedHashMap<>();
+        getUserCollection(user).forEach(card -> ownedCardCounts.merge(card.getCardId(), card.getQuantity(), Integer::sum));
+        return ownedCardCounts;
+    }
+
     public void clearCollection(User user) {
         List<UserCard> userCards = userCardRepository.findByUser(user);
         userCardRepository.deleteAll(userCards);

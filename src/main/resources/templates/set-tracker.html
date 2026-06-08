@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Suivi des sets - Pokemon TCG Collection</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="row mb-4 align-items-center">
+        <div class="col-lg-8">
+            <h1 class="mb-2"><i class="fas fa-layer-group"></i> Suivi des sets</h1>
+            <p class="text-muted mb-0">Choisissez les sets que vous collectionnez puis validez vos cartes directement depuis chaque checklist.</p>
+        </div>
+        <div class="col-lg-4 mt-3 mt-lg-0">
+            <div class="row g-2 text-center">
+                <div class="col-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body py-3">
+                            <div class="fs-4 fw-bold" th:text="${trackedSetCount}">0</div>
+                            <div class="small text-muted">Sets suivis</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body py-3">
+                            <div class="fs-4 fw-bold" th:text="${completedTrackedSetCount}">0</div>
+                            <div class="small text-muted">Complets</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body py-3">
+                            <div class="fs-4 fw-bold" th:text="${trackedSetOwnedCards}">0</div>
+                            <div class="small text-muted">Cartes validees</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}">Succes</div>
+    <div th:if="${error}" class="alert alert-warning" th:text="${error}">Erreur</div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-6">
+                    <label class="form-label" for="tracked-set-picker">Ajouter un set au suivi</label>
+                    <select id="tracked-set-picker" class="form-select">
+                        <option value="">Selectionnez un set...</option>
+                        <option th:each="setOption : ${setOptions}"
+                                th:value="${setOption.id}"
+                                th:text="${setOption.displayName}">
+                            Set de Base
+                        </option>
+                    </select>
+                </div>
+                <div class="col-lg-3">
+                    <label class="form-label" for="tracked-set-search">Recherche rapide</label>
+                    <input id="tracked-set-search" type="search" class="form-control" placeholder="Nom du set, id...">
+                </div>
+                <div class="col-lg-3 d-grid">
+                    <form id="tracked-set-add-form" method="post">
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Ajouter au suivi
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${trackedSets != null and trackedSets.isEmpty()}" class="alert alert-info">
+        Aucun set suivi pour le moment. Ajoutez-en un pour commencer votre checklist.
+    </div>
+
+    <div class="row g-4" th:if="${trackedSets != null and !trackedSets.isEmpty()}">
+        <div class="col-md-6 col-xl-4 tracked-set-card"
+             th:each="summary : ${trackedSets}"
+             th:attr="data-search=${summary.set.displayName + ' ' + summary.set.id + ' ' + summary.set.secondaryName}">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div>
+                            <h5 class="card-title mb-1" th:text="${summary.set.displayName}">Set Name</h5>
+                            <div class="text-muted small" th:text="${summary.set.id}">set-id</div>
+                            <div class="text-muted small"
+                                 th:if="${summary.set.secondaryName != null}"
+                                 th:text="${summary.set.secondaryName}">
+                                Secondary name
+                            </div>
+                        </div>
+                        <span class="badge"
+                              th:classappend="${summary.isComplete()} ? ' bg-success' : ' bg-dark'"
+                              th:text="${summary.isComplete()} ? 'Complet' : 'En cours'">
+                            En cours
+                        </span>
+                    </div>
+
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar"
+                             role="progressbar"
+                             th:style="|width:${summary.progressPercent()}%;|"
+                             th:attr="aria-valuenow=${summary.progressPercent()},aria-valuemin=0,aria-valuemax=100">
+                        </div>
+                    </div>
+
+                    <div class="row text-center small mb-3">
+                        <div class="col-4">
+                            <div class="fw-semibold" th:text="${summary.ownedDistinctCards}">0</div>
+                            <div class="text-muted">Possedees</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-semibold" th:text="${summary.totalCards}">0</div>
+                            <div class="text-muted">Total</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-semibold" th:text="${summary.missingCards()}">0</div>
+                            <div class="text-muted">Manquantes</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto d-grid gap-2">
+                        <a class="btn btn-outline-primary"
+                           th:href="@{/set-tracker/{setId}(setId=${summary.set.id})}">
+                            <i class="fas fa-list-check"></i> Ouvrir la checklist
+                        </a>
+                        <form method="post"
+                              th:action="@{/set-tracker/{setId}/remove(setId=${summary.set.id})}">
+                            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-trash"></i> Retirer du suivi
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div layout:fragment="scripts">
+    <script>
+        function normalizeTrackedSetText(value) {
+            return (value || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const picker = document.getElementById('tracked-set-picker');
+            const addForm = document.getElementById('tracked-set-add-form');
+            const searchInput = document.getElementById('tracked-set-search');
+            const cards = Array.from(document.querySelectorAll('.tracked-set-card'));
+
+            if (picker && addForm) {
+                addForm.addEventListener('submit', function(event) {
+                    if (!picker.value) {
+                        event.preventDefault();
+                        return;
+                    }
+                    addForm.action = '/set-tracker/' + encodeURIComponent(picker.value);
+                });
+            }
+
+            if (searchInput && cards.length) {
+                searchInput.addEventListener('input', function() {
+                    const searchValue = normalizeTrackedSetText(searchInput.value);
+                    cards.forEach(card => {
+                        const haystack = normalizeTrackedSetText(card.dataset.search);
+                        const visible = !searchValue || haystack.includes(searchValue);
+                        card.style.display = visible ? '' : 'none';
+                    });
+                });
+            }
+        });
+    </script>
+</div>
+</body>
+</html>

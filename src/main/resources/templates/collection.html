@@ -116,11 +116,14 @@
                          th:alt="${card.displayName}" class="card-img-top zoom-hover-image"
                          th:attr="data-zoom-src=${card.displayImage},
                                   data-zoom-title=${card.displayName},
-                                  data-zoom-subtitle=${card.secondaryName},
+                                 data-zoom-subtitle=${card.secondaryName},
                                   data-zoom-card-id=${card.cardId},
                                   data-zoom-set-name=${card.displaySetName},
                                   data-zoom-quantity=${'x' + card.quantity},
-                                  data-zoom-variant=${card.variantLabel}"
+                                  data-zoom-variant=${card.variantLabel},
+                                  data-zoom-owned-count=${card.quantity},
+                                  data-zoom-can-add=true,
+                                  data-zoom-can-remove=true"
                          onerror="this.onerror=null;this.src='/images/placeholder.svg'">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-2">

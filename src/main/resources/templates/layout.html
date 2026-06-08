@@ -13,9 +13,21 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --app-navbar-offset: 76px;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
         .navbar-brand {
             font-weight: bold;
             color: #ff6b35 !important;
+        }
+        .app-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1080;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
         }
         .card-img-top {
             height: 200px;
@@ -119,13 +131,31 @@
         }
         .card-zoom-modal-dialog {
             position: relative;
-            width: min(460px, 92vw);
+            width: min(980px, 96vw);
             max-height: calc(100vh - 32px);
             border-radius: 22px;
             background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(30,41,59,0.98));
             box-shadow: 0 28px 80px rgba(15, 23, 42, 0.45);
             padding: 56px 18px 18px;
             overflow-y: auto;
+        }
+        .card-zoom-modal-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+            gap: 1.2rem;
+            align-items: start;
+        }
+        .card-zoom-modal-main {
+            min-width: 0;
+        }
+        .card-zoom-modal-side {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            max-height: min(76vh, 820px);
+            overflow-y: auto;
+            padding-right: 0.2rem;
+            scrollbar-gutter: stable;
         }
         .card-zoom-modal-close {
             position: absolute;
@@ -144,7 +174,7 @@
         .card-zoom-modal-image {
             display: block;
             width: 100%;
-            max-height: min(56vh, 700px);
+            max-height: min(72vh, 760px);
             object-fit: contain;
             border-radius: 16px;
             background: transparent;
@@ -178,20 +208,23 @@
         }
         .card-zoom-modal-title {
             color: #f8fafc;
-            text-align: center;
-            margin-top: 12px;
-            font-size: 0.98rem;
+            margin-top: 0.1rem;
+            font-size: 1.2rem;
+            line-height: 1.25;
         }
         .card-zoom-modal-subtitle {
             color: rgba(226, 232, 240, 0.8);
-            text-align: center;
             margin-top: 4px;
             font-size: 0.9rem;
+        }
+        .card-zoom-modal-side-header {
+            margin-bottom: 0.8rem;
+            padding-right: 1.8rem;
         }
         .card-zoom-modal-meta {
             display: grid;
             gap: 0.45rem;
-            margin-top: 14px;
+            margin-top: 0.9rem;
         }
         .card-zoom-modal-meta-item {
             display: flex;
@@ -206,28 +239,84 @@
         }
         .card-zoom-modal-meta-label {
             color: rgba(226, 232, 240, 0.72);
+            flex: 0 0 auto;
+        }
+        .card-zoom-modal-meta-item span:last-child {
+            text-align: right;
+            overflow-wrap: anywhere;
         }
         .card-zoom-modal-actions {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 14px;
+            display: grid;
+            gap: 0.65rem;
+            margin-top: auto;
+            position: sticky;
+            bottom: 0;
+            padding-top: 0.9rem;
+            padding-bottom: 0.35rem;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0), rgba(30, 41, 59, 0.96) 24%, rgba(30, 41, 59, 0.98));
+            z-index: 2;
         }
-        .card-zoom-modal-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.45rem;
-            padding: 0.65rem 0.95rem;
+        .card-zoom-modal-actions .btn {
+            width: 100%;
+        }
+        .card-zoom-modal-status {
+            margin-top: 0.45rem;
+            min-height: 1.4rem;
+            color: rgba(226, 232, 240, 0.88);
+            font-size: 0.88rem;
+            position: sticky;
+            bottom: 0;
+            padding-bottom: 0.25rem;
+            background: rgba(30, 41, 59, 0.98);
+            z-index: 2;
+        }
+        .app-scroll-top {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 1075;
+            width: 46px;
+            height: 46px;
+            border: 0;
             border-radius: 999px;
-            text-decoration: none;
-            background: #ef4444;
+            background: #111827;
             color: #fff;
-            font-weight: 600;
+            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.28);
+            display: none;
+            align-items: center;
+            justify-content: center;
         }
-        .card-zoom-modal-link:hover {
-            color: #fff;
-            background: #dc2626;
+        .app-scroll-top.is-visible {
+            display: inline-flex;
+        }
+        .sticky-panel {
+            position: sticky;
+            top: calc(var(--app-navbar-offset) + 14px);
+        }
+        .sticky-panel-scrollable {
+            overflow: hidden;
+            max-height: calc(100vh - var(--app-navbar-offset) - 32px);
+        }
+        .sticky-panel-scrollable > .card-body {
+            max-height: inherit;
+            overflow-y: auto;
+            padding-right: 0.9rem;
+        }
+        .sticky-panel-below-actions {
+            top: calc(var(--app-navbar-offset) + 112px);
+        }
+        .sticky-panel-below-actions.sticky-panel-scrollable {
+            max-height: calc(100vh - var(--app-navbar-offset) - 128px);
+        }
+        .sticky-inline-actions {
+            position: sticky;
+            top: calc(var(--app-navbar-offset) + 14px);
+            z-index: 1020;
+            padding: 0.55rem 0.75rem;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(10px);
         }
         @media (max-width: 576px) {
             .card-zoom-modal {
@@ -238,11 +327,18 @@
                 max-height: calc(100vh - 24px);
                 padding: 52px 14px 16px;
             }
+            .card-zoom-modal-layout {
+                grid-template-columns: 1fr;
+                gap: 0.9rem;
+            }
             .card-zoom-modal-image {
                 max-height: 46vh;
             }
             .card-zoom-modal-media {
                 padding: 0 6px;
+            }
+            .card-zoom-modal-side-header {
+                padding-right: 0;
             }
             .compact-pagination .pagination {
                 justify-content: center;
@@ -276,6 +372,20 @@
             .card-zoom-modal-nav.next {
                 right: 0;
             }
+            .sticky-panel,
+            .sticky-inline-actions,
+            .sticky-panel-below-actions {
+                position: static;
+            }
+            .sticky-panel-scrollable {
+                max-height: none;
+                overflow: visible;
+            }
+            .sticky-panel-scrollable > .card-body {
+                max-height: none;
+                overflow: visible;
+                padding-right: var(--bs-card-spacer-x);
+            }
         }
         @media (max-width: 767.98px) {
             .mobile-stack-md {
@@ -296,7 +406,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark app-navbar">
         <div class="container">
             <a class="navbar-brand" href="/">
                 <i class="fas fa-dragon"></i> Pokemon TCG Collection
@@ -324,6 +434,11 @@
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <a class="nav-link" href="/collection">
                             <i class="fas fa-book"></i> Ma Collection
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a class="nav-link" href="/set-tracker">
+                            <i class="fas fa-layer-group"></i> Suivi Sets
                         </a>
                     </li>
                     <li class="nav-item" sec:authorize="isAuthenticated()">
@@ -359,6 +474,10 @@
 
     <div class="container mt-4" layout:fragment="content">
     </div>
+
+    <button type="button" class="app-scroll-top" aria-label="Retour en haut">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -448,6 +567,61 @@
             function getVisibleImages(selector) {
                 return Array.from(document.querySelectorAll(selector))
                     .filter(image => image.offsetParent !== null);
+            }
+
+            function rememberZoomStateForReload(image) {
+                if (!image) {
+                    return;
+                }
+
+                const payload = {
+                    selector: activeSelector,
+                    path: window.location.pathname + window.location.search,
+                    scrollY: window.scrollY || window.pageYOffset || 0,
+                    cardId: image.dataset.zoomCardId || '',
+                    zoomSrc: image.dataset.zoomSrc || image.getAttribute('src') || '',
+                    zoomTitle: image.dataset.zoomTitle || image.getAttribute('alt') || ''
+                };
+
+                try {
+                    window.sessionStorage.setItem(zoomRestoreStorageKey, JSON.stringify(payload));
+                } catch (error) {
+                    console.warn('Impossible de memoriser le zoom courant.', error);
+                }
+            }
+
+            function restorePendingZoom(selector, images) {
+                let pending = null;
+
+                try {
+                    pending = JSON.parse(window.sessionStorage.getItem(zoomRestoreStorageKey) || 'null');
+                } catch (error) {
+                    pending = null;
+                }
+
+                if (!pending) {
+                    return;
+                }
+
+                const currentPath = window.location.pathname + window.location.search;
+                if (pending.selector !== selector || pending.path !== currentPath) {
+                    return;
+                }
+
+                window.sessionStorage.removeItem(zoomRestoreStorageKey);
+
+                const match = images.find(image => image.dataset.zoomCardId && image.dataset.zoomCardId === pending.cardId)
+                    || images.find(image => (image.dataset.zoomSrc || image.getAttribute('src') || '') === pending.zoomSrc)
+                    || images.find(image => (image.dataset.zoomTitle || image.getAttribute('alt') || '') === pending.zoomTitle);
+
+                if (!match) {
+                    return;
+                }
+
+                window.requestAnimationFrame(() => {
+                    window.scrollTo(0, Number.parseInt(pending.scrollY || '0', 10) || 0);
+                    window.requestAnimationFrame(() => openEnhancedZoomModal(selector, match));
+                });
             }
 
             function buildMetaItem(label, value) {
@@ -543,6 +717,536 @@
             window.initializeCardZoom = function(selector) {
                 setupClickZoom(selector);
             };
+        })();
+
+        (() => {
+            let zoomModal = null;
+            let zoomDialog = null;
+            let zoomImage = null;
+            let zoomTitle = null;
+            let zoomSubtitle = null;
+            let zoomMeta = null;
+            let zoomActions = null;
+            let zoomStatus = null;
+            let zoomPrevButton = null;
+            let zoomNextButton = null;
+            let activeSelector = null;
+            let activeImages = [];
+            let activeIndex = -1;
+            let zoomBusy = false;
+            const priceCache = new Map();
+            const zoomRestoreStorageKey = 'appPendingZoomRestore';
+
+            function ensureEnhancedZoomModal() {
+                if (zoomModal) {
+                    return;
+                }
+
+                zoomModal = document.createElement('div');
+                zoomModal.className = 'card-zoom-modal';
+                zoomModal.innerHTML = '' +
+                    '<div class="card-zoom-modal-dialog" role="dialog" aria-modal="true" aria-label="Zoom carte">' +
+                    '<button type="button" class="card-zoom-modal-close" aria-label="Fermer">&times;</button>' +
+                    '<div class="card-zoom-modal-layout">' +
+                    '<div class="card-zoom-modal-main">' +
+                    '<div class="card-zoom-modal-media">' +
+                    '<button type="button" class="card-zoom-modal-nav prev" aria-label="Carte precedente"><i class="fas fa-chevron-left"></i></button>' +
+                    '<img class="card-zoom-modal-image" alt="">' +
+                    '<button type="button" class="card-zoom-modal-nav next" aria-label="Carte suivante"><i class="fas fa-chevron-right"></i></button>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="card-zoom-modal-side">' +
+                    '<div class="card-zoom-modal-side-header">' +
+                    '<div class="card-zoom-modal-title"></div>' +
+                    '<div class="card-zoom-modal-subtitle"></div>' +
+                    '</div>' +
+                    '<div class="card-zoom-modal-meta"></div>' +
+                    '<div class="card-zoom-modal-actions"></div>' +
+                    '<div class="card-zoom-modal-status" aria-live="polite"></div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                document.body.appendChild(zoomModal);
+
+                zoomDialog = zoomModal.querySelector('.card-zoom-modal-dialog');
+                zoomImage = zoomModal.querySelector('.card-zoom-modal-image');
+                zoomTitle = zoomModal.querySelector('.card-zoom-modal-title');
+                zoomSubtitle = zoomModal.querySelector('.card-zoom-modal-subtitle');
+                zoomMeta = zoomModal.querySelector('.card-zoom-modal-meta');
+                zoomActions = zoomModal.querySelector('.card-zoom-modal-actions');
+                zoomStatus = zoomModal.querySelector('.card-zoom-modal-status');
+                zoomPrevButton = zoomModal.querySelector('.card-zoom-modal-nav.prev');
+                zoomNextButton = zoomModal.querySelector('.card-zoom-modal-nav.next');
+
+                zoomModal.querySelector('.card-zoom-modal-close').addEventListener('click', closeEnhancedZoomModal);
+                zoomPrevButton.addEventListener('click', () => moveEnhancedZoom(-1));
+                zoomNextButton.addEventListener('click', () => moveEnhancedZoom(1));
+                zoomModal.addEventListener('click', event => {
+                    if (!zoomDialog.contains(event.target) || event.target === zoomModal) {
+                        closeEnhancedZoomModal();
+                    }
+                });
+
+                document.addEventListener('keydown', event => {
+                    if (!zoomModal.classList.contains('is-open')) {
+                        return;
+                    }
+                    if (event.key === 'Escape') {
+                        closeEnhancedZoomModal();
+                    } else if (event.key === 'ArrowLeft') {
+                        moveEnhancedZoom(-1);
+                    } else if (event.key === 'ArrowRight') {
+                        moveEnhancedZoom(1);
+                    }
+                });
+            }
+
+            function getVisibleImages(selector) {
+                return Array.from(document.querySelectorAll(selector))
+                    .filter(image => image.offsetParent !== null);
+            }
+
+            function rememberZoomStateForReload(image) {
+                if (!image) {
+                    return;
+                }
+
+                const payload = {
+                    selector: activeSelector,
+                    path: window.location.pathname + window.location.search,
+                    scrollY: window.scrollY || window.pageYOffset || 0,
+                    cardId: image.dataset.zoomCardId || '',
+                    zoomSrc: image.dataset.zoomSrc || image.getAttribute('src') || '',
+                    zoomTitle: image.dataset.zoomTitle || image.getAttribute('alt') || ''
+                };
+
+                try {
+                    window.sessionStorage.setItem(zoomRestoreStorageKey, JSON.stringify(payload));
+                } catch (error) {
+                    console.warn('Impossible de memoriser le zoom courant.', error);
+                }
+            }
+
+            function restorePendingZoom(selector, images) {
+                let pending = null;
+
+                try {
+                    pending = JSON.parse(window.sessionStorage.getItem(zoomRestoreStorageKey) || 'null');
+                } catch (error) {
+                    pending = null;
+                }
+
+                if (!pending) {
+                    return;
+                }
+
+                const currentPath = window.location.pathname + window.location.search;
+                if (pending.selector !== selector || pending.path !== currentPath) {
+                    return;
+                }
+
+                window.sessionStorage.removeItem(zoomRestoreStorageKey);
+
+                const match = images.find(image => image.dataset.zoomCardId && image.dataset.zoomCardId === pending.cardId)
+                    || images.find(image => (image.dataset.zoomSrc || image.getAttribute('src') || '') === pending.zoomSrc)
+                    || images.find(image => (image.dataset.zoomTitle || image.getAttribute('alt') || '') === pending.zoomTitle);
+
+                if (!match) {
+                    return;
+                }
+
+                window.requestAnimationFrame(() => {
+                    window.scrollTo(0, Number.parseInt(pending.scrollY || '0', 10) || 0);
+                    window.requestAnimationFrame(() => openEnhancedZoomModal(selector, match));
+                });
+            }
+
+            function buildMetaItem(label, value) {
+                if (!value) {
+                    return '';
+                }
+                const safeLabel = String(label)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+                const safeValue = String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+                return '<div class="card-zoom-modal-meta-item"><span class="card-zoom-modal-meta-label">'
+                    + safeLabel
+                    + '</span><span>'
+                    + safeValue
+                    + '</span></div>';
+            }
+
+            function setZoomStatus(message, tone) {
+                zoomStatus.textContent = message || '';
+                zoomStatus.className = 'card-zoom-modal-status';
+                if (tone === 'error') {
+                    zoomStatus.classList.add('text-warning');
+                } else if (tone === 'success') {
+                    zoomStatus.classList.add('text-success');
+                } else if (tone === 'muted') {
+                    zoomStatus.classList.add('text-muted');
+                }
+            }
+
+            function setZoomButtonsDisabled(disabled) {
+                zoomActions.querySelectorAll('button').forEach(button => {
+                    button.disabled = disabled;
+                });
+            }
+
+            function fetchPriceData(cardId) {
+                if (!cardId) {
+                    return Promise.resolve(null);
+                }
+                if (priceCache.has(cardId)) {
+                    return Promise.resolve(priceCache.get(cardId));
+                }
+                return fetch('/api/cards/' + encodeURIComponent(cardId) + '/prices', withCsrf({
+                    method: 'GET',
+                    credentials: 'same-origin'
+                }))
+                    .then(response => response.json())
+                    .then(data => {
+                        priceCache.set(cardId, data);
+                        return data;
+                    })
+                    .catch(() => null);
+            }
+
+            function postJson(url, method, body) {
+                return fetch(url, withCsrf({
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: body == null ? undefined : JSON.stringify(body),
+                    credentials: 'same-origin'
+                })).then(response => response.json());
+            }
+
+            function sendWithoutBody(url, method) {
+                return fetch(url, withCsrf({
+                    method: method,
+                    credentials: 'same-origin'
+                })).then(response => response.json());
+            }
+
+            function getAssignmentComment() {
+                if (typeof window.getPokedexAssignmentComment === 'function') {
+                    return window.getPokedexAssignmentComment();
+                }
+                return '';
+            }
+
+            function syncOwnedBadge(cardId, quantity) {
+                const badge = document.getElementById('owned-badge-' + cardId);
+                if (!badge) {
+                    return;
+                }
+                if (quantity > 0) {
+                    badge.style.display = 'flex';
+                    badge.textContent = String(quantity);
+                } else {
+                    badge.style.display = 'none';
+                    badge.textContent = '0';
+                }
+            }
+
+            function updateCardDatasets(cardId, updater) {
+                document.querySelectorAll('[data-zoom-card-id="' + CSS.escape(cardId) + '"]').forEach(node => {
+                    updater(node.dataset);
+                });
+            }
+
+            function renderZoomMeta(dataset, priceData) {
+                zoomMeta.innerHTML = [
+                    buildMetaItem('Carte', dataset.zoomCardId),
+                    buildMetaItem('Numero local', dataset.zoomLocalId),
+                    buildMetaItem('Set', dataset.zoomSetName),
+                    buildMetaItem('RaretÃƒÂ©', dataset.zoomRarity),
+                    buildMetaItem('Forme', dataset.zoomVariant),
+                    buildMetaItem('QuantitÃƒÂ©', dataset.zoomQuantity),
+                    buildMetaItem('Prix Cardmarket', priceData && priceData.cardmarketPrice),
+                    buildMetaItem('Prix TCGplayer', priceData && priceData.tcgplayerPrice)
+                ].join('');
+            }
+
+            function runZoomAction(action, onSuccess) {
+                if (zoomBusy) {
+                    return;
+                }
+                zoomBusy = true;
+                setZoomButtonsDisabled(true);
+                setZoomStatus('Mise a jour en cours...', 'muted');
+
+                action()
+                    .then(data => {
+                        if (data && data.success) {
+                            if (typeof onSuccess === 'function') {
+                                onSuccess(data);
+                            }
+                            setZoomStatus('Action enregistree.', 'success');
+                            return;
+                        }
+                        setZoomStatus((data && data.error) || 'Une erreur est survenue.', 'error');
+                    })
+                    .catch(() => {
+                        setZoomStatus('Une erreur est survenue.', 'error');
+                    })
+                    .finally(() => {
+                        zoomBusy = false;
+                        setZoomButtonsDisabled(false);
+                    });
+            }
+
+            function buildActionButtons(dataset) {
+                const cardId = dataset.zoomCardId || '';
+                const ownedCount = Number.parseInt(dataset.zoomOwnedCount || '0', 10) || 0;
+                const canAdd = dataset.zoomCanAdd === 'true' && !!cardId;
+                const canRemove = dataset.zoomCanRemove === 'true' && !!cardId;
+                const assignPokemonId = dataset.zoomAssignPokemonId || '';
+                const clearAssignmentPokemonId = dataset.zoomClearAssignmentPokemonId || '';
+                const canAssign = dataset.zoomAssignable === 'true' && !!assignPokemonId && !!cardId;
+                const buttons = [];
+
+                if (canAdd) {
+                    buttons.push('<button type="button" class="btn btn-success" data-zoom-action="add"><i class="fas fa-plus"></i> Ajouter a la collection</button>');
+                }
+                if (canRemove) {
+                    buttons.push('<button type="button" class="btn btn-outline-danger" data-zoom-action="remove"><i class="fas fa-minus"></i> Retirer de la collection</button>');
+                }
+                if (canAssign) {
+                    buttons.push('<button type="button" class="btn btn-dark" data-zoom-action="assign"><i class="fas fa-thumbtack"></i> Assigner dans le Pokedex</button>');
+                }
+                if (clearAssignmentPokemonId) {
+                    buttons.push('<button type="button" class="btn btn-outline-secondary" data-zoom-action="clear-assignment"><i class="fas fa-trash"></i> Retirer l assignation</button>');
+                }
+
+                zoomActions.innerHTML = buttons.join('');
+                setZoomStatus(ownedCount > 0 ? 'Vous possedez deja ' + ownedCount + ' exemplaire(s) de cette carte.' : '', ownedCount > 0 ? 'muted' : null);
+
+                zoomActions.querySelectorAll('[data-zoom-action]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const action = button.getAttribute('data-zoom-action');
+                        const currentImage = activeImages[activeIndex];
+                        if (action === 'add') {
+                            runZoomAction(
+                                () => postJson('/api/collection/cards/' + encodeURIComponent(cardId), 'POST', {}),
+                                () => {
+                                    rememberZoomStateForReload(currentImage);
+                                    window.location.reload();
+                                });
+                        } else if (action === 'remove') {
+                            runZoomAction(
+                                () => sendWithoutBody('/api/collection/cards/' + encodeURIComponent(cardId), 'DELETE'),
+                                () => {
+                                    rememberZoomStateForReload(currentImage);
+                                    window.location.reload();
+                                });
+                        } else if (action === 'assign') {
+                            runZoomAction(
+                                () => postJson('/api/pokedex/pokemon/' + encodeURIComponent(assignPokemonId) + '/assign/' + encodeURIComponent(cardId), 'POST', {
+                                    comment: getAssignmentComment()
+                                }),
+                                () => {
+                                    rememberZoomStateForReload(currentImage);
+                                    window.location.reload();
+                                });
+                        } else if (action === 'clear-assignment') {
+                            runZoomAction(
+                                () => sendWithoutBody('/api/pokedex/pokemon/' + encodeURIComponent(clearAssignmentPokemonId) + '/assignment', 'DELETE'),
+                                () => {
+                                    rememberZoomStateForReload(currentImage);
+                                    window.location.reload();
+                                });
+                        }
+                    });
+                });
+            }
+
+            function updateEnhancedZoomModal(image) {
+                const dataset = image.dataset;
+                zoomImage.src = dataset.zoomSrc || image.src;
+                zoomImage.alt = image.alt || '';
+                zoomTitle.textContent = dataset.zoomTitle || image.alt || '';
+                zoomSubtitle.textContent = dataset.zoomSubtitle || '';
+                zoomSubtitle.style.display = zoomSubtitle.textContent ? '' : 'none';
+
+                zoomMeta.innerHTML = [
+                    buildMetaItem('Carte', dataset.zoomCardId),
+                    buildMetaItem('Numero local', dataset.zoomLocalId),
+                    buildMetaItem('Set', dataset.zoomSetName),
+                    buildMetaItem('RaretÃ©', dataset.zoomRarity),
+                    buildMetaItem('Forme', dataset.zoomVariant),
+                    buildMetaItem('QuantitÃ©', dataset.zoomQuantity)
+                ].join('');
+
+                buildActionButtons(dataset);
+                zoomPrevButton.style.display = activeIndex > 0 ? '' : 'none';
+                zoomNextButton.style.display = activeIndex < activeImages.length - 1 ? '' : 'none';
+            }
+
+            function renderZoomMeta(dataset, priceData) {
+                zoomMeta.innerHTML = [
+                    buildMetaItem('Carte', dataset.zoomCardId),
+                    buildMetaItem('Numero local', dataset.zoomLocalId),
+                    buildMetaItem('Set', dataset.zoomSetName),
+                    buildMetaItem('Rarete', dataset.zoomRarity),
+                    buildMetaItem('Forme', dataset.zoomVariant),
+                    buildMetaItem('Quantite', dataset.zoomQuantity),
+                    buildMetaItem('Prix Cardmarket', priceData && priceData.cardmarketPrice),
+                    buildMetaItem('Prix TCGplayer', priceData && priceData.tcgplayerPrice)
+                ].join('');
+            }
+
+            function updateEnhancedZoomModal(image) {
+                const dataset = image.dataset;
+                zoomImage.src = dataset.zoomSrc || image.src;
+                zoomImage.alt = image.alt || '';
+                zoomTitle.textContent = dataset.zoomTitle || image.alt || '';
+                zoomSubtitle.textContent = dataset.zoomSubtitle || '';
+                zoomSubtitle.style.display = zoomSubtitle.textContent ? '' : 'none';
+
+                zoomMeta.innerHTML = [
+                    buildMetaItem('Carte', dataset.zoomCardId),
+                    buildMetaItem('Numero local', dataset.zoomLocalId),
+                    buildMetaItem('Set', dataset.zoomSetName),
+                    buildMetaItem('Rarete', dataset.zoomRarity),
+                    buildMetaItem('Forme', dataset.zoomVariant),
+                    buildMetaItem('Quantite', dataset.zoomQuantity)
+                ].join('');
+
+                buildActionButtons(dataset);
+                zoomPrevButton.style.display = activeIndex > 0 ? '' : 'none';
+                zoomNextButton.style.display = activeIndex < activeImages.length - 1 ? '' : 'none';
+            }
+
+            function refreshEnhancedZoomModal(image) {
+                updateEnhancedZoomModal(image);
+                const dataset = image.dataset;
+                renderZoomMeta(dataset, null);
+                fetchPriceData(dataset.zoomCardId).then(priceData => {
+                    if (activeImages[activeIndex] === image) {
+                        renderZoomMeta(dataset, priceData);
+                    }
+                });
+            }
+
+            function openEnhancedZoomModal(selector, image) {
+                ensureEnhancedZoomModal();
+                activeSelector = selector;
+                activeImages = getVisibleImages(selector);
+                activeIndex = activeImages.indexOf(image);
+                if (activeIndex < 0) {
+                    activeImages = Array.from(document.querySelectorAll(selector));
+                    activeIndex = activeImages.indexOf(image);
+                }
+                refreshEnhancedZoomModal(image);
+                zoomModal.classList.add('is-open');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function moveEnhancedZoom(direction) {
+                if (!activeImages.length) {
+                    return;
+                }
+                const nextIndex = activeIndex + direction;
+                if (nextIndex < 0 || nextIndex >= activeImages.length) {
+                    return;
+                }
+                activeIndex = nextIndex;
+                refreshEnhancedZoomModal(activeImages[activeIndex]);
+            }
+
+            function closeEnhancedZoomModal() {
+                if (!zoomModal) {
+                    return;
+                }
+                zoomModal.classList.remove('is-open');
+                document.body.classList.remove('overflow-hidden');
+                zoomImage.src = '';
+                zoomActions.innerHTML = '';
+                setZoomStatus('', null);
+            }
+
+            window.initializeCardZoom = function(selector) {
+                const images = document.querySelectorAll(selector);
+                if (!images.length) {
+                    return;
+                }
+
+                images.forEach(image => {
+                    if (image.dataset.zoomClickBoundEnhanced === 'true') {
+                        return;
+                    }
+                    image.dataset.zoomClickBoundEnhanced = 'true';
+                    image.addEventListener('click', () => openEnhancedZoomModal(selector, image));
+                });
+
+                restorePendingZoom(selector, Array.from(images));
+            };
+
+            window.initializeAutoSubmitForm = function(formSelector, options) {
+                const form = document.querySelector(formSelector);
+                if (!form || form.dataset.autoSubmitBound === 'true') {
+                    return;
+                }
+
+                form.dataset.autoSubmitBound = 'true';
+                const debounceMs = Number.parseInt((options && options.debounceMs) || '300', 10);
+                let timeoutId = null;
+
+                function submitForm() {
+                    if (timeoutId) {
+                        window.clearTimeout(timeoutId);
+                        timeoutId = null;
+                    }
+                    form.requestSubmit();
+                }
+
+                form.querySelectorAll('input, select').forEach(field => {
+                    if (field.type === 'checkbox' || field.type === 'radio') {
+                        field.addEventListener('change', submitForm);
+                        return;
+                    }
+                    if (field.tagName === 'SELECT') {
+                        field.addEventListener('change', submitForm);
+                        return;
+                    }
+
+                    field.addEventListener('keydown', event => {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            submitForm();
+                        }
+                    });
+                });
+            };
+        })();
+
+        (() => {
+            const scrollTopButton = document.querySelector('.app-scroll-top');
+            if (!scrollTopButton) {
+                return;
+            }
+
+            function updateScrollTopVisibility() {
+                if (window.scrollY > 180) {
+                    scrollTopButton.classList.add('is-visible');
+                } else {
+                    scrollTopButton.classList.remove('is-visible');
+                }
+            }
+
+            window.addEventListener('scroll', updateScrollTopVisibility, { passive: true });
+            scrollTopButton.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            updateScrollTopVisibility();
         })();
     </script>
     <th:block layout:fragment="scripts"></th:block>
