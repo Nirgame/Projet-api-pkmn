@@ -33,7 +33,7 @@ public class CardPriceService {
             "unlimitedNormal");
 
     private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(8))
+            .connectTimeout(Duration.ofSeconds(2))
             .build();
     private final Map<String, CardPriceView> priceCache = new ConcurrentHashMap<>();
 
@@ -49,7 +49,7 @@ public class CardPriceService {
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(API_BASE_URL + cardId))
-                .timeout(Duration.ofSeconds(10))
+                .timeout(Duration.ofSeconds(3))
                 .header("Accept", "application/json")
                 .GET()
                 .build();
@@ -63,8 +63,13 @@ public class CardPriceService {
             CardPriceView parsedPrice = parsePriceResponse(cardId, response.body());
             priceCache.put(cardId, parsedPrice);
             return parsedPrice;
+        } catch (IOException exception) {
+            CardPriceView fallbackPrice = new CardPriceView(cardId, null, null);
+            priceCache.put(cardId, fallbackPrice);
+            throw exception;
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
+            priceCache.put(cardId, new CardPriceView(cardId, null, null));
             throw new IOException("Requete de prix interrompue", exception);
         }
     }

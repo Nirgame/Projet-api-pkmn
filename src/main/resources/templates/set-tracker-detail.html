@@ -157,7 +157,13 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    window.location.reload();
+                    const quantity = data.card && typeof data.card.quantity === 'number' ? data.card.quantity : 1;
+                    window.dispatchEvent(new CustomEvent('collection-card-updated', {
+                        detail: {
+                            cardId: cardId,
+                            quantity: quantity
+                        }
+                    }));
                     return;
                 }
                 alert('Erreur: ' + data.error);
@@ -173,7 +179,13 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    window.location.reload();
+                    const quantity = typeof data.quantity === 'number' ? data.quantity : 0;
+                    window.dispatchEvent(new CustomEvent('collection-card-updated', {
+                        detail: {
+                            cardId: cardId,
+                            quantity: quantity
+                        }
+                    }));
                     return;
                 }
                 alert('Erreur lors de la suppression');

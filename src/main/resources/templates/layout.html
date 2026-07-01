@@ -89,32 +89,6 @@
         .mobile-inline-actions > * {
             flex: 0 0 auto;
         }
-        .card-zoom-preview {
-            position: fixed;
-            z-index: 1085;
-            display: none;
-            pointer-events: none;
-            width: 320px;
-            max-width: 28vw;
-            border-radius: 18px;
-            background: rgba(17, 24, 39, 0.96);
-            box-shadow: 0 18px 48px rgba(15, 23, 42, 0.35);
-            padding: 12px;
-            backdrop-filter: blur(6px);
-        }
-        .card-zoom-preview img {
-            width: 100%;
-            display: block;
-            border-radius: 12px;
-            object-fit: contain;
-            background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(226,232,240,0.92));
-        }
-        .card-zoom-preview-title {
-            color: #f8fafc;
-            font-size: 0.9rem;
-            margin-top: 10px;
-            text-align: center;
-        }
         .card-zoom-modal {
             position: fixed;
             inset: 0;
@@ -152,10 +126,7 @@
             min-width: 0;
             display: flex;
             flex-direction: column;
-            max-height: min(76vh, 820px);
-            overflow-y: auto;
-            padding-right: 0.2rem;
-            scrollbar-gutter: stable;
+            overflow: visible;
         }
         .card-zoom-modal-close {
             position: absolute;
@@ -248,27 +219,19 @@
         .card-zoom-modal-actions {
             display: grid;
             gap: 0.65rem;
-            margin-top: auto;
-            position: sticky;
-            bottom: 0;
-            padding-top: 0.9rem;
-            padding-bottom: 0.35rem;
-            background: linear-gradient(180deg, rgba(30, 41, 59, 0), rgba(30, 41, 59, 0.96) 24%, rgba(30, 41, 59, 0.98));
-            z-index: 2;
+            margin-top: 1rem;
         }
         .card-zoom-modal-actions .btn {
             width: 100%;
         }
         .card-zoom-modal-status {
             margin-top: 0.45rem;
-            min-height: 1.4rem;
+            min-height: 0;
             color: rgba(226, 232, 240, 0.88);
             font-size: 0.88rem;
-            position: sticky;
-            bottom: 0;
-            padding-bottom: 0.25rem;
-            background: rgba(30, 41, 59, 0.98);
-            z-index: 2;
+        }
+        .card-zoom-modal-status:empty {
+            display: none;
         }
         .app-scroll-top {
             position: fixed;
@@ -735,6 +698,7 @@
             let activeIndex = -1;
             let zoomBusy = false;
             const priceCache = new Map();
+            const priceRequestCache = new Map();
             const zoomRestoreStorageKey = 'appPendingZoomRestore';
 
             function ensureEnhancedZoomModal() {
@@ -905,16 +869,34 @@
                 if (priceCache.has(cardId)) {
                     return Promise.resolve(priceCache.get(cardId));
                 }
-                return fetch('/api/cards/' + encodeURIComponent(cardId) + '/prices', withCsrf({
+                if (priceRequestCache.has(cardId)) {
+                    return priceRequestCache.get(cardId);
+                }
+                const request = fetch('/api/cards/' + encodeURIComponent(cardId) + '/prices', withCsrf({
                     method: 'GET',
                     credentials: 'same-origin'
                 }))
-                    .then(response => response.json())
+                    .then(response => response.ok
+                        ? response.json()
+                        : {
+                            cardId: cardId,
+                            cardmarketPrice: null,
+                            tcgplayerPrice: null
+                        })
+                    .catch(() => ({
+                        cardId: cardId,
+                        cardmarketPrice: null,
+                        tcgplayerPrice: null
+                    }))
                     .then(data => {
                         priceCache.set(cardId, data);
                         return data;
                     })
-                    .catch(() => null);
+                    .finally(() => {
+                        priceRequestCache.delete(cardId);
+                    });
+                priceRequestCache.set(cardId, request);
+                return request;
             }
 
             function postJson(url, method, body) {
@@ -960,6 +942,91 @@
                 document.querySelectorAll('[data-zoom-card-id="' + CSS.escape(cardId) + '"]').forEach(node => {
                     updater(node.dataset);
                 });
+            }
+
+            function updateCollectionCardDisplays(cardId, quantity) {
+                const escapedCardId = CSS.escape(cardId);
+
+                document.querySelectorAll('.collection-card-item[data-card-id="' + escapedCardId + '"], .pokemon-card-item[data-card-id="' + escapedCardId + '"], .available-card-item[data-card-id="' + escapedCardId + '"]').forEach(item => {
+                    item.dataset.quantity = String(quantity);
+
+                    const quantityBadge = item.querySelector('.btn-light.disabled');
+                    if (quantityBadge) {
+                        quantityBadge.textContent = 'x' + quantity;
+                    }
+
+                    const removeButton = item.querySelector('.btn-outline-danger[data-card-id="' + escapedCardId + '"]');
+                    if (removeButton) {
+                        removeButton.style.display = quantity > 0 ? '' : 'none';
+                    }
+
+                    const assignButton = item.querySelector('.btn-dark[data-card-id="' + escapedCardId + '"]');
+                    if (assignButton) {
+                        assignButton.disabled = quantity <= 0;
+                        assignButton.classList.toggle('disabled', quantity <= 0);
+                    }
+
+                    if (quantity <= 0 && (item.classList.contains('collection-card-item') || item.classList.contains('pokemon-card-item'))) {
+                        item.remove();
+                    }
+                });
+
+                document.querySelectorAll('[data-zoom-card-id="' + escapedCardId + '"]').forEach(node => {
+                    const trackedCard = node.closest('.tracked-set-detail-card');
+                    if (trackedCard) {
+                        trackedCard.dataset.owned = quantity > 0 ? 'true' : 'false';
+
+                        let badge = trackedCard.querySelector('.owned-badge');
+                        if (quantity > 0) {
+                            if (!badge) {
+                                badge = document.createElement('div');
+                                badge.className = 'owned-badge';
+                                trackedCard.querySelector('.card')?.appendChild(badge);
+                            }
+                            badge.textContent = String(quantity);
+                            badge.style.display = 'flex';
+                        } else if (badge) {
+                            badge.remove();
+                        }
+
+                        const status = trackedCard.querySelector('.small.fw-semibold');
+                        if (status) {
+                            status.textContent = quantity > 0 ? 'Possedee' : 'Manquante';
+                        }
+
+                        const removeButton = trackedCard.querySelector('.btn-outline-danger[data-card-id="' + escapedCardId + '"]');
+                        if (removeButton) {
+                            removeButton.style.display = quantity > 0 ? '' : 'none';
+                        }
+                    }
+                });
+
+                window.dispatchEvent(new CustomEvent('collection-card-updated', {
+                    detail: {
+                        cardId: cardId,
+                        quantity: quantity
+                    }
+                }));
+            }
+
+            function updateActiveCardQuantity(cardId, quantity) {
+                updateCardDatasets(cardId, targetDataset => {
+                    targetDataset.zoomOwnedCount = String(quantity);
+                    targetDataset.zoomCanRemove = String(quantity > 0);
+                    if (targetDataset.zoomAssignPokemonId) {
+                        targetDataset.zoomAssignable = String(quantity > 0);
+                    }
+                    if (targetDataset.zoomQuantity) {
+                        targetDataset.zoomQuantity = quantity > 0 ? 'x' + quantity : '';
+                    }
+                });
+
+                syncOwnedBadge(cardId, quantity);
+                updateCollectionCardDisplays(cardId, quantity);
+            }
+
+            function emitPokedexAssignmentEvent(type, detail) {
+                window.dispatchEvent(new CustomEvent(type, { detail: detail }));
             }
 
             function renderZoomMeta(dataset, priceData) {
@@ -1036,32 +1103,52 @@
                         if (action === 'add') {
                             runZoomAction(
                                 () => postJson('/api/collection/cards/' + encodeURIComponent(cardId), 'POST', {}),
-                                () => {
-                                    rememberZoomStateForReload(currentImage);
-                                    window.location.reload();
+                                data => {
+                                    const nextQuantity = data && data.card && typeof data.card.quantity === 'number'
+                                        ? data.card.quantity
+                                        : ownedCount + 1;
+                                    updateActiveCardQuantity(cardId, nextQuantity);
+                                    refreshEnhancedZoomModal(activeImages[activeIndex]);
                                 });
                         } else if (action === 'remove') {
                             runZoomAction(
                                 () => sendWithoutBody('/api/collection/cards/' + encodeURIComponent(cardId), 'DELETE'),
-                                () => {
-                                    rememberZoomStateForReload(currentImage);
-                                    window.location.reload();
+                                data => {
+                                    const nextQuantity = data && typeof data.quantity === 'number'
+                                        ? data.quantity
+                                        : Math.max(0, ownedCount - 1);
+                                    updateActiveCardQuantity(cardId, nextQuantity);
+                                    refreshEnhancedZoomModal(activeImages[activeIndex]);
                                 });
                         } else if (action === 'assign') {
                             runZoomAction(
                                 () => postJson('/api/pokedex/pokemon/' + encodeURIComponent(assignPokemonId) + '/assign/' + encodeURIComponent(cardId), 'POST', {
                                     comment: getAssignmentComment()
                                 }),
-                                () => {
-                                    rememberZoomStateForReload(currentImage);
-                                    window.location.reload();
+                                data => {
+                                    updateCardDatasets(cardId, targetDataset => {
+                                        if (targetDataset.zoomAssignPokemonId === assignPokemonId) {
+                                            targetDataset.zoomClearAssignmentPokemonId = assignPokemonId;
+                                        }
+                                    });
+                                    currentImage.dataset.zoomClearAssignmentPokemonId = assignPokemonId;
+                                    emitPokedexAssignmentEvent('pokedex-assignment-updated', {
+                                        pokemonId: assignPokemonId,
+                                        cardId: cardId,
+                                        comment: data && data.comment ? data.comment : getAssignmentComment(),
+                                        imageDataset: { ...currentImage.dataset }
+                                    });
+                                    refreshEnhancedZoomModal(activeImages[activeIndex]);
                                 });
                         } else if (action === 'clear-assignment') {
                             runZoomAction(
                                 () => sendWithoutBody('/api/pokedex/pokemon/' + encodeURIComponent(clearAssignmentPokemonId) + '/assignment', 'DELETE'),
                                 () => {
-                                    rememberZoomStateForReload(currentImage);
-                                    window.location.reload();
+                                    currentImage.dataset.zoomClearAssignmentPokemonId = '';
+                                    emitPokedexAssignmentEvent('pokedex-assignment-cleared', {
+                                        pokemonId: clearAssignmentPokemonId
+                                    });
+                                    refreshEnhancedZoomModal(activeImages[activeIndex]);
                                 });
                         }
                     });
@@ -1083,41 +1170,6 @@
                     buildMetaItem('RaretÃ©', dataset.zoomRarity),
                     buildMetaItem('Forme', dataset.zoomVariant),
                     buildMetaItem('QuantitÃ©', dataset.zoomQuantity)
-                ].join('');
-
-                buildActionButtons(dataset);
-                zoomPrevButton.style.display = activeIndex > 0 ? '' : 'none';
-                zoomNextButton.style.display = activeIndex < activeImages.length - 1 ? '' : 'none';
-            }
-
-            function renderZoomMeta(dataset, priceData) {
-                zoomMeta.innerHTML = [
-                    buildMetaItem('Carte', dataset.zoomCardId),
-                    buildMetaItem('Numero local', dataset.zoomLocalId),
-                    buildMetaItem('Set', dataset.zoomSetName),
-                    buildMetaItem('Rarete', dataset.zoomRarity),
-                    buildMetaItem('Forme', dataset.zoomVariant),
-                    buildMetaItem('Quantite', dataset.zoomQuantity),
-                    buildMetaItem('Prix Cardmarket', priceData && priceData.cardmarketPrice),
-                    buildMetaItem('Prix TCGplayer', priceData && priceData.tcgplayerPrice)
-                ].join('');
-            }
-
-            function updateEnhancedZoomModal(image) {
-                const dataset = image.dataset;
-                zoomImage.src = dataset.zoomSrc || image.src;
-                zoomImage.alt = image.alt || '';
-                zoomTitle.textContent = dataset.zoomTitle || image.alt || '';
-                zoomSubtitle.textContent = dataset.zoomSubtitle || '';
-                zoomSubtitle.style.display = zoomSubtitle.textContent ? '' : 'none';
-
-                zoomMeta.innerHTML = [
-                    buildMetaItem('Carte', dataset.zoomCardId),
-                    buildMetaItem('Numero local', dataset.zoomLocalId),
-                    buildMetaItem('Set', dataset.zoomSetName),
-                    buildMetaItem('Rarete', dataset.zoomRarity),
-                    buildMetaItem('Forme', dataset.zoomVariant),
-                    buildMetaItem('Quantite', dataset.zoomQuantity)
                 ].join('');
 
                 buildActionButtons(dataset);
