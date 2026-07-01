@@ -110,6 +110,7 @@
                                               data-zoom-can-remove=true,
                                               data-zoom-clear-assignment-pokemon-id=${detail.species.id}"
                                      th:classappend="' zoom-hover-image'"
+                                     onclick="window.openCardZoomForElement && window.openCardZoomForElement('#pokedex-assignment-state .zoom-hover-image', this)"
                                      onerror="this.onerror=null;this.src='/images/placeholder.svg'">
                                 <h4 class="h6 mb-1" th:text="${detail.assignedCard.displayName}">Bulbasaur</h4>
                                 <div class="text-muted small mb-2"
@@ -619,6 +620,7 @@
                 ' data-zoom-owned-count="' + escapeAssignmentHtml(String(quantity)) + '"' +
                 ' data-zoom-can-add="true" data-zoom-can-remove="' + escapeAssignmentHtml(String(quantity > 0)) + '"' +
                 ' data-zoom-clear-assignment-pokemon-id="' + escapeAssignmentHtml(pokemonId) + '"' +
+                ' onclick="window.openCardZoomForElement && window.openCardZoomForElement(\'#pokedex-assignment-state .zoom-hover-image\', this)"' +
                 ' onerror="this.onerror=null;this.src=\\'/images/placeholder.svg\\'">' +
                 '<h4 class="h6 mb-1">' + escapeAssignmentHtml(cardData.zoomTitle) + '</h4>' +
                 (cardData.zoomSubtitle ? '<div class="text-muted small mb-2">' + escapeAssignmentHtml(cardData.zoomSubtitle) + '</div>' : '') +

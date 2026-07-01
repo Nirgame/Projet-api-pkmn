@@ -1277,6 +1277,13 @@
                 restorePendingZoom(selector, Array.from(images));
             };
 
+            window.openCardZoomForElement = function(selector, element) {
+                if (!element) {
+                    return;
+                }
+                openEnhancedZoomModal(selector, element);
+            };
+
             window.initializeAutoSubmitForm = function(formSelector, options) {
                 const form = document.querySelector(formSelector);
                 if (!form || form.dataset.autoSubmitBound === 'true') {
