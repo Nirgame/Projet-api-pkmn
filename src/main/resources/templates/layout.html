@@ -1070,6 +1070,19 @@
                     });
             }
 
+            function renderZoomMeta(dataset, priceData) {
+                zoomMeta.innerHTML = [
+                    buildMetaItem('Carte', dataset.zoomCardId),
+                    buildMetaItem('Numero local', dataset.zoomLocalId),
+                    buildMetaItem('Set', dataset.zoomSetName),
+                    buildMetaItem('Raret\u00E9', dataset.zoomRarity),
+                    buildMetaItem('Forme', dataset.zoomVariant),
+                    buildMetaItem('Quantit\u00E9', dataset.zoomQuantity),
+                    buildMetaItem('Prix Cardmarket', priceData && priceData.cardmarketPrice),
+                    buildMetaItem('Prix TCGplayer', priceData && priceData.tcgplayerPrice)
+                ].join('');
+            }
+
             function buildActionButtons(dataset) {
                 const cardId = dataset.zoomCardId || '';
                 const ownedCount = Number.parseInt(dataset.zoomOwnedCount || '0', 10) || 0;
@@ -1170,6 +1183,28 @@
                     buildMetaItem('RaretÃ©', dataset.zoomRarity),
                     buildMetaItem('Forme', dataset.zoomVariant),
                     buildMetaItem('QuantitÃ©', dataset.zoomQuantity)
+                ].join('');
+
+                buildActionButtons(dataset);
+                zoomPrevButton.style.display = activeIndex > 0 ? '' : 'none';
+                zoomNextButton.style.display = activeIndex < activeImages.length - 1 ? '' : 'none';
+            }
+
+            function updateEnhancedZoomModal(image) {
+                const dataset = image.dataset;
+                zoomImage.src = dataset.zoomSrc || image.src;
+                zoomImage.alt = image.alt || '';
+                zoomTitle.textContent = dataset.zoomTitle || image.alt || '';
+                zoomSubtitle.textContent = dataset.zoomSubtitle || '';
+                zoomSubtitle.style.display = zoomSubtitle.textContent ? '' : 'none';
+
+                zoomMeta.innerHTML = [
+                    buildMetaItem('Carte', dataset.zoomCardId),
+                    buildMetaItem('Numero local', dataset.zoomLocalId),
+                    buildMetaItem('Set', dataset.zoomSetName),
+                    buildMetaItem('Raret\u00E9', dataset.zoomRarity),
+                    buildMetaItem('Forme', dataset.zoomVariant),
+                    buildMetaItem('Quantit\u00E9', dataset.zoomQuantity)
                 ].join('');
 
                 buildActionButtons(dataset);

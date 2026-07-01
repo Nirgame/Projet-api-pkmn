@@ -561,6 +561,24 @@
                 .replace(/"/g, '&quot;');
         }
 
+        function bindPokedexAssignmentZoom() {
+            initializeCardZoom('#pokedex-assignment-state .zoom-hover-image');
+            const assignmentImage = document.querySelector('#pokedex-assignment-state .zoom-hover-image');
+            if (!assignmentImage) {
+                return;
+            }
+
+            assignmentImage.style.cursor = 'zoom-in';
+            if (assignmentImage.dataset.assignmentZoomBound === 'true') {
+                return;
+            }
+
+            assignmentImage.dataset.assignmentZoomBound = 'true';
+            assignmentImage.addEventListener('click', () => {
+                initializeCardZoom('#pokedex-assignment-state .zoom-hover-image');
+            });
+        }
+
         function renderPokedexAssignmentState(cardData) {
             const container = document.getElementById('pokedex-assignment-state');
             if (!container) {
@@ -594,6 +612,7 @@
                 ' data-zoom-title="' + escapeAssignmentHtml(cardData.zoomTitle) + '"' +
                 ' data-zoom-subtitle="' + escapeAssignmentHtml(cardData.zoomSubtitle) + '"' +
                 ' data-zoom-card-id="' + escapeAssignmentHtml(cardData.zoomCardId) + '"' +
+                ' data-zoom-local-id="' + escapeAssignmentHtml(cardData.zoomLocalId) + '"' +
                 ' data-zoom-set-name="' + escapeAssignmentHtml(cardData.zoomSetName) + '"' +
                 ' data-zoom-quantity="' + escapeAssignmentHtml(quantityLabel) + '"' +
                 ' data-zoom-variant="' + escapeAssignmentHtml(cardData.zoomVariant) + '"' +
@@ -609,7 +628,7 @@
                 '<i class="fas fa-trash"></i> Retirer l\'assignation' +
                 '</button>';
 
-            initializeCardZoom('#pokedex-assignment-state .zoom-hover-image');
+            bindPokedexAssignmentZoom();
         }
 
         function assignCard(pokemonId, cardId) {
@@ -728,6 +747,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             setupAvailableCardFilters();
             initializeCardZoom('.zoom-hover-image');
+            bindPokedexAssignmentZoom();
             updateAssignmentCommentActionLabel();
 
             const assignmentCommentField = document.getElementById('assignmentComment');
