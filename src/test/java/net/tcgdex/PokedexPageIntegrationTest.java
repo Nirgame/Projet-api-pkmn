@@ -148,7 +148,17 @@ class PokedexPageIntegrationTest {
                 null,
                 nextSpecies);
 
-        when(pokedexService.getPokemonDetail(any(User.class), eq(1))).thenReturn(detailView);
+        when(pokedexService.getPokemonDetail(
+                any(User.class),
+                eq(1),
+                eq(null),
+                eq(null),
+                eq(false),
+                eq(false),
+                eq(false),
+                eq(RegionalDisplayMode.INCLUDE),
+                eq(null),
+                eq(RegionalDisplayMode.INCLUDE))).thenReturn(detailView);
 
         mockMvc.perform(get("/pokedex/1")
                         .with(user("blue").roles("USER")))

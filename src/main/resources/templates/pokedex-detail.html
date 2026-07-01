@@ -29,7 +29,8 @@
     <div th:if="${detail != null}">
         <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4 pokedex-detail-header">
             <div>
-                <a class="btn btn-link ps-0" href="/pokedex">
+                <a class="btn btn-link ps-0"
+                   th:href="@{/pokedex(page=${returnPage}, size=${returnSize}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
                     <i class="fas fa-arrow-left"></i> Retour au pokedex
                 </a>
                 <div class="text-muted small" th:text="|#${detail.species.speciesId}|">#1</div>
@@ -68,19 +69,19 @@
             </div>
             <div class="d-flex flex-wrap gap-2">
                 <a class="btn btn-outline-primary btn-sm"
-                   th:href="@{/pokedex}">
+                   th:href="@{/pokedex(page=${returnPage}, size=${returnSize}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
                     <i class="fas fa-arrow-left"></i>
                     <span>Retour Pokedex</span>
                 </a>
                 <a class="btn btn-outline-secondary btn-sm"
                    th:if="${detail.hasPreviousSpecies()}"
-                   th:href="@{/pokedex/{pokemonId}(pokemonId=${detail.previousSpecies.id})}">
+                   th:href="@{/pokedex/{pokemonId}(pokemonId=${detail.previousSpecies.id}, page=${returnPage}, size=${returnSize}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
                     <i class="fas fa-chevron-left"></i>
                     <span th:text="${detail.previousSpecies.displayName}">Precedent</span>
                 </a>
                 <a class="btn btn-outline-secondary btn-sm"
                    th:if="${detail.hasNextSpecies()}"
-                   th:href="@{/pokedex/{pokemonId}(pokemonId=${detail.nextSpecies.id})}">
+                   th:href="@{/pokedex/{pokemonId}(pokemonId=${detail.nextSpecies.id}, page=${returnPage}, size=${returnSize}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
                     <span th:text="${detail.nextSpecies.displayName}">Suivant</span>
                     <i class="fas fa-chevron-right"></i>
                 </a>
@@ -829,14 +830,8 @@
             });
 
             window.addEventListener('collection-card-updated', event => {
-                const detail = event.detail || {};
                 const assignmentContainer = document.getElementById('pokedex-assignment-state');
                 if (!assignmentContainer) {
-                    return;
-                }
-
-                const assignedImage = assignmentContainer.querySelector('[data-zoom-card-id]');
-                if (!assignedImage || assignedImage.dataset.zoomCardId !== detail.cardId) {
                     return;
                 }
                 refreshPokedexDetailView();

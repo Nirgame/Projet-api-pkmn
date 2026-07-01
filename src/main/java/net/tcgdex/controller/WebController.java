@@ -416,6 +416,7 @@ public class WebController {
             model.addAttribute("totalResults", pageResult.totalResults());
             model.addAttribute("unassignedCount", pageResult.unassignedCount());
             model.addAttribute("pageNumbers", buildCompactPageNumbers(pageResult.currentPage(), pageResult.totalPages()));
+            model.addAttribute("size", size);
             model.addAttribute("search", search);
             model.addAttribute("generation", generation);
             model.addAttribute("assignedOnly", assignedOnly);
@@ -435,6 +436,16 @@ public class WebController {
 
     @GetMapping("/pokedex/{pokemonId}")
     public String pokedexPokemon(@PathVariable int pokemonId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "24") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer generation,
+            @RequestParam(defaultValue = "false") boolean assignedOnly,
+            @RequestParam(defaultValue = "false") boolean unassignedOnly,
+            @RequestParam(defaultValue = "false") boolean missingCardOnly,
+            @RequestParam(defaultValue = "INCLUDE") String regionalMode,
+            @RequestParam(required = false) String regionalForm,
+            @RequestParam(defaultValue = "INCLUDE") String megaGigantamaxMode,
             Authentication authentication,
             Model model) {
         if (!isAuthenticated(authentication)) {
@@ -444,8 +455,31 @@ public class WebController {
         User user = userService.findByUsername(authentication.getName()).orElseThrow();
 
         try {
-            PokedexDetailView detailView = pokedexService.getPokemonDetail(user, pokemonId);
+            RegionalForm selectedRegionalForm = RegionalForm.fromFilterValue(regionalForm);
+            RegionalDisplayMode selectedRegionalMode = RegionalDisplayMode.fromFilterValue(regionalMode);
+            RegionalDisplayMode selectedMegaGigantamaxMode = RegionalDisplayMode.fromFilterValue(megaGigantamaxMode);
+            PokedexDetailView detailView = pokedexService.getPokemonDetail(
+                    user,
+                    pokemonId,
+                    search,
+                    generation,
+                    assignedOnly,
+                    unassignedOnly,
+                    missingCardOnly,
+                    selectedRegionalMode,
+                    selectedRegionalForm,
+                    selectedMegaGigantamaxMode);
             model.addAttribute("detail", detailView);
+            model.addAttribute("returnPage", page);
+            model.addAttribute("returnSize", size);
+            model.addAttribute("search", search);
+            model.addAttribute("generation", generation);
+            model.addAttribute("assignedOnly", assignedOnly);
+            model.addAttribute("unassignedOnly", unassignedOnly);
+            model.addAttribute("missingCardOnly", missingCardOnly);
+            model.addAttribute("regionalMode", selectedRegionalMode.name());
+            model.addAttribute("regionalForm", regionalForm);
+            model.addAttribute("megaGigantamaxMode", selectedMegaGigantamaxMode.name());
         } catch (IOException exception) {
             model.addAttribute("error", "Impossible de charger cette fiche Pokemon.");
         }

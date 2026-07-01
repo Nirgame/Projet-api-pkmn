@@ -61,6 +61,7 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form id="pokedex-filter-form" method="get" th:action="@{/pokedex}" class="row g-3 align-items-end">
+                <input type="hidden" name="size" th:value="${size}">
                 <div class="col-lg-3">
                     <label class="form-label" for="pokedex-search">Recherche</label>
                     <input id="pokedex-search"
@@ -219,7 +220,7 @@
 
                     <div class="d-grid gap-2">
                         <a class="btn btn-outline-dark w-100"
-                           th:href="@{/pokedex/{pokemonId}(pokemonId=${pokemon.species.id})}">
+                           th:href="@{/pokedex/{pokemonId}(pokemonId=${pokemon.species.id}, page=${currentPage}, size=${size}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
                             <i class="fas fa-eye"></i> Ouvrir la fiche
                         </a>
                         <a class="btn btn-outline-primary w-100"
@@ -240,7 +241,7 @@
                 <ul class="pagination justify-content-center">
                     <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/pokedex(page=${currentPage - 1}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, megaGigantamaxMode=${megaGigantamaxMode})}">
+                           th:href="@{/pokedex(page=${currentPage - 1}, size=${size}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
                             Precedent
                         </a>
                     </li>
@@ -252,14 +253,14 @@
                             th:classappend="${pageNumber == currentPage} ? 'active'">
                             <a class="page-link"
                                th:text="${pageNumber}"
-                               th:href="@{/pokedex(page=${pageNumber}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, megaGigantamaxMode=${megaGigantamaxMode})}">
+                               th:href="@{/pokedex(page=${pageNumber}, size=${size}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
                                 1
                             </a>
                         </li>
                     </th:block>
                     <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/pokedex(page=${currentPage + 1}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, megaGigantamaxMode=${megaGigantamaxMode})}">
+                           th:href="@{/pokedex(page=${currentPage + 1}, size=${size}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
                             Suivant
                         </a>
                     </li>
@@ -272,7 +273,9 @@
                 <input type="hidden" name="unassignedOnly" th:value="${unassignedOnly}">
                 <input type="hidden" name="missingCardOnly" th:value="${missingCardOnly}">
                 <input type="hidden" name="regionalMode" th:value="${regionalMode}">
+                <input type="hidden" name="regionalForm" th:value="${regionalForm}">
                 <input type="hidden" name="megaGigantamaxMode" th:value="${megaGigantamaxMode}">
+                <input type="hidden" name="size" th:value="${size}">
                 <div class="col-auto">
                     <label class="col-form-label page-jump-label" for="pokedexPageJump">Page</label>
                 </div>
