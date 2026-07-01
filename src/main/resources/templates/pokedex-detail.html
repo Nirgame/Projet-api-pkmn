@@ -89,7 +89,7 @@
 
         <div class="row g-4 mb-4">
             <div class="col-lg-4">
-                <div class="card shadow-sm sticky-panel sticky-panel-below-actions sticky-panel-scrollable">
+                <div id="pokedex-left-panel" class="card shadow-sm sticky-panel sticky-panel-below-actions sticky-panel-scrollable">
                     <div class="card-body">
                         <h3 class="h5 mb-3">Carte affichee dans le Pokedex</h3>
                         <div id="pokedex-assignment-state"
@@ -192,7 +192,7 @@
             </div>
 
             <div class="col-lg-8">
-                <div class="card shadow-sm mb-4">
+                <div id="pokedex-owned-section" class="card shadow-sm mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h3 class="h5 mb-0">Cartes deja dans ma collection</h3>
@@ -252,7 +252,7 @@
                     </div>
                 </div>
 
-                <div class="card shadow-sm">
+                <div id="pokedex-available-section" class="card shadow-sm">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h3 class="h5 mb-0">Cartes TCG disponibles pour ce Pokemon</h3>
@@ -501,14 +501,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const quantity = data.card && typeof data.card.quantity === 'number' ? data.card.quantity : 1;
-                    window.dispatchEvent(new CustomEvent('collection-card-updated', {
-                        detail: {
-                            cardId: cardId,
-                            quantity: quantity
-                        }
-                    }));
-                    return;
+                    return refreshPokedexDetailView();
                 }
                 alert('Erreur: ' + data.error);
             })
@@ -526,14 +519,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const quantity = typeof data.quantity === 'number' ? data.quantity : 0;
-                    window.dispatchEvent(new CustomEvent('collection-card-updated', {
-                        detail: {
-                            cardId: cardId,
-                            quantity: quantity
-                        }
-                    }));
-                    return;
+                    return refreshPokedexDetailView();
                 }
                 alert('Erreur lors de la suppression');
             })
@@ -594,6 +580,91 @@
 
             initializeCardZoom(selector);
             element.click();
+        }
+
+        function bindAssignmentCommentField() {
+            const assignmentCommentField = document.getElementById('assignmentComment');
+            if (!assignmentCommentField || assignmentCommentField.dataset.commentBound === 'true') {
+                return;
+            }
+
+            assignmentCommentField.dataset.commentBound = 'true';
+            assignmentCommentField.addEventListener('input', updateAssignmentCommentActionLabel);
+        }
+
+        function refreshPokedexDetailView() {
+            const currentFilters = {
+                search: document.getElementById('available-card-search')?.value || '',
+                set: document.getElementById('available-card-set-filter')?.value || '',
+                rarity: document.getElementById('available-card-rarity-filter')?.value || '',
+                form: document.getElementById('available-card-form-filter')?.value || ''
+            };
+
+            return fetch(window.location.pathname + window.location.search, withCsrf({
+                method: 'GET'
+            }))
+                .then(response => response.text())
+                .then(html => {
+                    const parsed = new DOMParser().parseFromString(html, 'text/html');
+                    const replacements = [
+                        ['#pokedex-left-panel', '#pokedex-left-panel'],
+                        ['#pokedex-owned-section', '#pokedex-owned-section'],
+                        ['#pokedex-available-section', '#pokedex-available-section']
+                    ];
+
+                    replacements.forEach(([targetSelector, sourceSelector]) => {
+                        const target = document.querySelector(targetSelector);
+                        const source = parsed.querySelector(sourceSelector);
+                        if (target && source) {
+                            target.innerHTML = source.innerHTML;
+                        }
+                    });
+
+                    setupAvailableCardFilters();
+
+                    const searchInput = document.getElementById('available-card-search');
+                    const setSelect = document.getElementById('available-card-set-filter');
+                    const raritySelect = document.getElementById('available-card-rarity-filter');
+                    const formSelect = document.getElementById('available-card-form-filter');
+                    const resetButton = document.getElementById('available-card-filter-reset');
+
+                    if (searchInput) {
+                        searchInput.value = currentFilters.search;
+                    }
+                    if (setSelect) {
+                        setSelect.value = currentFilters.set;
+                    }
+                    if (raritySelect) {
+                        raritySelect.value = currentFilters.rarity;
+                    }
+                    if (formSelect) {
+                        formSelect.value = currentFilters.form;
+                    }
+                    if (resetButton) {
+                        resetButton.click();
+                        if (searchInput) {
+                            searchInput.value = currentFilters.search;
+                        }
+                        if (setSelect) {
+                            setSelect.value = currentFilters.set;
+                        }
+                        if (raritySelect) {
+                            raritySelect.value = currentFilters.rarity;
+                        }
+                        if (formSelect) {
+                            formSelect.value = currentFilters.form;
+                        }
+                        searchInput?.dispatchEvent(new Event('input', { bubbles: true }));
+                        setSelect?.dispatchEvent(new Event('change', { bubbles: true }));
+                        raritySelect?.dispatchEvent(new Event('change', { bubbles: true }));
+                        formSelect?.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+
+                    initializeCardZoom('.zoom-hover-image');
+                    bindPokedexAssignmentZoom();
+                    bindAssignmentCommentField();
+                    updateAssignmentCommentActionLabel();
+                });
         }
 
         function renderPokedexAssignmentState(cardData) {
@@ -663,26 +734,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const cardElement = document.querySelector('[data-zoom-card-id="' + CSS.escape(cardId) + '"]');
-                    const imageDataset = cardElement ? { ...cardElement.dataset } : {
-                        zoomCardId: cardId,
-                        zoomTitle: data.cardName || '',
-                        zoomSubtitle: '',
-                        zoomSrc: '',
-                        zoomSetName: '',
-                        zoomVariant: '',
-                        zoomOwnedCount: '0'
-                    };
-                    imageDataset.zoomClearAssignmentPokemonId = String(pokemonId);
-                    window.dispatchEvent(new CustomEvent('pokedex-assignment-updated', {
-                        detail: {
-                            pokemonId: pokemonId,
-                            cardId: cardId,
-                            comment: data.comment || getAssignmentComment(),
-                            imageDataset: imageDataset
-                        }
-                    }));
-                    return;
+                    return refreshPokedexDetailView();
                 }
                 alert('Erreur: ' + data.error);
             })
@@ -697,12 +749,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    window.dispatchEvent(new CustomEvent('pokedex-assignment-cleared', {
-                        detail: {
-                            pokemonId: pokemonId
-                        }
-                    }));
-                    return;
+                    return refreshPokedexDetailView();
                 }
                 alert('Erreur: ' + data.error);
             })
@@ -728,12 +775,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const container = document.getElementById('pokedex-assignment-state');
-                    if (container) {
-                        container.dataset.missingMarked = checked ? 'true' : 'false';
-                    }
-                    renderPokedexAssignmentState(null);
-                    return;
+                    return refreshPokedexDetailView();
                 }
                 alert('Erreur: ' + data.error);
             })
@@ -754,8 +796,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    updateAssignmentCommentActionLabel();
-                    return;
+                    return refreshPokedexDetailView();
                 }
                 alert('Erreur: ' + data.error);
             })
@@ -766,12 +807,8 @@
             setupAvailableCardFilters();
             initializeCardZoom('.zoom-hover-image');
             bindPokedexAssignmentZoom();
+            bindAssignmentCommentField();
             updateAssignmentCommentActionLabel();
-
-            const assignmentCommentField = document.getElementById('assignmentComment');
-            if (assignmentCommentField) {
-                assignmentCommentField.addEventListener('input', updateAssignmentCommentActionLabel);
-            }
 
             window.addEventListener('pokedex-assignment-updated', event => {
                 const detail = event.detail || {};
@@ -779,8 +816,7 @@
                 if (!assignmentContainer || assignmentContainer.dataset.pokemonId !== String(detail.pokemonId || '')) {
                     return;
                 }
-
-                renderPokedexAssignmentState(detail.imageDataset || null);
+                refreshPokedexDetailView();
             });
 
             window.addEventListener('pokedex-assignment-cleared', event => {
@@ -789,8 +825,7 @@
                 if (!assignmentContainer || assignmentContainer.dataset.pokemonId !== String(detail.pokemonId || '')) {
                     return;
                 }
-
-                renderPokedexAssignmentState(null);
+                refreshPokedexDetailView();
             });
 
             window.addEventListener('collection-card-updated', event => {
@@ -804,11 +839,7 @@
                 if (!assignedImage || assignedImage.dataset.zoomCardId !== detail.cardId) {
                     return;
                 }
-
-                assignedImage.dataset.zoomOwnedCount = String(detail.quantity || 0);
-                assignedImage.dataset.zoomQuantity = detail.quantity > 0 ? 'x' + detail.quantity : '';
-                assignedImage.dataset.zoomCanRemove = String((detail.quantity || 0) > 0);
-                renderPokedexAssignmentState({ ...assignedImage.dataset });
+                refreshPokedexDetailView();
             });
         });
     </script>
