@@ -202,7 +202,7 @@
                             Vous n'avez pas encore de carte de ce Pokemon dans votre collection.
                         </div>
                         <div class="row g-3" th:if="${!detail.ownedCards.isEmpty()}">
-                            <div class="col-md-6" th:each="card : ${detail.ownedCards}">
+                            <div class="col-md-6 pokedex-owned-card" th:each="card : ${detail.ownedCards}">
                                 <div class="border rounded p-3 h-100">
                                     <div class="d-flex gap-3">
                                         <img th:src="${card.displayImage}"
@@ -220,6 +220,7 @@
                                                       data-zoom-assign-pokemon-id=${detail.species.id},
                                                       data-zoom-assignable=true"
                                              th:classappend="' zoom-hover-image'"
+                                             onclick="window.openCardZoomForElement && window.openCardZoomForElement('.pokedex-owned-card .zoom-hover-image', this)"
                                              style="width: 72px; height: 100px; object-fit: contain;"
                                              onerror="this.onerror=null;this.src='/images/placeholder.svg'">
                                         <div class="flex-grow-1">
@@ -327,6 +328,7 @@
                                                       data-zoom-assign-pokemon-id=${detail.species.id},
                                                       data-zoom-assignable=${detail.ownedCardCounts.containsKey(card.id)}"
                                              th:classappend="' zoom-hover-image'"
+                                             onclick="window.openCardZoomForElement && window.openCardZoomForElement('.available-card-item .zoom-hover-image', this)"
                                              style="width: 72px; height: 100px; object-fit: contain;"
                                              onerror="this.onerror=null;this.src='/images/placeholder.svg'">
                                         <div class="flex-grow-1">

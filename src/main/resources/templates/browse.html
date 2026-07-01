@@ -228,7 +228,6 @@
 
             document.addEventListener('DOMContentLoaded', function() {
                 initializeCardZoom('.zoom-hover-image');
-                initializeAutoSubmitForm('#browse-filter-form', { debounceMs: 280 });
                 document.querySelectorAll('.add-to-collection-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const cardId = this.getAttribute('data-card-id');
