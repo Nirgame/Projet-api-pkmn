@@ -137,12 +137,16 @@
                                      th:src="${set.displayLogo}"
                                      th:alt="${set.displayName}"
                                      class="img-fluid mb-2"
+                                     loading="lazy"
+                                     decoding="async"
                                      style="max-height: 72px; object-fit: contain;"
                                      onerror="this.style.display='none'">
                                 <img th:if="${set.hasSymbol()}"
                                      th:src="${set.displaySymbol}"
                                      th:alt="${set.displayName}"
                                      class="img-fluid"
+                                     loading="lazy"
+                                     decoding="async"
                                      style="max-height: 38px; object-fit: contain;"
                                      onerror="this.style.display='none'">
                             </div>

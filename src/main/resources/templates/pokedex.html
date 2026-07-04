@@ -171,9 +171,11 @@
 
                     <div th:if="${pokemon.hasAssignedCard()}" class="border rounded p-3 bg-light mb-3">
                         <div class="d-flex gap-3 align-items-center">
-                            <img th:src="${pokemon.assignedCard.displayImage}"
+                            <img th:src="${pokemon.assignedCard.thumbnailImage}"
                                  th:alt="${pokemon.assignedCard.name}"
-                                 th:attr="data-zoom-src=${pokemon.assignedCard.displayImage},
+                                 loading="lazy"
+                                 decoding="async"
+                                 th:attr="data-zoom-src=${pokemon.assignedCard.zoomImage},
                                           data-zoom-title=${pokemon.assignedCard.displayName},
                                           data-zoom-subtitle=${pokemon.assignedCard.secondaryName},
                                           data-zoom-card-id=${pokemon.assignedCard.cardId},

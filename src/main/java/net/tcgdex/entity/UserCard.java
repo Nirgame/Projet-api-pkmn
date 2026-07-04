@@ -148,6 +148,20 @@ public class UserCard {
     }
 
     public String getDisplayImage() {
+        return getThumbnailImage();
+    }
+
+    public String getThumbnailImage() {
+        if (image == null || image.isBlank()) {
+            return "/images/placeholder.svg";
+        }
+        if (image.endsWith(".png") || image.endsWith(".jpg") || image.endsWith(".jpeg") || image.endsWith(".webp")) {
+            return image;
+        }
+        return image + "/low.webp";
+    }
+
+    public String getZoomImage() {
         if (image == null || image.isBlank()) {
             return "/images/placeholder.svg";
         }

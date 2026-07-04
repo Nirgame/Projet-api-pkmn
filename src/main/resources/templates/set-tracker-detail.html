@@ -71,10 +71,12 @@
                          th:text="${detail.ownedCardCounts.get(card.id)}">
                         1
                     </div>
-                    <img th:src="${card.displayImage}"
+                    <img th:src="${card.thumbnailImage}"
                          th:alt="${card.displayName}"
                          class="card-img-top zoom-hover-image"
-                         th:attr="data-zoom-src=${card.displayImage},
+                         loading="lazy"
+                         decoding="async"
+                         th:attr="data-zoom-src=${card.zoomImage},
                                   data-zoom-title=${card.displayName},
                                   data-zoom-subtitle=${card.secondaryName},
                                   data-zoom-card-id=${card.id},

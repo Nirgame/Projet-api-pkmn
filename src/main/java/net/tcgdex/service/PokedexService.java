@@ -140,7 +140,7 @@ public class PokedexService {
                 .findFirst();
         boolean missingCardMarked = assignment.map(UserPokemonCardAssignment::isCardMissing).orElse(false);
         String comment = assignment.map(UserPokemonCardAssignment::getComment).map(this::normalizeComment).orElse(null);
-        UserCard assignedCard = getAssignedCard(user, pokemonId).orElse(null);
+        UserCard assignedCard = assignedCardsByPokemon.get(pokemonId);
         List<UserCard> userCollection = collectionService.getUserCollection(user);
 
         List<UserCard> ownedCards = userCollection.stream()
@@ -154,8 +154,6 @@ public class PokedexService {
         List<CardBrief> availableCards = getCardsForPokemon(species).stream()
                 .sorted(Comparator.comparing(CardBrief::getEnglishName, String.CASE_INSENSITIVE_ORDER))
                 .toList();
-        tcgdexService.enrichRarities(availableCards);
-        tcgdexService.enrichSetMetadata(availableCards);
         List<PokemonIndexEntry> filteredEntries = filterEntries(
                 search,
                 generation,
@@ -279,33 +277,15 @@ public class PokedexService {
             Set<Integer> missingCardPokemonIds,
             Map<Integer, String> commentsByPokemon,
             List<UserCard> userCollection) {
-        try {
-            PokemonSpeciesInfo species = pokeApiService.getPokemonSpecies(entry.id());
-            UserCard assignedCard = assignedCardsByPokemon.get(entry.id());
-            long ownedCardCount = countOwnedCardsForSpecies(userCollection, species);
-            return new PokedexListItem(
-                    species,
-                    assignedCard,
-                    ownedCardCount,
-                    missingCardPokemonIds.contains(entry.id()),
-                    commentsByPokemon.get(entry.id()));
-        } catch (IOException exception) {
-            PokemonSpeciesInfo fallbackSpecies = new PokemonSpeciesInfo(
-                    entry.id(),
-                    entry.speciesId(),
-                    entry.slug(),
-                    PokemonNameUtils.slugToDisplayName(entry.slug()),
-                    null,
-                    entry.generationId(),
-                    entry.generationLabel(),
-                    entry.regionalForm());
-            return new PokedexListItem(
-                    fallbackSpecies,
-                    assignedCardsByPokemon.get(entry.id()),
-                    0,
-                    missingCardPokemonIds.contains(entry.id()),
-                    commentsByPokemon.get(entry.id()));
-        }
+        PokemonSpeciesInfo species = resolveListSpecies(entry);
+        UserCard assignedCard = assignedCardsByPokemon.get(entry.id());
+        long ownedCardCount = countOwnedCardsForSpecies(userCollection, species);
+        return new PokedexListItem(
+                species,
+                assignedCard,
+                ownedCardCount,
+                missingCardPokemonIds.contains(entry.id()),
+                commentsByPokemon.get(entry.id()));
     }
 
     private List<PokemonIndexEntry> filterEntries(String search,
@@ -511,8 +491,45 @@ public class PokedexService {
                 ? Collections.emptyList()
                 : List.copyOf(cardsById.values());
         tcgdexService.enrichFormLabels(cards);
+        tcgdexService.enrichRarities(cards);
+        tcgdexService.enrichSetMetadata(cards);
         availableCardsCache.put(species.id(), cards);
         return cards;
+    }
+
+    private PokemonSpeciesInfo resolveListSpecies(PokemonIndexEntry entry) {
+        PokemonSpeciesInfo cachedSpecies = pokeApiService.findCachedPokemonSpecies(entry.id());
+        if (cachedSpecies != null) {
+            return cachedSpecies;
+        }
+
+        if (entry.englishName() == null || entry.englishName().isBlank()) {
+            try {
+                return pokeApiService.getPokemonSpecies(entry.id());
+            } catch (IOException ignored) {
+            }
+        }
+
+        PokemonSpeciesInfo cachedBaseSpecies = pokeApiService.findCachedPokemonSpecies(entry.speciesId());
+        String baseEnglishName = cachedBaseSpecies != null && cachedBaseSpecies.englishName() != null && !cachedBaseSpecies.englishName().isBlank()
+                ? cachedBaseSpecies.englishName()
+                : entry.englishName();
+        String baseFrenchName = cachedBaseSpecies != null
+                ? cachedBaseSpecies.frenchName()
+                : entry.frenchName();
+
+        return new PokemonSpeciesInfo(
+                entry.id(),
+                entry.speciesId(),
+                entry.slug(),
+                entry.englishName() != null && !entry.englishName().isBlank() ? entry.englishName() : PokemonNameUtils.slugToDisplayName(entry.slug()),
+                entry.frenchName(),
+                entry.generationId(),
+                entry.generationLabel(),
+                entry.regionalForm(),
+                entry.alternativeForm(),
+                baseEnglishName,
+                baseFrenchName);
     }
 
     private void collectCardsForQueries(Map<String, CardBrief> cardsById,
