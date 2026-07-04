@@ -97,9 +97,10 @@
                              th:attr="data-pokemon-id=${detail.species.id},data-missing-marked=${detail.hasMissingCardMarked()}">
                             <div th:if="${detail.hasAssignedCard()}">
                                 <img class="img-fluid mb-3"
-                                     th:src="${detail.assignedCard.thumbnailImage}"
+                                     th:src="${detail.assignedCard.zoomImage}"
                                      th:alt="${detail.assignedCard.name}"
-                                     loading="lazy"
+                                     loading="eager"
+                                     fetchpriority="high"
                                      decoding="async"
                                      th:attr="data-zoom-src=${detail.assignedCard.zoomImage},
                                               data-zoom-title=${detail.assignedCard.displayName},
@@ -1026,8 +1027,8 @@
             const quantityLabel = quantity > 0 ? 'x' + quantity : '';
 
             container.innerHTML = '' +
-                '<img class="img-fluid mb-3 zoom-hover-image" src="' + escapeAssignmentHtml(cardData.imageSrc || cardData.zoomSrc) + '" alt="' + escapeAssignmentHtml(cardData.zoomTitle) + '"' +
-                ' loading="lazy" decoding="async"' +
+                '<img class="img-fluid mb-3 zoom-hover-image" src="' + escapeAssignmentHtml(cardData.zoomSrc || cardData.imageSrc) + '" alt="' + escapeAssignmentHtml(cardData.zoomTitle) + '"' +
+                ' loading="eager" fetchpriority="high" decoding="async"' +
                 ' data-zoom-src="' + escapeAssignmentHtml(cardData.zoomSrc) + '"' +
                 ' data-zoom-title="' + escapeAssignmentHtml(cardData.zoomTitle) + '"' +
                 ' data-zoom-subtitle="' + escapeAssignmentHtml(cardData.zoomSubtitle) + '"' +

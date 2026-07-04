@@ -38,6 +38,10 @@ public class CollectionService {
         return cards;
     }
 
+    public List<UserCard> getUserCollectionSnapshot(User user) {
+        return userCardRepository.findByUser(user);
+    }
+
     public Optional<UserCard> getUserCard(User user, String cardId) {
         return userCardRepository.findByUserAndCardId(user, cardId);
     }

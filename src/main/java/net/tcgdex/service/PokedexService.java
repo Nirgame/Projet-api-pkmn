@@ -64,8 +64,10 @@ public class PokedexService {
             RegionalDisplayMode megaGigantamaxMode,
             int page,
             int size) throws IOException {
+        List<UserCard> userCollection = collectionService.getUserCollectionSnapshot(user);
+        Map<String, UserCard> userCardsByCardId = mapUserCardsByCardId(userCollection);
         List<UserPokemonCardAssignment> assignments = assignmentRepository.findByUser(user);
-        Map<Integer, UserCard> assignedCardsByPokemon = getAssignedCardsByPokemon(user, assignments);
+        Map<Integer, UserCard> assignedCardsByPokemon = getAssignedCardsByPokemon(assignments, userCardsByCardId);
         Set<Integer> missingCardPokemonIds = getMissingCardPokemonIds(assignments);
         Map<Integer, String> commentsByPokemon = getCommentsByPokemon(assignments);
         List<PokemonIndexEntry> filteredEntries = filterEntries(
@@ -91,8 +93,6 @@ public class PokedexService {
         List<PokemonIndexEntry> currentPageEntries = start >= filteredEntries.size()
                 ? List.of()
                 : filteredEntries.subList(start, Math.min(start + safeSize, filteredEntries.size()));
-
-        List<UserCard> userCollection = collectionService.getUserCollection(user);
         List<PokedexListItem> pokemons = currentPageEntries.stream()
                 .map(entry -> toListItem(entry, assignedCardsByPokemon, missingCardPokemonIds, commentsByPokemon, userCollection))
                 .toList();
@@ -132,8 +132,10 @@ public class PokedexService {
             RegionalForm regionalForm,
             RegionalDisplayMode megaGigantamaxMode) throws IOException {
         PokemonSpeciesInfo species = pokeApiService.getPokemonSpecies(pokemonId);
+        List<UserCard> userCollection = collectionService.getUserCollectionSnapshot(user);
+        Map<String, UserCard> userCardsByCardId = mapUserCardsByCardId(userCollection);
         List<UserPokemonCardAssignment> assignments = assignmentRepository.findByUser(user);
-        Map<Integer, UserCard> assignedCardsByPokemon = getAssignedCardsByPokemon(user, assignments);
+        Map<Integer, UserCard> assignedCardsByPokemon = getAssignedCardsByPokemon(assignments, userCardsByCardId);
         Set<Integer> missingCardPokemonIds = getMissingCardPokemonIds(assignments);
         Optional<UserPokemonCardAssignment> assignment = assignments.stream()
                 .filter(entry -> entry.getPokemonId() == pokemonId)
@@ -141,7 +143,6 @@ public class PokedexService {
         boolean missingCardMarked = assignment.map(UserPokemonCardAssignment::isCardMissing).orElse(false);
         String comment = assignment.map(UserPokemonCardAssignment::getComment).map(this::normalizeComment).orElse(null);
         UserCard assignedCard = assignedCardsByPokemon.get(pokemonId);
-        List<UserCard> userCollection = collectionService.getUserCollection(user);
 
         List<UserCard> ownedCards = userCollection.stream()
                 .filter(card -> matchesDisplayPool(cardToBrief(card), species))
@@ -397,16 +398,23 @@ public class PokedexService {
         return entry.alternativeForm() != null && entry.alternativeForm().isMegaOrGigantamaxForm();
     }
 
-    private Map<Integer, UserCard> getAssignedCardsByPokemon(User user, List<UserPokemonCardAssignment> assignments) {
+    private Map<String, UserCard> mapUserCardsByCardId(List<UserCard> userCollection) {
+        return userCollection.stream()
+                .collect(Collectors.toMap(UserCard::getCardId, card -> card, (left, right) -> left, LinkedHashMap::new));
+    }
+
+    private Map<Integer, UserCard> getAssignedCardsByPokemon(List<UserPokemonCardAssignment> assignments, Map<String, UserCard> userCardsByCardId) {
         Map<Integer, UserCard> assignedCards = new LinkedHashMap<>();
         for (UserPokemonCardAssignment assignment : assignments) {
             if (assignment.isCardMissing() || assignment.getAssignedCardId() == null || assignment.getAssignedCardId().isBlank()) {
                 continue;
             }
-            userCardRepository.findByUserAndCardId(user, assignment.getAssignedCardId())
-                    .ifPresentOrElse(
-                            card -> assignedCards.put(assignment.getPokemonId(), card),
-                            () -> assignmentRepository.delete(assignment));
+            UserCard card = userCardsByCardId.get(assignment.getAssignedCardId());
+            if (card != null) {
+                assignedCards.put(assignment.getPokemonId(), card);
+            } else {
+                assignmentRepository.delete(assignment);
+            }
         }
         return assignedCards;
     }
@@ -439,10 +447,10 @@ public class PokedexService {
             }
 
             PokemonSpeciesInfo previousSpecies = index > 0
-                    ? pokeApiService.getPokemonSpecies(entries.get(index - 1).id())
+                    ? resolveListSpecies(entries.get(index - 1))
                     : null;
             PokemonSpeciesInfo nextSpecies = index + 1 < entries.size()
-                    ? pokeApiService.getPokemonSpecies(entries.get(index + 1).id())
+                    ? resolveListSpecies(entries.get(index + 1))
                     : null;
             return new PokemonSpeciesInfo[] { previousSpecies, nextSpecies };
         }
@@ -458,10 +466,10 @@ public class PokedexService {
             }
 
             PokemonSpeciesInfo previousSpecies = index > 0
-                    ? pokeApiService.getPokemonSpecies(entries.get(index - 1).id())
+                    ? resolveListSpecies(entries.get(index - 1))
                     : null;
             PokemonSpeciesInfo nextSpecies = index + 1 < entries.size()
-                    ? pokeApiService.getPokemonSpecies(entries.get(index + 1).id())
+                    ? resolveListSpecies(entries.get(index + 1))
                     : null;
             return new PokemonSpeciesInfo[] { previousSpecies, nextSpecies };
         }
