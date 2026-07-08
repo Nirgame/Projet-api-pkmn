@@ -26,7 +26,7 @@
                             <option value="">Tous les sets</option>
                             <option th:each="setOption : ${setOptions}"
                                     th:value="${setOption.id}"
-                                    th:text="${setOption.displayName}"
+                                    th:text="${@displayText.setName(setOption)}"
                                     th:selected="${setId != null and setId == setOption.id}">
                                 Set de Base
                             </option>
@@ -71,15 +71,15 @@
                             0
                         </div>
                         <img th:src="${card.thumbnailImage}"
-                             th:alt="${card.displayName}" class="card-img-top zoom-hover-image"
+                             th:alt="${@displayText.cardName(card)}" class="card-img-top zoom-hover-image"
                              loading="lazy"
                              decoding="async"
                              th:attr="data-zoom-src=${card.zoomImage},
-                                      data-zoom-title=${card.displayName},
-                                      data-zoom-subtitle=${card.secondaryName},
+                                      data-zoom-title=${@displayText.cardName(card)},
+                                      data-zoom-subtitle=${@displayText.cardSecondary(card)},
                                       data-zoom-card-id=${card.id},
                                       data-zoom-local-id=${card.localId},
-                                      data-zoom-set-name=${card.displaySetName},
+                                      data-zoom-set-name=${@displayText.cardSetName(card)},
                                       data-zoom-rarity=${card.displayRarity},
                                       data-zoom-variant=${card.variantLabel},
                                       data-zoom-owned-count=${ownedCardCounts != null and ownedCardCounts.containsKey(card.id) ? ownedCardCounts.get(card.id) : 0},
@@ -89,10 +89,10 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                                 <div>
-                                    <h6 class="card-title mb-1" th:text="${card.displayName}">Card Name</h6>
+                                    <h6 class="card-title mb-1" th:text="${@displayText.cardName(card)}">Card Name</h6>
                                     <p class="card-text text-muted small mb-0"
-                                       th:if="${card.secondaryName != null}"
-                                       th:text="${card.secondaryName}">
+                                       th:if="${@displayText.cardSecondary(card) != null}"
+                                       th:text="${@displayText.cardSecondary(card)}">
                                         English name
                                     </p>
                                 </div>

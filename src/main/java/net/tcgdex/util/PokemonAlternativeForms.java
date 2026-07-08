@@ -240,7 +240,9 @@ public final class PokemonAlternativeForms {
                 form(718, 1, "Zygarde 10%", "Zygarde 10%", "10%",
                         "zygarde 10", "zygarde 10%", "zygarde 10 percent"),
                 form(718, 2, "Zygarde 100%", "Zygarde 100%", "100%",
-                        "zygarde 100", "zygarde 100%", "zygarde complete")));
+                        "zygarde 100", "zygarde 100%", "zygarde complete"),
+                megaForm(718, 11, "Mega Zygarde", "Méga-Zygarde", "Mega",
+                        "mega zygarde", "méga zygarde")));
 
         forms.put(720, List.of(
                 form(720, 1, "Hoopa Unbound", "Hoopa Dechaine", "Dechaine",
@@ -626,6 +628,10 @@ public final class PokemonAlternativeForms {
                 gigantamaxForm(884, 1, "Gigantamax Duraludon", "Duralugon Gigamax", "Gigamax",
                         "gigantamax duraludon", "duraludon gmax", "duraludon vmax", "duralugon gigamax", "duralugon vmax")));
 
+        forms.put(890, List.of(
+                gigantamaxForm(890, 1, "Eternamax Eternatus", "Ethernatos Infinimax", "Infinimax",
+                        "eternamax eternatus", "eternatus eternamax", "ethernatos infinimax", "ethernatos gigamax")));
+
         forms.put(892, List.of(
                 defaultForm(892, 1, "Urshifu Final Blow", "Shifours Style Poing Final", "Poing Final",
                         "urshifu final blow", "single strike urshifu", "shifours style poing final"),
@@ -635,6 +641,190 @@ public final class PokemonAlternativeForms {
                         "gigantamax urshifu single strike", "single strike urshifu vmax", "urshifu final blow vmax", "shifours gigamax poing final"),
                 gigantamaxForm(892, 12, "Gigantamax Urshifu Rapid Strike", "Shifours Gigamax Mille Poings", "Gigamax Mille Poings",
                         "gigantamax urshifu rapid strike", "rapid strike urshifu vmax", "urshifu rapid strike vmax", "shifours gigamax mille poings")));
+
+        forms.put(36, List.of(
+                megaForm(36, 1, "Mega Clefable", "Méga-Mélodelfe", "Mega",
+                        "mega clefable", "mega melodelfe", "méga melodelfe")));
+
+        forms.put(121, List.of(
+                megaForm(121, 1, "Mega Starmie", "Méga-Staross", "Mega",
+                        "mega starmie", "mega staross", "méga staross")));
+
+        forms.put(149, List.of(
+                megaForm(149, 1, "Mega Dragonite", "Méga-Dracolosse", "Mega",
+                        "mega dragonite", "mega dracolosse", "méga dracolosse")));
+
+        forms.put(154, List.of(
+                megaForm(154, 1, "Mega Meganium", "Méga-Méganium", "Mega",
+                        "mega meganium", "méga meganium")));
+
+        forms.put(160, List.of(
+                megaForm(160, 1, "Mega Feraligatr", "Méga-Aligatueur", "Mega",
+                        "mega feraligatr", "mega aligatueur", "méga aligatueur")));
+
+        forms.put(227, List.of(
+                megaForm(227, 1, "Mega Skarmory", "Méga-Airmure", "Mega",
+                        "mega skarmory", "mega airmure", "méga airmure")));
+
+        forms.put(478, List.of(
+                megaForm(478, 1, "Mega Froslass", "Méga-Momartik", "Mega",
+                        "mega froslass", "mega momartik", "méga momartik")));
+
+        forms.put(500, List.of(
+                megaForm(500, 1, "Mega Emboar", "Méga-Roitiflam", "Mega",
+                        "mega emboar", "mega roitiflam", "méga roitiflam")));
+
+        forms.put(560, List.of(
+                megaForm(560, 1, "Mega Scrafty", "Méga-Baggaïd", "Mega",
+                        "mega scrafty", "mega baggaid", "méga baggaïd")));
+
+        forms.put(604, List.of(
+                megaForm(604, 1, "Mega Eelektross", "Méga-Ohmassacre", "Mega",
+                        "mega eelektross", "mega ohmassacre", "méga ohmassacre")));
+
+        forms.put(658, List.of(
+                megaForm(658, 1, "Mega Greninja", "Méga-Amphinobi", "Mega",
+                        "mega greninja", "mega amphinobi", "méga amphinobi")));
+
+        forms.put(663, List.of(
+                megaForm(663, 1, "Mega Pyroar", "Méga-Némélios", "Mega",
+                        "mega pyroar", "mega nemelios", "méga némélios")));
+
+        forms.put(670, List.of(
+                megaForm(670, 1, "Mega Floette", "Méga-Floette", "Mega",
+                        "mega floette", "méga floette")));
+
+        forms.put(691, List.of(
+                megaForm(691, 1, "Mega Dragalge", "Méga-Kravarech", "Mega",
+                        "mega dragalge", "mega kravarech", "méga kravarech")));
+
+        forms.put(701, List.of(
+                megaForm(701, 1, "Mega Hawlucha", "Méga-Brutalibré", "Mega",
+                        "mega hawlucha", "mega brutalibre", "méga brutalibré")));
+
+        forms.put(26, List.of(
+                megaForm(26, 1, "Mega Raichu X", "Méga-Raichu X", "Mega X",
+                        "mega raichu x", "raichu x", "méga raichu x"),
+                megaForm(26, 2, "Mega Raichu Y", "Méga-Raichu Y", "Mega Y",
+                        "mega raichu y", "raichu y", "méga raichu y")));
+
+        forms.put(71, List.of(
+                megaForm(71, 1, "Mega Victreebel", "Méga-Empiflor", "Mega",
+                        "mega victreebel", "mega empiflor", "méga empiflor")));
+
+        forms.put(358, List.of(
+                megaForm(358, 1, "Mega Chimecho", "Méga-Éoko", "Mega",
+                        "mega chimecho", "mega eoko", "méga éoko")));
+
+        forms.put(359, List.of(
+                megaForm(359, 1, "Mega Absol", "Mega-Absol", "Mega",
+                        "mega absol"),
+                megaForm(359, 2, "Mega Absol Z", "Méga-Absol Z", "Mega Z",
+                        "mega absol z", "absol z", "méga absol z")));
+
+        forms.put(398, List.of(
+                megaForm(398, 1, "Mega Staraptor", "Méga-Étouraptor", "Mega",
+                        "mega staraptor", "mega etouraptor", "méga étouraptor")));
+
+        forms.put(445, List.of(
+                megaForm(445, 1, "Mega Garchomp", "Mega-Carchacrok", "Mega",
+                        "mega garchomp", "mega carchacrok"),
+                megaForm(445, 2, "Mega Garchomp Z", "Méga-Carchacrok Z", "Mega Z",
+                        "mega garchomp z", "garchomp z", "mega carchacrok z", "carchacrok z", "méga carchacrok z")));
+
+        forms.put(448, List.of(
+                megaForm(448, 1, "Mega Lucario", "Mega-Lucario", "Mega",
+                        "mega lucario"),
+                megaForm(448, 2, "Mega Lucario Z", "Méga-Lucario Z", "Mega Z",
+                        "mega lucario z", "lucario z", "méga lucario z")));
+
+        forms.put(485, List.of(
+                megaForm(485, 1, "Mega Heatran", "Méga-Heatran", "Mega",
+                        "mega heatran", "méga heatran")));
+
+        forms.put(491, List.of(
+                megaForm(491, 1, "Mega Darkrai", "Méga-Darkrai", "Mega",
+                        "mega darkrai", "méga darkrai")));
+
+        forms.put(530, List.of(
+                megaForm(530, 1, "Mega Excadrill", "Méga-Minotaupe", "Mega",
+                        "mega excadrill", "mega minotaupe", "méga minotaupe")));
+
+        forms.put(545, List.of(
+                megaForm(545, 1, "Mega Scolipede", "Méga-Brutapode", "Mega",
+                        "mega scolipede", "mega brutapode", "méga brutapode")));
+
+        forms.put(609, List.of(
+                megaForm(609, 1, "Mega Chandelure", "Méga-Lugulabre", "Mega",
+                        "mega chandelure", "mega lugulabre", "méga lugulabre")));
+
+        forms.put(623, List.of(
+                megaForm(623, 1, "Mega Golurk", "Méga-Golemastoc", "Mega",
+                        "mega golurk", "mega golemastoc", "méga golemastoc")));
+
+        forms.put(652, List.of(
+                megaForm(652, 1, "Mega Chesnaught", "Méga-Blindépique", "Mega",
+                        "mega chesnaught", "mega blindepique", "méga blindépique")));
+
+        forms.put(655, List.of(
+                megaForm(655, 1, "Mega Delphox", "Méga-Goupelin", "Mega",
+                        "mega delphox", "mega goupelin", "méga goupelin")));
+
+        forms.put(678, List.of(
+                defaultForm(678, 1, "Meowstic Male", "Mystigrix Male", "Male",
+                        "meowstic male", "mystigrix male", "male meowstic", "male mystigrix", "meowstic m"),
+                form(678, 2, "Meowstic Female", "Mystigrix Femelle", "Femelle",
+                        "meowstic female", "mystigrix femelle", "female meowstic", "female mystigrix", "meowstic f"),
+                megaForm(678, 11, "Mega Meowstic", "Méga-Mystigrix", "Mega",
+                        "mega meowstic", "mega mystigrix", "méga mystigrix")));
+
+        forms.put(687, List.of(
+                megaForm(687, 1, "Mega Malamar", "Méga-Sepiatroce", "Mega",
+                        "mega malamar", "mega sepiatroce", "méga sepiatroce")));
+
+        forms.put(689, List.of(
+                megaForm(689, 1, "Mega Barbaracle", "Méga-Golgopathe", "Mega",
+                        "mega barbaracle", "mega golgopathe", "méga golgopathe")));
+
+        forms.put(740, List.of(
+                megaForm(740, 1, "Mega Crabominable", "Méga-Crabominable", "Mega",
+                        "mega crabominable", "méga crabominable")));
+
+        forms.put(780, List.of(
+                megaForm(780, 1, "Mega Drampa", "Méga-Draïeul", "Mega",
+                        "mega drampa", "mega draieul", "méga draïeul")));
+
+        forms.put(801, List.of(
+                megaForm(801, 1, "Mega Magearna", "Méga-Magearna", "Mega",
+                        "mega magearna", "méga magearna")));
+
+        forms.put(807, List.of(
+                megaForm(807, 1, "Mega Zeraora", "Méga-Zeraora", "Mega",
+                        "mega zeraora", "méga zeraora")));
+
+        forms.put(870, List.of(
+                megaForm(870, 1, "Mega Falinks", "Méga-Hexadron", "Mega",
+                        "mega falinks", "mega hexadron", "méga hexadron")));
+
+        forms.put(952, List.of(
+                megaForm(952, 1, "Mega Scovillain", "Méga-Scovilain", "Mega",
+                        "mega scovillain", "mega scovilain", "méga scovilain")));
+
+        forms.put(970, List.of(
+                megaForm(970, 1, "Mega Glimmora", "Méga-Floréclat", "Mega",
+                        "mega glimmora", "mega floreclat", "méga floréclat")));
+
+        forms.put(978, List.of(
+                megaForm(978, 1, "Mega Tatsugiri", "Méga-Nigirigon", "Mega",
+                        "mega tatsugiri", "mega nigirigon", "méga nigirigon")));
+
+        forms.put(998, List.of(
+                megaForm(998, 1, "Mega Baxcalibur", "Méga-Glaivodo", "Mega",
+                        "mega baxcalibur", "mega glaivodo", "méga glaivodo")));
+
+        forms.put(768, List.of(
+                megaForm(768, 1, "Mega Golisopod", "Méga-Sarmuraï", "Mega",
+                        "mega golisopod", "mega sarmurai", "méga sarmuraï", "sarmurai")));
 
         forms.put(128, List.of(
                 regionalForm(128, 1, RegionalForm.PALDEA, "Paldean Tauros Fire", "Tauros de Paldea Race Flamboyante", "Feu",
@@ -649,74 +839,154 @@ public final class PokemonAlternativeForms {
 
     private static Map<Integer, String> buildBaseEnglishNames() {
         Map<Integer, String> names = new LinkedHashMap<>();
+        names.put(26, "Raichu");
+        names.put(71, "Victreebel");
         names.put(128, "Tauros");
+        names.put(36, "Clefable");
+        names.put(121, "Starmie");
+        names.put(149, "Dragonite");
+        names.put(154, "Meganium");
+        names.put(160, "Feraligatr");
+        names.put(227, "Skarmory");
+        names.put(358, "Chimecho");
+        names.put(398, "Staraptor");
         names.put(351, "Castform");
         names.put(550, "Basculin");
         names.put(386, "Deoxys");
         names.put(413, "Wormadam");
         names.put(479, "Rotom");
+        names.put(478, "Froslass");
+        names.put(485, "Heatran");
+        names.put(491, "Darkrai");
         names.put(483, "Dialga");
         names.put(484, "Palkia");
         names.put(487, "Giratina");
         names.put(492, "Shaymin");
+        names.put(500, "Emboar");
+        names.put(530, "Excadrill");
+        names.put(545, "Scolipede");
         names.put(555, "Darmanitan");
+        names.put(560, "Scrafty");
+        names.put(604, "Eelektross");
+        names.put(609, "Chandelure");
+        names.put(623, "Golurk");
         names.put(641, "Tornadus");
         names.put(642, "Thundurus");
         names.put(645, "Landorus");
         names.put(646, "Kyurem");
         names.put(648, "Meloetta");
+        names.put(652, "Chesnaught");
+        names.put(655, "Delphox");
+        names.put(658, "Greninja");
+        names.put(663, "Pyroar");
+        names.put(670, "Floette");
         names.put(678, "Meowstic");
+        names.put(687, "Malamar");
+        names.put(689, "Barbaracle");
+        names.put(691, "Dragalge");
+        names.put(701, "Hawlucha");
         names.put(718, "Zygarde");
         names.put(720, "Hoopa");
+        names.put(740, "Crabominable");
         names.put(741, "Oricorio");
         names.put(745, "Lycanroc");
         names.put(746, "Wishiwashi");
+        names.put(768, "Golisopod");
+        names.put(780, "Drampa");
         names.put(800, "Necrozma");
+        names.put(801, "Magearna");
+        names.put(807, "Zeraora");
         names.put(849, "Toxtricity");
+        names.put(870, "Falinks");
         names.put(875, "Eiscue");
         names.put(877, "Morpeko");
+        names.put(890, "Eternatus");
         names.put(892, "Urshifu");
         names.put(898, "Calyrex");
         names.put(901, "Ursaluna");
         names.put(905, "Enamorus");
+        names.put(952, "Scovillain");
         names.put(964, "Palafin");
+        names.put(970, "Glimmora");
+        names.put(978, "Tatsugiri");
+        names.put(998, "Baxcalibur");
         names.put(1017, "Ogerpon");
         return names;
     }
 
     private static Map<Integer, String> buildBaseFrenchNames() {
         Map<Integer, String> names = new LinkedHashMap<>();
+        names.put(26, "Raichu");
+        names.put(71, "Empiflor");
         names.put(128, "Tauros");
+        names.put(36, "Mélodelfe");
+        names.put(121, "Staross");
+        names.put(149, "Dracolosse");
+        names.put(154, "Méganium");
+        names.put(160, "Aligatueur");
+        names.put(227, "Airmure");
+        names.put(358, "Éoko");
+        names.put(398, "Étouraptor");
         names.put(351, "Morpheo");
         names.put(550, "Bargantua");
         names.put(386, "Deoxys");
         names.put(413, "Cheniselle");
         names.put(479, "Motisma");
+        names.put(478, "Momartik");
+        names.put(485, "Heatran");
+        names.put(491, "Darkrai");
         names.put(483, "Dialga");
         names.put(484, "Palkia");
         names.put(487, "Giratina");
         names.put(492, "Shaymin");
+        names.put(500, "Roitiflam");
+        names.put(530, "Minotaupe");
+        names.put(545, "Brutapode");
         names.put(555, "Darumacho");
+        names.put(560, "Baggaïd");
+        names.put(604, "Ohmassacre");
+        names.put(609, "Lugulabre");
+        names.put(623, "Golemastoc");
         names.put(641, "Boreas");
         names.put(642, "Fulguris");
         names.put(645, "Demeteros");
         names.put(646, "Kyurem");
         names.put(648, "Meloetta");
+        names.put(652, "Blindépique");
+        names.put(655, "Goupelin");
+        names.put(658, "Amphinobi");
+        names.put(663, "Némélios");
+        names.put(670, "Floette");
         names.put(678, "Mystigrix");
+        names.put(687, "Sepiatroce");
+        names.put(689, "Golgopathe");
+        names.put(691, "Kravarech");
+        names.put(701, "Brutalibré");
         names.put(718, "Zygarde");
         names.put(720, "Hoopa");
+        names.put(740, "Crabominable");
         names.put(741, "Plumeline");
         names.put(745, "Lougaroc");
         names.put(746, "Froussardine");
+        names.put(768, "Sarmuraï");
+        names.put(780, "Draïeul");
         names.put(800, "Necrozma");
+        names.put(801, "Magearna");
+        names.put(807, "Zeraora");
         names.put(849, "Salarsen");
+        names.put(870, "Hexadron");
         names.put(875, "Bekaglacon");
         names.put(877, "Morpeko");
+        names.put(890, "Ethernatos");
         names.put(892, "Shifours");
         names.put(898, "Sylveroy");
         names.put(901, "Ursaking");
         names.put(905, "Amovenus");
+        names.put(952, "Scovilain");
         names.put(964, "Superdofin");
+        names.put(970, "Floréclat");
+        names.put(978, "Nigirigon");
+        names.put(998, "Glaivodo");
         names.put(1017, "Ogerpon");
         return names;
     }

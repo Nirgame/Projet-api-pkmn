@@ -39,7 +39,7 @@ class PokedexServiceTest {
         User user = mock(User.class);
 
         when(assignmentRepository.findByUser(user)).thenReturn(List.of());
-        when(collectionService.getUserCollection(user)).thenReturn(List.of());
+        when(collectionService.getUserCollectionSnapshot(user)).thenReturn(List.of());
         when(pokeApiService.getGenerationOptions()).thenReturn(List.of(
                 new GenerationOption(1, "Generation I"),
                 new GenerationOption(2, "Generation II")));
@@ -102,8 +102,9 @@ class PokedexServiceTest {
         plainLandorus.setEnglishName("Landorus");
         plainLandorus.setFrenchName("Demeteros");
 
-        when(collectionService.getUserCollection(user)).thenReturn(List.of());
+        when(collectionService.getUserCollectionSnapshot(user)).thenReturn(List.of());
         when(assignmentRepository.findByUserAndPokemonId(user, landorusTotem.toEntryId())).thenReturn(java.util.Optional.empty());
+        when(assignmentRepository.findByUser(user)).thenReturn(List.of());
         when(pokeApiService.getPokemonSpecies(landorusTotem.toEntryId())).thenReturn(landorusTotemSpecies);
         when(pokeApiService.getBasePokemonSpecies(645)).thenReturn(baseLandorus);
         when(tcgdexService.searchCards("Landorus")).thenReturn(List.of(plainLandorus));
@@ -132,7 +133,7 @@ class PokedexServiceTest {
         User user = mock(User.class);
 
         when(assignmentRepository.findByUser(user)).thenReturn(List.of());
-        when(collectionService.getUserCollection(user)).thenReturn(List.of());
+        when(collectionService.getUserCollectionSnapshot(user)).thenReturn(List.of());
         when(pokeApiService.getGenerationOptions()).thenReturn(List.of(
                 new GenerationOption(1, "Generation I"),
                 new GenerationOption(7, "Generation VII")));
@@ -184,7 +185,7 @@ class PokedexServiceTest {
                 List.of("oricorio pompom", "plumeline style pom-pom"));
 
         when(assignmentRepository.findByUser(user)).thenReturn(List.of());
-        when(collectionService.getUserCollection(user)).thenReturn(List.of());
+        when(collectionService.getUserCollectionSnapshot(user)).thenReturn(List.of());
         when(pokeApiService.getGenerationOptions()).thenReturn(List.of(
                 new GenerationOption(4, "Generation IV"),
                 new GenerationOption(7, "Generation VII")));
@@ -241,8 +242,9 @@ class PokedexServiceTest {
         hisuianCard.setEnglishName("Sneasler");
         hisuianCard.setFrenchName("Farfurex de Hisui");
 
-        when(collectionService.getUserCollection(user)).thenReturn(List.of());
+        when(collectionService.getUserCollectionSnapshot(user)).thenReturn(List.of());
         when(assignmentRepository.findByUserAndPokemonId(user, 903)).thenReturn(Optional.empty());
+        when(assignmentRepository.findByUser(user)).thenReturn(List.of());
         when(pokeApiService.getPokemonSpecies(903)).thenReturn(sneasler);
         when(pokeApiService.getBasePokemonSpecies(903)).thenReturn(sneasler);
         when(tcgdexService.searchCards("Sneasler")).thenReturn(List.of(hisuianCard));
@@ -259,5 +261,53 @@ class PokedexServiceTest {
         PokedexDetailView detail = service.getPokemonDetail(user, 903);
 
         assertThat(detail.availableCards()).extracting(CardBrief::getId).containsExactly("swsh10-95");
+    }
+
+    @Test
+    void baseReplacementEntriesShouldKeepTheirOwnDisplayedNameWhenBaseSpeciesIsCached() throws IOException {
+        PokeApiService pokeApiService = mock(PokeApiService.class);
+        TCGdexService tcgdexService = mock(TCGdexService.class);
+        CollectionService collectionService = mock(CollectionService.class);
+        UserCardRepository userCardRepository = mock(UserCardRepository.class);
+        UserPokemonCardAssignmentRepository assignmentRepository = mock(UserPokemonCardAssignmentRepository.class);
+        User user = mock(User.class);
+
+        PokemonAlternativeForm toxtricityHigh = new PokemonAlternativeForm(
+                849, 1, "Toxtricity High", "Salarsen Forme Aigue", "Aigue", true,
+                List.of("toxtricity high", "amped form toxtricity", "salarsen forme aigue"));
+        PokemonSpeciesInfo cachedBaseSpecies = new PokemonSpeciesInfo(
+                849, 849, "toxtricity", "Toxtricity", "Salarsen", 8, "Generation VIII", null);
+
+        when(assignmentRepository.findByUser(user)).thenReturn(List.of());
+        when(collectionService.getUserCollectionSnapshot(user)).thenReturn(List.of());
+        when(pokeApiService.getGenerationOptions()).thenReturn(List.of(new GenerationOption(8, "Generation VIII")));
+        when(pokeApiService.getPokedexEntries()).thenReturn(List.of(
+                new PokemonIndexEntry(849, 849, "toxtricity", 8, "Generation VIII", null, toxtricityHigh,
+                        "Toxtricity High", "Salarsen Forme Aigue", "Aigue")));
+        when(pokeApiService.findCachedPokemonSpecies(849)).thenReturn(cachedBaseSpecies);
+
+        PokedexService service = new PokedexService(
+                pokeApiService,
+                tcgdexService,
+                collectionService,
+                userCardRepository,
+                assignmentRepository);
+
+        PokedexPageResult result = service.getPokedexPage(
+                user,
+                null,
+                null,
+                false,
+                false,
+                false,
+                RegionalDisplayMode.INCLUDE,
+                null,
+                RegionalDisplayMode.INCLUDE,
+                1,
+                24);
+
+        assertThat(result.pokemons()).hasSize(1);
+        assertThat(result.pokemons().getFirst().species().frenchName()).isEqualTo("Salarsen Forme Aigue");
+        assertThat(result.pokemons().getFirst().species().englishName()).isEqualTo("Toxtricity High");
     }
 }

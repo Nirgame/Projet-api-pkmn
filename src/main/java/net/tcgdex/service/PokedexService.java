@@ -507,7 +507,11 @@ public class PokedexService {
 
     private PokemonSpeciesInfo resolveListSpecies(PokemonIndexEntry entry) {
         PokemonSpeciesInfo cachedSpecies = pokeApiService.findCachedPokemonSpecies(entry.id());
-        if (cachedSpecies != null) {
+        if (cachedSpecies != null
+                && cachedSpecies.isRegionalForm() == entry.isRegionalForm()
+                && cachedSpecies.isAlternativeForm() == entry.isAlternativeForm()
+                && java.util.Objects.equals(cachedSpecies.regionalForm(), entry.regionalForm())
+                && java.util.Objects.equals(cachedSpecies.alternativeForm(), entry.alternativeForm())) {
             return cachedSpecies;
         }
 

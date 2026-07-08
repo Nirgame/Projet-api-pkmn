@@ -135,7 +135,7 @@
                             <div th:if="${set.hasLogo() or set.hasSymbol()}">
                                 <img th:if="${set.hasLogo()}"
                                      th:src="${set.displayLogo}"
-                                     th:alt="${set.displayName}"
+                                     th:alt="${@displayText.setName(set)}"
                                      class="img-fluid mb-2"
                                      loading="lazy"
                                      decoding="async"
@@ -143,7 +143,7 @@
                                      onerror="this.style.display='none'">
                                 <img th:if="${set.hasSymbol()}"
                                      th:src="${set.displaySymbol}"
-                                     th:alt="${set.displayName}"
+                                     th:alt="${@displayText.setName(set)}"
                                      class="img-fluid"
                                      loading="lazy"
                                      decoding="async"
@@ -158,10 +158,10 @@
 
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                             <div>
-                                <h5 class="card-title mb-1" th:text="${set.displayName}">Set Name</h5>
+                                <h5 class="card-title mb-1" th:text="${@displayText.setName(set)}">Set Name</h5>
                                 <p class="card-text text-muted small mb-0"
                                    th:if="${set.hasSecondaryName()}"
-                                   th:text="${set.secondaryName}">
+                                   th:text="${@displayText.setSecondary(set)}">
                                     Secondary name
                                 </p>
                                 <div class="d-flex flex-wrap gap-1 mt-1"

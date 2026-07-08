@@ -62,7 +62,7 @@
                                     <option value="">Tous les Pokemon</option>
                                     <option th:each="pokemon : ${pokemonCards}"
                                             th:value="${pokemon.name + '||' + (pokemon.formLabel != null ? pokemon.formLabel : '')}"
-                                            th:text="${pokemon.variantLabel != null ? pokemon.displayName + ' (' + pokemon.variantLabel + ')' : pokemon.displayName}">
+                                            th:text="${pokemon.variantLabel != null ? @displayText.userCardName(pokemon) + ' (' + pokemon.variantLabel + ')' : @displayText.userCardName(pokemon)}">
                                         Pokemon
                                     </option>
                                 </select>
@@ -104,23 +104,23 @@
         <div class="row" th:if="${collection != null and !collection.empty}">
             <div class="col-6 col-lg-4 col-xl-3 mb-4 collection-card-item"
                  th:each="card : ${collection}"
-                 th:attr="data-name=${card.displayName},
-                          data-secondary=${card.secondaryName},
+                 th:attr="data-name=${@displayText.userCardName(card)},
+                          data-secondary=${@displayText.userCardSecondary(card)},
                           data-card-id=${card.cardId},
                           data-set-id=${card.resolvedSetId},
-                          data-set-name=${card.displaySetName},
+                          data-set-name=${@displayText.userCardSetName(card)},
                           data-form=${card.variantLabel},
                           data-pokemon-key=${card.name + '||' + (card.formLabel != null ? card.formLabel : '')}">
                 <div class="card h-100">
                     <img th:src="${card.thumbnailImage}"
-                         th:alt="${card.displayName}" class="card-img-top zoom-hover-image"
+                         th:alt="${@displayText.userCardName(card)}" class="card-img-top zoom-hover-image"
                          loading="lazy"
                          decoding="async"
                          th:attr="data-zoom-src=${card.zoomImage},
-                                  data-zoom-title=${card.displayName},
-                                 data-zoom-subtitle=${card.secondaryName},
-                                  data-zoom-card-id=${card.cardId},
-                                  data-zoom-set-name=${card.displaySetName},
+                                   data-zoom-title=${@displayText.userCardName(card)},
+                                  data-zoom-subtitle=${@displayText.userCardSecondary(card)},
+                                   data-zoom-card-id=${card.cardId},
+                                   data-zoom-set-name=${@displayText.userCardSetName(card)},
                                   data-zoom-quantity=${'x' + card.quantity},
                                   data-zoom-variant=${card.variantLabel},
                                   data-zoom-owned-count=${card.quantity},
@@ -130,10 +130,10 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                             <div>
-                                <h6 class="card-title mb-1" th:text="${card.displayName}">Card Name</h6>
+                                <h6 class="card-title mb-1" th:text="${@displayText.userCardName(card)}">Card Name</h6>
                                 <p class="card-text text-muted small mb-0"
-                                   th:if="${card.secondaryName != null}"
-                                   th:text="${card.secondaryName}">
+                                   th:if="${@displayText.userCardSecondary(card) != null}"
+                                   th:text="${@displayText.userCardSecondary(card)}">
                                     English name
                                 </p>
                             </div>
@@ -146,7 +146,7 @@
                         <p class="card-text text-muted small" th:text="${card.cardId}">card-id</p>
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">
-                                <span th:text="${card.displaySetName}">Set</span>
+                                <span th:text="${@displayText.userCardSetName(card)}">Set</span>
                             </small>
                             <div class="btn-group btn-group-sm" role="group">
                                 <button class="btn btn-sm btn-outline-danger"

@@ -53,7 +53,7 @@
                         <option value="">Selectionnez un set...</option>
                         <option th:each="setOption : ${setOptions}"
                                 th:value="${setOption.id}"
-                                th:text="${setOption.displayName}">
+                                th:text="${@displayText.setName(setOption)}">
                             Set de Base
                         </option>
                     </select>
@@ -81,16 +81,16 @@
     <div class="row g-4" th:if="${trackedSets != null and !trackedSets.isEmpty()}">
         <div class="col-md-6 col-xl-4 tracked-set-card"
              th:each="summary : ${trackedSets}"
-             th:attr="data-search=${summary.set.displayName + ' ' + summary.set.id + ' ' + summary.set.secondaryName}">
+             th:attr="data-search=${@displayText.setName(summary.set) + ' ' + summary.set.id + ' ' + @displayText.setSecondary(summary.set)}">
             <div class="card h-100 shadow-sm">
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                         <div>
-                            <h5 class="card-title mb-1" th:text="${summary.set.displayName}">Set Name</h5>
+                            <h5 class="card-title mb-1" th:text="${@displayText.setName(summary.set)}">Set Name</h5>
                             <div class="text-muted small" th:text="${summary.set.id}">set-id</div>
                             <div class="text-muted small"
-                                 th:if="${summary.set.secondaryName != null}"
-                                 th:text="${summary.set.secondaryName}">
+                                 th:if="${@displayText.setSecondary(summary.set) != null}"
+                                 th:text="${@displayText.setSecondary(summary.set)}">
                                 Secondary name
                             </div>
                         </div>

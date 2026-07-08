@@ -15,6 +15,7 @@ import net.tcgdex.service.CollectionService;
 import net.tcgdex.service.PokedexService;
 import net.tcgdex.service.SetTrackerService;
 import net.tcgdex.service.TCGdexService;
+import net.tcgdex.service.UiLanguageService;
 import net.tcgdex.service.UserService;
 import net.tcgdex.util.PokepediaUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Comparator;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -51,6 +53,9 @@ public class WebController {
     @Autowired
     private SetTrackerService setTrackerService;
 
+    @Autowired
+    private UiLanguageService uiLanguageService;
+
     @GetMapping("/")
     public String home(Authentication authentication, Model model) {
         try {
@@ -74,6 +79,13 @@ public class WebController {
     @GetMapping("/register")
     public String register() {
         return "register";
+    }
+
+    @PostMapping("/preferences/language")
+    public String updateLanguage(@RequestParam String language,
+            @RequestHeader(value = "Referer", required = false) String referer) {
+        uiLanguageService.setCurrentLanguage(language);
+        return "redirect:" + resolveSafeRedirectPath(referer);
     }
 
     @PostMapping("/register")
@@ -549,5 +561,26 @@ public class WebController {
         return authentication != null
                 && authentication.isAuthenticated()
                 && !(authentication instanceof AnonymousAuthenticationToken);
+    }
+
+    private String resolveSafeRedirectPath(String referer) {
+        if (referer == null || referer.isBlank()) {
+            return "/";
+        }
+
+        try {
+            URI uri = URI.create(referer);
+            String path = uri.getPath();
+            String query = uri.getQuery();
+            if (path == null || path.isBlank()) {
+                return "/";
+            }
+            if (query == null || query.isBlank()) {
+                return path;
+            }
+            return path + "?" + query;
+        } catch (IllegalArgumentException exception) {
+            return "/";
+        }
     }
 }

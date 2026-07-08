@@ -35,7 +35,7 @@
                 </a>
                 <div class="text-muted small" th:text="|#${detail.species.speciesId}|">#1</div>
                 <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-                    <h1 class="mb-0" th:text="${detail.species.displayName}">Bulbasaur</h1>
+                    <h1 class="mb-0" th:text="${@displayText.pokemonName(detail.species)}">Bulbasaur</h1>
                     <span class="badge bg-dark"
                           th:if="${detail.species.formLabel != null and !detail.species.formLabel.isBlank()}"
                           th:text="${detail.species.formLabel}">
@@ -43,8 +43,8 @@
                     </span>
                 </div>
                 <div class="text-muted fs-5"
-                     th:if="${detail.species.secondaryName != null}"
-                     th:text="${detail.species.secondaryName}">
+                     th:if="${@displayText.pokemonSecondary(detail.species) != null}"
+                     th:text="${@displayText.pokemonSecondary(detail.species)}">
                     Bulbasaur
                 </div>
                 <a class="btn btn-outline-primary btn-sm mt-3"
@@ -77,12 +77,12 @@
                    th:if="${detail.hasPreviousSpecies()}"
                    th:href="@{/pokedex/{pokemonId}(pokemonId=${detail.previousSpecies.id}, page=${returnPage}, size=${returnSize}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
                     <i class="fas fa-chevron-left"></i>
-                    <span th:text="${detail.previousSpecies.displayName}">Precedent</span>
+                    <span th:text="${@displayText.pokemonName(detail.previousSpecies)}">Precedent</span>
                 </a>
                 <a class="btn btn-outline-secondary btn-sm"
                    th:if="${detail.hasNextSpecies()}"
                    th:href="@{/pokedex/{pokemonId}(pokemonId=${detail.nextSpecies.id}, page=${returnPage}, size=${returnSize}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
-                    <span th:text="${detail.nextSpecies.displayName}">Suivant</span>
+                    <span th:text="${@displayText.pokemonName(detail.nextSpecies)}">Suivant</span>
                     <i class="fas fa-chevron-right"></i>
                 </a>
             </div>
@@ -103,10 +103,10 @@
                                      fetchpriority="high"
                                      decoding="async"
                                      th:attr="data-zoom-src=${detail.assignedCard.zoomImage},
-                                              data-zoom-title=${detail.assignedCard.displayName},
-                                             data-zoom-subtitle=${detail.assignedCard.secondaryName},
-                                              data-zoom-card-id=${detail.assignedCard.cardId},
-                                              data-zoom-set-name=${detail.assignedCard.displaySetName},
+                                               data-zoom-title=${@displayText.userCardName(detail.assignedCard)},
+                                              data-zoom-subtitle=${@displayText.userCardSecondary(detail.assignedCard)},
+                                               data-zoom-card-id=${detail.assignedCard.cardId},
+                                               data-zoom-set-name=${@displayText.userCardSetName(detail.assignedCard)},
                                               data-zoom-quantity=${'x' + detail.assignedCard.quantity},
                                               data-zoom-variant=${detail.assignedCard.variantLabel},
                                               data-zoom-owned-count=${detail.assignedCard.quantity},
@@ -116,15 +116,15 @@
                                      th:classappend="' zoom-hover-image'"
                                      onclick="openPokedexZoom(this, '#pokedex-assignment-state .zoom-hover-image')"
                                      onerror="this.onerror=null;this.src='/images/placeholder.svg'">
-                                <h4 class="h6 mb-1" th:text="${detail.assignedCard.displayName}">Bulbasaur</h4>
+                                <h4 class="h6 mb-1" th:text="${@displayText.userCardName(detail.assignedCard)}">Bulbasaur</h4>
                                 <div class="text-muted small mb-2"
-                                     th:if="${detail.assignedCard.secondaryName != null}"
-                                     th:text="${detail.assignedCard.secondaryName}">
+                                     th:if="${@displayText.userCardSecondary(detail.assignedCard) != null}"
+                                     th:text="${@displayText.userCardSecondary(detail.assignedCard)}">
                                     Bulbasaur
                                 </div>
                                 <div class="small text-muted mb-1"
-                                     th:if="${detail.assignedCard.displaySetName != null}"
-                                     th:text="${detail.assignedCard.displaySetName}">
+                                     th:if="${@displayText.userCardSetName(detail.assignedCard) != null}"
+                                     th:text="${@displayText.userCardSetName(detail.assignedCard)}">
                                     Set
                                 </div>
                                 <p class="small text-muted mb-3" th:text="${detail.assignedCard.cardId}">base1-44</p>
@@ -214,10 +214,10 @@
                                              loading="lazy"
                                              decoding="async"
                                              th:attr="data-zoom-src=${card.zoomImage},
-                                                      data-zoom-title=${card.displayName},
-                                                      data-zoom-subtitle=${card.secondaryName},
-                                                      data-zoom-card-id=${card.cardId},
-                                                      data-zoom-set-name=${card.displaySetName},
+                                                       data-zoom-title=${@displayText.userCardName(card)},
+                                                       data-zoom-subtitle=${@displayText.userCardSecondary(card)},
+                                                       data-zoom-card-id=${card.cardId},
+                                                       data-zoom-set-name=${@displayText.userCardSetName(card)},
                                                       data-zoom-quantity=${'x' + card.quantity},
                                                       data-zoom-variant=${card.variantLabel},
                                                       data-zoom-owned-count=${card.quantity},
@@ -230,10 +230,10 @@
                                              style="width: 72px; height: 100px; object-fit: contain;"
                                              onerror="this.onerror=null;this.src='/images/placeholder.svg'">
                                         <div class="flex-grow-1">
-                                            <div class="fw-semibold" th:text="${card.displayName}">Bulbasaur</div>
+                                            <div class="fw-semibold" th:text="${@displayText.userCardName(card)}">Bulbasaur</div>
                                             <div class="text-muted small"
-                                                 th:if="${card.secondaryName != null}"
-                                                 th:text="${card.secondaryName}">
+                                                 th:if="${@displayText.userCardSecondary(card) != null}"
+                                                 th:text="${@displayText.userCardSecondary(card)}">
                                                 Bulbasaur
                                             </div>
                                             <div class="small text-muted" th:text="${card.cardId}">base1-44</div>
@@ -309,25 +309,25 @@
                         <div class="row g-3" th:if="${!detail.availableCards.isEmpty()}">
                             <div class="col-md-6 available-card-item"
                                  th:each="card : ${detail.availableCards}"
-                                 th:attr="data-name=${card.displayName},
-                                          data-secondary=${card.secondaryName},
+                                 th:attr="data-name=${@displayText.cardName(card)},
+                                          data-secondary=${@displayText.cardSecondary(card)},
                                           data-card-id=${card.id},
                                           data-set-id=${card.resolvedSetId},
-                                          data-set-name=${card.displaySetName},
+                                          data-set-name=${@displayText.cardSetName(card)},
                                           data-rarity=${card.displayRarity},
                                           data-form=${card.variantLabel}">
                                 <div class="border rounded p-3 h-100">
                                     <div class="d-flex gap-3">
                                         <img th:src="${card.thumbnailImage}"
-                                             th:alt="${card.displayName}"
+                                             th:alt="${@displayText.cardName(card)}"
                                              loading="lazy"
                                              decoding="async"
                                              th:attr="data-zoom-src=${card.zoomImage},
-                                                      data-zoom-title=${card.displayName},
-                                                      data-zoom-subtitle=${card.secondaryName},
+                                                      data-zoom-title=${@displayText.cardName(card)},
+                                                      data-zoom-subtitle=${@displayText.cardSecondary(card)},
                                                       data-zoom-card-id=${card.id},
                                                       data-zoom-local-id=${card.localId},
-                                                      data-zoom-set-name=${card.displaySetName},
+                                                      data-zoom-set-name=${@displayText.cardSetName(card)},
                                                       data-zoom-rarity=${card.displayRarity},
                                                       data-zoom-variant=${card.variantLabel},
                                                       data-zoom-owned-count=${detail.ownedCardCounts.containsKey(card.id) ? detail.ownedCardCounts.get(card.id) : 0},
@@ -340,10 +340,10 @@
                                              style="width: 72px; height: 100px; object-fit: contain;"
                                              onerror="this.onerror=null;this.src='/images/placeholder.svg'">
                                         <div class="flex-grow-1">
-                                            <div class="fw-semibold" th:text="${card.displayName}">Bulbasaur</div>
+                                            <div class="fw-semibold" th:text="${@displayText.cardName(card)}">Bulbasaur</div>
                                             <div class="text-muted small"
-                                                 th:if="${card.secondaryName != null}"
-                                                 th:text="${card.secondaryName}">
+                                                 th:if="${@displayText.cardSecondary(card) != null}"
+                                                 th:text="${@displayText.cardSecondary(card)}">
                                                 Bulbasaur
                                             </div>
                                             <div class="small mb-1" th:if="${card.hasRarity()}">
@@ -352,7 +352,7 @@
                                                     Peu Commune
                                                 </span>
                                             </div>
-                                            <div class="small text-muted" th:if="${card.displaySetName != null}" th:text="${card.displaySetName}">
+                                            <div class="small text-muted" th:if="${@displayText.cardSetName(card) != null}" th:text="${@displayText.cardSetName(card)}">
                                                 Set de Base
                                             </div>
                                             <div class="small text-muted" th:text="${card.id}">base1-44</div>

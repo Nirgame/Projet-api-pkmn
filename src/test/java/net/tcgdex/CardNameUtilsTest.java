@@ -86,6 +86,33 @@ class CardNameUtilsTest {
     }
 
     @Test
+    void baseSpeciesShouldAlsoMatchMegaAndGigantamaxCards() {
+        PokemonSpeciesInfo charizard = new PokemonSpeciesInfo(6, 6, "charizard", "Charizard", "Dracaufeu", 1, "Generation I", null);
+        PokemonSpeciesInfo dragonite = new PokemonSpeciesInfo(149, 149, "dragonite", "Dragonite", "Dracolosse", 1, "Generation I", null);
+
+        CardBrief megaCharizard = new CardBrief();
+        megaCharizard.setEnglishName("Mega Charizard X");
+        megaCharizard.setFrenchName("Mega-Dracaufeu X");
+
+        CardBrief megaDragonite = new CardBrief();
+        megaDragonite.setEnglishName("Mega Dragonite ex");
+        megaDragonite.setFrenchName("Méga-Dracolosse-ex");
+
+        CardBrief shortMegaDragonite = new CardBrief();
+        shortMegaDragonite.setEnglishName("M-Dragonite EX");
+        shortMegaDragonite.setFrenchName("M-Dracolosse-EX");
+
+        CardBrief gigantamaxCharizard = new CardBrief();
+        gigantamaxCharizard.setEnglishName("Gigantamax Charizard");
+        gigantamaxCharizard.setFrenchName("Dracaufeu Gigamax");
+
+        assertThat(PokemonNameUtils.matchesSpecies(megaCharizard, charizard)).isTrue();
+        assertThat(PokemonNameUtils.matchesSpecies(megaDragonite, dragonite)).isTrue();
+        assertThat(PokemonNameUtils.matchesSpecies(shortMegaDragonite, dragonite)).isTrue();
+        assertThat(PokemonNameUtils.matchesSpecies(gigantamaxCharizard, charizard)).isTrue();
+    }
+
+    @Test
     void alternativeFormMatchingShouldSupportDefaultAndExplicitForms() {
         PokemonAlternativeForm lycanrocDay = new PokemonAlternativeForm(
                 745, 1, "Lycanroc Day", "Lougaroc Forme Diurne", "Diurne", true, java.util.List.of("lycanroc day"));
@@ -197,6 +224,23 @@ class CardNameUtilsTest {
     }
 
     @Test
+    void intrinsicallyRegionalEvolutionsShouldKeepTheirRegionalCards() {
+        PokemonSpeciesInfo obstagoon = new PokemonSpeciesInfo(862, 862, "obstagoon", "Obstagoon", "Ixon", 8, "Generation VIII", null);
+        PokemonSpeciesInfo clodsire = new PokemonSpeciesInfo(980, 980, "clodsire", "Clodsire", "Terraiste", 9, "Generation IX", null);
+
+        CardBrief galarianObstagoon = new CardBrief();
+        galarianObstagoon.setEnglishName("Galarian Obstagoon");
+        galarianObstagoon.setFrenchName("Ixon de Galar");
+
+        CardBrief paldeanClodsire = new CardBrief();
+        paldeanClodsire.setEnglishName("Paldean Clodsire");
+        paldeanClodsire.setFrenchName("Terraiste de Paldea");
+
+        assertThat(PokemonNameUtils.matchesSpecies(galarianObstagoon, obstagoon)).isTrue();
+        assertThat(PokemonNameUtils.matchesSpecies(paldeanClodsire, clodsire)).isTrue();
+    }
+
+    @Test
     void customFormsShouldFallbackToBaseSpeciesCardsWhenFormIsNotExplicit() {
         PokemonAlternativeForm landorusTotem = new PokemonAlternativeForm(
                 645, 1, "Landorus Totem", "Demeteros Forme Totemique", "Totemique", false,
@@ -225,5 +269,45 @@ class CardNameUtilsTest {
         assertThat(paldeanTaurosWater).isNotNull();
         assertThat(paldeanTaurosWater.regionalForm()).isEqualTo(RegionalForm.PALDEA);
         assertThat(paldeanTaurosWater.frenchName()).contains("Aquatique");
+    }
+
+    @Test
+    void recentlyAddedMegaFormsShouldBeRegistered() {
+        PokemonAlternativeForm megaDragonite = PokemonAlternativeForms.fromEntryId(2_014_901);
+        PokemonAlternativeForm megaGreninja = PokemonAlternativeForms.fromEntryId(2_065_801);
+        PokemonAlternativeForm megaZygarde = PokemonAlternativeForms.fromEntryId(2_071_811);
+        PokemonAlternativeForm megaRaichuX = PokemonAlternativeForms.fromEntryId(2_002_601);
+        PokemonAlternativeForm megaAbsolZ = PokemonAlternativeForms.fromEntryId(2_035_902);
+        PokemonAlternativeForm megaLucarioZ = PokemonAlternativeForms.fromEntryId(2_044_802);
+        PokemonAlternativeForm megaSarmurai = PokemonAlternativeForms.fromEntryId(2_076_801);
+        PokemonAlternativeForm megaFalinks = PokemonAlternativeForms.fromEntryId(2_087_001);
+
+        assertThat(megaDragonite).isNotNull();
+        assertThat(megaDragonite.megaForm()).isTrue();
+        assertThat(megaDragonite.frenchName()).contains("Dracolosse");
+
+        assertThat(megaGreninja).isNotNull();
+        assertThat(megaGreninja.megaForm()).isTrue();
+        assertThat(megaGreninja.englishName()).isEqualTo("Mega Greninja");
+
+        assertThat(megaZygarde).isNotNull();
+        assertThat(megaZygarde.megaForm()).isTrue();
+        assertThat(megaZygarde.frenchName()).contains("Zygarde");
+
+        assertThat(megaRaichuX).isNotNull();
+        assertThat(megaRaichuX.formLabel()).isEqualTo("Mega X");
+
+        assertThat(megaAbsolZ).isNotNull();
+        assertThat(megaAbsolZ.englishName()).isEqualTo("Mega Absol Z");
+
+        assertThat(megaLucarioZ).isNotNull();
+        assertThat(megaLucarioZ.formLabel()).isEqualTo("Mega Z");
+
+        assertThat(megaSarmurai).isNotNull();
+        assertThat(megaSarmurai.englishName()).isEqualTo("Mega Golisopod");
+        assertThat(megaSarmurai.frenchName()).contains("Sarmura");
+
+        assertThat(megaFalinks).isNotNull();
+        assertThat(megaFalinks.frenchName()).contains("Hexadron");
     }
 }
