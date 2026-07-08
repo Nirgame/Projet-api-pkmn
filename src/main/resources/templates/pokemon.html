@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title th:text="'Cartes ' + ${pokemonDisplayName} + ' - Pokemon TCG Collection'">Pokemon Cards</title>
+    <title th:text="${@displayText.ui('pokemon_cards_title') + pokemonDisplayName + ' - ' + @displayText.ui('app_title')}">Pokemon Cards</title>
     <style>
         @media (max-width: 767.98px) {
             .pokemon-header {
@@ -26,8 +26,8 @@
             <div class="col-12">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="/collection">Ma Collection</a></li>
+                        <li class="breadcrumb-item"><a href="/dashboard" th:text="${@displayText.ui('dashboard')}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="/collection" th:text="${@displayText.ui('collection')}">Ma Collection</a></li>
                         <li class="breadcrumb-item active" th:text="${pokemonDisplayName}">Pokemon</li>
                     </ol>
                 </nav>
@@ -43,14 +43,14 @@
                             Nom francais
                         </p>
                         <p class="text-muted mt-2"
-                           th:text="'Toutes les cartes ' + ${pokemonDisplayName} + ' dans votre collection'">
+                           th:text="${@displayText.ui('all_cards_for') + pokemonDisplayName + ' ' + @displayText.ui('in_your_collection')}">
                             Cartes Pokemon dans votre collection
                         </p>
                         <a class="btn btn-outline-primary btn-sm mt-3"
                            th:href="${pokemonPokepediaUrl}"
                            target="_blank"
                            rel="noopener noreferrer">
-                            <i class="fas fa-up-right-from-square"></i> Voir sur Pokepedia
+                            <i class="fas fa-up-right-from-square"></i> <span th:text="${@displayText.ui('view_pokepedia')}">Voir sur Pokepedia</span>
                         </a>
                     </div>
                     <span class="badge bg-light text-dark border fs-6"
@@ -66,33 +66,33 @@
             <div class="card-body">
                 <div class="row g-3 align-items-end">
                     <div class="col-lg-5">
-                        <label class="form-label" for="pokemon-card-search">Recherche rapide</label>
+                        <label class="form-label" for="pokemon-card-search" th:text="${@displayText.ui('quick_search')}">Recherche rapide</label>
                         <input id="pokemon-card-search"
                                type="search"
                                class="form-control"
                                placeholder="Nom FR/EN, set, id, numero local...">
                     </div>
                     <div class="col-lg-3">
-                        <label class="form-label" for="pokemon-card-set-filter">Set</label>
+                        <label class="form-label" for="pokemon-card-set-filter" th:text="${@displayText.ui('set')}">Set</label>
                         <select id="pokemon-card-set-filter" class="form-select">
-                            <option value="">Tous les sets</option>
+                            <option value="" th:text="${@displayText.ui('all_sets')}">Tous les sets</option>
                         </select>
                     </div>
                     <div class="col-lg-2">
-                        <label class="form-label" for="pokemon-card-form-filter">Forme</label>
+                        <label class="form-label" for="pokemon-card-form-filter" th:text="${@displayText.ui('form')}">Forme</label>
                         <select id="pokemon-card-form-filter" class="form-select">
-                            <option value="">Toutes les formes</option>
+                            <option value="" th:text="${@displayText.ui('all_forms')}">Toutes les formes</option>
                         </select>
                     </div>
                     <div class="col-lg-2 d-grid">
-                        <button id="pokemon-card-filter-reset" type="button" class="btn btn-danger">
+                        <button id="pokemon-card-filter-reset" type="button" class="btn btn-danger" th:text="${@displayText.ui('reset')}">
                             Reinitialiser
                         </button>
                     </div>
                     <div class="col-12">
                         <div class="small text-muted">
                             <span id="pokemon-card-visible-count" th:text="${cards.size()}">0</span>
-                            carte(s) affichee(s)
+                            <span th:text="${@displayText.ui('displayed_count')}">carte(s) affichee(s)</span>
                         </div>
                     </div>
                 </div>
@@ -111,7 +111,7 @@
                           data-quantity=${card.quantity}">
                 <div class="card h-100">
                     <img th:src="${card.thumbnailImage}"
-                         th:alt="${@displayText.userCardName(card)}" class="card-img-top"
+                         th:alt="${@displayText.userCardName(card)}" class="card-img-top zoom-hover-image"
                          loading="lazy"
                          decoding="async"
                          th:attr="data-zoom-src=${card.zoomImage},
@@ -124,7 +124,6 @@
                                   data-zoom-owned-count=${card.quantity},
                                   data-zoom-can-add=true,
                                   data-zoom-can-remove=true"
-                         th:classappend="' zoom-hover-image'"
                          onerror="this.onerror=null;this.src='/images/placeholder.svg'">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
@@ -171,12 +170,12 @@
                 <div class="card">
                     <div class="card-body py-5">
                         <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                        <h4>Aucune carte trouvee</h4>
+                        <h4 th:text="${@displayText.ui('no_card_found')}">Aucune carte trouvee</h4>
                         <p class="text-muted">
-                            Vous n'avez pas de cartes <strong th:text="${pokemonDisplayName}">Pokemon</strong> dans votre collection.
+                            <span th:text="${@displayText.ui('no_cards_yet_collection')}">Vous n'avez pas encore de carte de ce Pokemon dans votre collection.</span>
                         </p>
                         <a href="/browse" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Chercher des cartes
+                            <i class="fas fa-plus"></i> <span th:text="${@displayText.ui('browse_to_add_cards')}">Chercher des cartes</span>
                         </a>
                     </div>
                 </div>
@@ -185,7 +184,14 @@
     </div>
 
     <div layout:fragment="scripts">
-        <script>
+        <script th:inline="javascript">
+            const POKEMON_I18N = {
+                errorPrefix: /*[[${@displayText.ui('error_prefix')}]]*/ 'Erreur : ',
+                errorAddCollection: /*[[${@displayText.ui('error_add_collection')}]]*/ 'Erreur lors de l ajout a la collection',
+                errorRemove: /*[[${@displayText.ui('error_remove')}]]*/ 'Erreur lors de la suppression',
+                errorRemoveCollection: /*[[${@displayText.ui('error_remove_collection')}]]*/ 'Erreur lors de la suppression de la collection'
+            };
+
             function normalizeText(value) {
                 return (value || '')
                     .normalize('NFD')
@@ -290,12 +296,12 @@
                             }
                         }));
                     } else {
-                        alert('Erreur: ' + data.error);
+                        alert(POKEMON_I18N.errorPrefix + data.error);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Erreur lors de l ajout a la collection');
+                    alert(POKEMON_I18N.errorAddCollection);
                 });
             }
 
@@ -317,12 +323,12 @@
                             }
                         }));
                     } else {
-                        alert('Erreur lors de la suppression');
+                        alert(POKEMON_I18N.errorRemove);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Erreur lors de la suppression de la collection');
+                    alert(POKEMON_I18N.errorRemoveCollection);
                 });
             }
 

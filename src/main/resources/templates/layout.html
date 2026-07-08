@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
-    <title>Pokemon TCG Collection</title>
+    <title th:text="${@displayText.ui('app_title')}">Pokemon TCG Collection</title>
     <link rel="icon" type="image/svg+xml" href="/images/pokeball-favicon.svg">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -372,7 +372,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark app-navbar">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <i class="fas fa-dragon"></i> Pokemon TCG Collection
+                <i class="fas fa-dragon"></i> <span th:text="${@displayText.ui('app_title')}">Pokemon TCG Collection</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -386,32 +386,32 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/browse">
-                            <i class="fas fa-search"></i> <span th:text="${@displayText.text('Parcourir', 'Browse')}">Parcourir</span>
+                            <i class="fas fa-search"></i> <span th:text="${@displayText.ui('browse')}">Parcourir</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/sets">
-                            <i class="fas fa-cubes"></i> <span th:text="${@displayText.text('Ensembles', 'Sets')}">Ensembles</span>
+                            <i class="fas fa-cubes"></i> <span th:text="${@displayText.ui('sets')}">Ensembles</span>
                         </a>
                     </li>
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <a class="nav-link" href="/collection">
-                            <i class="fas fa-book"></i> <span th:text="${@displayText.text('Ma Collection', 'My Collection')}">Ma Collection</span>
+                            <i class="fas fa-book"></i> <span th:text="${@displayText.ui('collection')}">Ma Collection</span>
                         </a>
                     </li>
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <a class="nav-link" href="/set-tracker">
-                            <i class="fas fa-layer-group"></i> <span th:text="${@displayText.text('Suivi Sets', 'Set Tracker')}">Suivi Sets</span>
+                            <i class="fas fa-layer-group"></i> <span th:text="${@displayText.ui('set_tracker')}">Suivi Sets</span>
                         </a>
                     </li>
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <a class="nav-link" href="/pokedex">
-                            <i class="fas fa-list"></i> Pokedex
+                            <i class="fas fa-list"></i> <span th:text="${@displayText.ui('pokedex')}">Pokedex</span>
                         </a>
                     </li>
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <a class="nav-link" href="/dashboard">
-                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                            <i class="fas fa-tachometer-alt"></i> <span th:text="${@displayText.ui('dashboard')}">Dashboard</span>
                         </a>
                     </li>
                 </ul>
@@ -436,16 +436,16 @@
                         </form>
                     </li>
                     <li class="nav-item" sec:authorize="!isAuthenticated()">
-                        <a class="nav-link" href="/login" th:text="${@displayText.text('Connexion', 'Login')}">Connexion</a>
+                        <a class="nav-link" href="/login" th:text="${@displayText.ui('login')}">Connexion</a>
                     </li>
                     <li class="nav-item" sec:authorize="!isAuthenticated()">
-                        <a class="nav-link" href="/register" th:text="${@displayText.text('Inscription', 'Register')}">Inscription</a>
+                        <a class="nav-link" href="/register" th:text="${@displayText.ui('register')}">Inscription</a>
                     </li>
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <form class="d-inline" th:action="@{/logout}" method="post">
                             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <button type="submit" class="btn btn-link nav-link">
-                                <i class="fas fa-sign-out-alt"></i> Déconnexion
+                                <i class="fas fa-sign-out-alt"></i> <span th:text="${@displayText.ui('logout')}">Deconnexion</span>
                             </button>
                         </form>
                     </li>
@@ -457,13 +457,13 @@
     <div class="container mt-4" layout:fragment="content">
     </div>
 
-    <button type="button" class="app-scroll-top" aria-label="Retour en haut">
+    <button type="button" class="app-scroll-top" th:attr="aria-label=${@displayText.ui('scroll_top')}">
         <i class="fas fa-arrow-up"></i>
     </button>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
+    <script th:inline="javascript">
         function withCsrf(init) {
             const requestInit = init ? { ...init } : {};
             const token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
@@ -480,6 +480,31 @@
             }
             return requestInit;
         }
+
+        const APP_I18N = {
+            zoomCard: /*[[${@displayText.ui('zoom_card')}]]*/ 'Card zoom',
+            close: /*[[${@displayText.ui('close')}]]*/ 'Close',
+            previousCard: /*[[${@displayText.ui('previous_card')}]]*/ 'Previous card',
+            nextCard: /*[[${@displayText.ui('next_card')}]]*/ 'Next card',
+            cardLabel: /*[[${@displayText.ui('card_label')}]]*/ 'Card',
+            localNumber: /*[[${@displayText.ui('local_number')}]]*/ 'Local number',
+            setLabel: /*[[${@displayText.ui('set')}]]*/ 'Set',
+            rarityLabel: /*[[${@displayText.ui('rarity')}]]*/ 'Rarity',
+            formLabel: /*[[${@displayText.ui('form')}]]*/ 'Form',
+            quantityLabel: /*[[${@displayText.ui('quantity')}]]*/ 'Quantity',
+            priceCardmarket: /*[[${@displayText.ui('price_cardmarket')}]]*/ 'Cardmarket price',
+            priceTcgplayer: /*[[${@displayText.ui('price_tcgplayer')}]]*/ 'TCGplayer price',
+            updating: /*[[${@displayText.ui('updating')}]]*/ 'Updating...',
+            actionSaved: /*[[${@displayText.ui('action_saved')}]]*/ 'Action saved.',
+            unexpectedError: /*[[${@displayText.ui('unexpected_error')}]]*/ 'An error occurred.',
+            addToCollection: /*[[${@displayText.ui('add_to_collection')}]]*/ 'Add to collection',
+            removeFromCollection: /*[[${@displayText.ui('remove_from_collection')}]]*/ 'Remove from collection',
+            assignInPokedex: /*[[${@displayText.ui('assign_in_pokedex')}]]*/ 'Assign in the Pokedex',
+            clearAssignment: /*[[${@displayText.ui('clear_assignment')}]]*/ 'Clear assignment',
+            ownedCopiesStatus: /*[[${@displayText.ui('owned_copies_status')}]]*/ 'You already own __COUNT__ copy/copies of this card.',
+            ownedStatus: /*[[${@displayText.ui('owned_status')}]]*/ 'Owned',
+            missingStatus: /*[[${@displayText.ui('missing_status')}]]*/ 'Missing'
+        };
 
         (() => {
             let zoomModal = null;
@@ -502,12 +527,12 @@
                 zoomModal = document.createElement('div');
                 zoomModal.className = 'card-zoom-modal';
                 zoomModal.innerHTML = '' +
-                    '<div class="card-zoom-modal-dialog" role="dialog" aria-modal="true" aria-label="Zoom carte">' +
-                    '<button type="button" class="card-zoom-modal-close" aria-label="Fermer">&times;</button>' +
+                    '<div class="card-zoom-modal-dialog" role="dialog" aria-modal="true" aria-label="' + APP_I18N.zoomCard + '">' +
+                    '<button type="button" class="card-zoom-modal-close" aria-label="' + APP_I18N.close + '">&times;</button>' +
                     '<div class="card-zoom-modal-media">' +
-                    '<button type="button" class="card-zoom-modal-nav prev" aria-label="Carte precedente"><i class="fas fa-chevron-left"></i></button>' +
+                    '<button type="button" class="card-zoom-modal-nav prev" aria-label="' + APP_I18N.previousCard + '"><i class="fas fa-chevron-left"></i></button>' +
                     '<img class="card-zoom-modal-image" alt="">' +
-                    '<button type="button" class="card-zoom-modal-nav next" aria-label="Carte suivante"><i class="fas fa-chevron-right"></i></button>' +
+                    '<button type="button" class="card-zoom-modal-nav next" aria-label="' + APP_I18N.nextCard + '"><i class="fas fa-chevron-right"></i></button>' +
                     '</div>' +
                     '<div class="card-zoom-modal-title"></div>' +
                     '<div class="card-zoom-modal-subtitle"></div>' +
@@ -1010,7 +1035,7 @@
 
                         const status = trackedCard.querySelector('.small.fw-semibold');
                         if (status) {
-                            status.textContent = quantity > 0 ? 'Possedee' : 'Manquante';
+                            status.textContent = quantity > 0 ? APP_I18N.ownedStatus : APP_I18N.missingStatus;
                         }
 
                         const removeButton = trackedCard.querySelector('.btn-outline-danger[data-card-id="' + escapedCardId + '"]');
@@ -1067,7 +1092,7 @@
                 }
                 zoomBusy = true;
                 setZoomButtonsDisabled(true);
-                setZoomStatus('Mise a jour en cours...', 'muted');
+                setZoomStatus(APP_I18N.updating, 'muted');
 
                 action()
                     .then(data => {
@@ -1075,13 +1100,13 @@
                             if (typeof onSuccess === 'function') {
                                 onSuccess(data);
                             }
-                            setZoomStatus('Action enregistree.', 'success');
+                            setZoomStatus(APP_I18N.actionSaved, 'success');
                             return;
                         }
-                        setZoomStatus((data && data.error) || 'Une erreur est survenue.', 'error');
+                        setZoomStatus((data && data.error) || APP_I18N.unexpectedError, 'error');
                     })
                     .catch(() => {
-                        setZoomStatus('Une erreur est survenue.', 'error');
+                        setZoomStatus(APP_I18N.unexpectedError, 'error');
                     })
                     .finally(() => {
                         zoomBusy = false;
@@ -1091,14 +1116,14 @@
 
             function renderZoomMeta(dataset, priceData) {
                 zoomMeta.innerHTML = [
-                    buildMetaItem('Carte', dataset.zoomCardId),
-                    buildMetaItem('Numero local', dataset.zoomLocalId),
-                    buildMetaItem('Set', dataset.zoomSetName),
-                    buildMetaItem('Raret\u00E9', dataset.zoomRarity),
-                    buildMetaItem('Forme', dataset.zoomVariant),
-                    buildMetaItem('Quantit\u00E9', dataset.zoomQuantity),
-                    buildMetaItem('Prix Cardmarket', priceData && priceData.cardmarketPrice),
-                    buildMetaItem('Prix TCGplayer', priceData && priceData.tcgplayerPrice)
+                    buildMetaItem(APP_I18N.cardLabel, dataset.zoomCardId),
+                    buildMetaItem(APP_I18N.localNumber, dataset.zoomLocalId),
+                    buildMetaItem(APP_I18N.setLabel, dataset.zoomSetName),
+                    buildMetaItem(APP_I18N.rarityLabel, dataset.zoomRarity),
+                    buildMetaItem(APP_I18N.formLabel, dataset.zoomVariant),
+                    buildMetaItem(APP_I18N.quantityLabel, dataset.zoomQuantity),
+                    buildMetaItem(APP_I18N.priceCardmarket, priceData && priceData.cardmarketPrice),
+                    buildMetaItem(APP_I18N.priceTcgplayer, priceData && priceData.tcgplayerPrice)
                 ].join('');
             }
 
@@ -1113,20 +1138,22 @@
                 const buttons = [];
 
                 if (canAdd) {
-                    buttons.push('<button type="button" class="btn btn-success" data-zoom-action="add"><i class="fas fa-plus"></i> Ajouter a la collection</button>');
+                    buttons.push('<button type="button" class="btn btn-success" data-zoom-action="add"><i class="fas fa-plus"></i> ' + APP_I18N.addToCollection + '</button>');
                 }
                 if (canRemove) {
-                    buttons.push('<button type="button" class="btn btn-outline-danger" data-zoom-action="remove"><i class="fas fa-minus"></i> Retirer de la collection</button>');
+                    buttons.push('<button type="button" class="btn btn-outline-danger" data-zoom-action="remove"><i class="fas fa-minus"></i> ' + APP_I18N.removeFromCollection + '</button>');
                 }
                 if (canAssign) {
-                    buttons.push('<button type="button" class="btn btn-dark" data-zoom-action="assign"><i class="fas fa-thumbtack"></i> Assigner dans le Pokedex</button>');
+                    buttons.push('<button type="button" class="btn btn-dark" data-zoom-action="assign"><i class="fas fa-thumbtack"></i> ' + APP_I18N.assignInPokedex + '</button>');
                 }
                 if (clearAssignmentPokemonId) {
-                    buttons.push('<button type="button" class="btn btn-outline-secondary" data-zoom-action="clear-assignment"><i class="fas fa-trash"></i> Retirer l assignation</button>');
+                    buttons.push('<button type="button" class="btn btn-outline-secondary" data-zoom-action="clear-assignment"><i class="fas fa-trash"></i> ' + APP_I18N.clearAssignment + '</button>');
                 }
 
                 zoomActions.innerHTML = buttons.join('');
-                setZoomStatus(ownedCount > 0 ? 'Vous possedez deja ' + ownedCount + ' exemplaire(s) de cette carte.' : '', ownedCount > 0 ? 'muted' : null);
+                setZoomStatus(
+                    ownedCount > 0 ? APP_I18N.ownedCopiesStatus.replace('__COUNT__', String(ownedCount)) : '',
+                    ownedCount > 0 ? 'muted' : null);
 
                 zoomActions.querySelectorAll('[data-zoom-action]').forEach(button => {
                     button.addEventListener('click', () => {
@@ -1218,12 +1245,12 @@
                 zoomSubtitle.style.display = zoomSubtitle.textContent ? '' : 'none';
 
                 zoomMeta.innerHTML = [
-                    buildMetaItem('Carte', dataset.zoomCardId),
-                    buildMetaItem('Numero local', dataset.zoomLocalId),
-                    buildMetaItem('Set', dataset.zoomSetName),
-                    buildMetaItem('Raret\u00E9', dataset.zoomRarity),
-                    buildMetaItem('Forme', dataset.zoomVariant),
-                    buildMetaItem('Quantit\u00E9', dataset.zoomQuantity)
+                    buildMetaItem(APP_I18N.cardLabel, dataset.zoomCardId),
+                    buildMetaItem(APP_I18N.localNumber, dataset.zoomLocalId),
+                    buildMetaItem(APP_I18N.setLabel, dataset.zoomSetName),
+                    buildMetaItem(APP_I18N.rarityLabel, dataset.zoomRarity),
+                    buildMetaItem(APP_I18N.formLabel, dataset.zoomVariant),
+                    buildMetaItem(APP_I18N.quantityLabel, dataset.zoomQuantity)
                 ].join('');
 
                 buildActionButtons(dataset);

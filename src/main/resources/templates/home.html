@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Accueil - Pokemon TCG Collection</title>
+    <title th:text="${@displayText.ui('home') + ' - Pokemon TCG Collection'}">Accueil - Pokemon TCG Collection</title>
     <style>
         .home-hero {
             padding: 2rem;
@@ -23,10 +23,10 @@
             <div class="col-12">
                 <div class="bg-primary text-white rounded home-hero">
                     <h1 class="home-hero-title mb-3">
-                        <i class="fas fa-dragon"></i> Pokemon TCG Collection
+                        <i class="fas fa-dragon"></i> <span th:text="${@displayText.ui('app_title')}">Pokemon TCG Collection</span>
                     </h1>
                     <p class="lead mb-0">
-                        Choisissez rapidement ce que vous voulez faire dans l'application.
+                        <span th:text="${@displayText.ui('choose_action')}">Choisissez rapidement ce que vous voulez faire dans l'application.</span>
                     </p>
                 </div>
             </div>
@@ -36,54 +36,54 @@
             <div class="col-sm-6 col-xl-3" th:if="${!authenticated}">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body d-flex flex-column">
-                        <h4 class="card-title"><i class="fas fa-sign-in-alt text-primary"></i> Connexion</h4>
-                        <p class="card-text text-muted">Accedez rapidement a votre espace personnel.</p>
-                        <a class="btn btn-primary mt-auto" href="/login">Aller a la connexion</a>
+                        <h4 class="card-title"><i class="fas fa-sign-in-alt text-primary"></i> <span th:text="${@displayText.ui('login')}">Connexion</span></h4>
+                        <p class="card-text text-muted" th:text="${@displayText.ui('quick_access_personal')}">Accedez rapidement a votre espace personnel.</p>
+                        <a class="btn btn-primary mt-auto" href="/login" th:text="${@displayText.ui('login_go')}">Aller a la connexion</a>
                     </div>
                 </div>
             </div>
             <div class="col-sm-6 col-xl-3" th:if="${authenticated}">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body d-flex flex-column">
-                        <h4 class="card-title"><i class="fas fa-tachometer-alt text-primary"></i> Dashboard</h4>
-                        <p class="card-text text-muted">Retrouvez directement votre espace deja connecte.</p>
-                        <a class="btn btn-primary mt-auto" href="/dashboard">Ouvrir le dashboard</a>
+                        <h4 class="card-title"><i class="fas fa-tachometer-alt text-primary"></i> <span th:text="${@displayText.ui('dashboard')}">Dashboard</span></h4>
+                        <p class="card-text text-muted" th:text="${@displayText.ui('already_connected_area')}">Retrouvez directement votre espace deja connecte.</p>
+                        <a class="btn btn-primary mt-auto" href="/dashboard" th:text="${@displayText.ui('go_dashboard')}">Ouvrir le dashboard</a>
                     </div>
                 </div>
             </div>
             <div class="col-sm-6 col-xl-3">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body d-flex flex-column">
-                        <h4 class="card-title"><i class="fas fa-cubes text-info"></i> Liste des sets</h4>
-                        <p class="card-text text-muted">Consultez tous les ensembles existants.</p>
-                        <a class="btn btn-info text-white mt-auto" href="/sets">Voir les sets</a>
+                        <h4 class="card-title"><i class="fas fa-cubes text-info"></i> <span th:text="${@displayText.ui('sets_list')}">Liste des sets</span></h4>
+                        <p class="card-text text-muted" th:text="${@displayText.ui('all_existing_sets')}">Consultez tous les ensembles existants.</p>
+                        <a class="btn btn-info text-white mt-auto" href="/sets" th:text="${@displayText.ui('browse_sets')}">Voir les sets</a>
                     </div>
                 </div>
             </div>
             <div class="col-sm-6 col-xl-3">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body d-flex flex-column">
-                        <h4 class="card-title"><i class="fas fa-search text-success"></i> Liste complete des cartes</h4>
-                        <p class="card-text text-muted">Parcourez l'ensemble des cartes disponibles.</p>
-                        <a class="btn btn-success mt-auto" href="/browse">Voir les cartes</a>
+                        <h4 class="card-title"><i class="fas fa-search text-success"></i> <span th:text="${@displayText.ui('full_card_list')}">Liste complete des cartes</span></h4>
+                        <p class="card-text text-muted" th:text="${@displayText.ui('browse_available_cards')}">Parcourez l'ensemble des cartes disponibles.</p>
+                        <a class="btn btn-success mt-auto" href="/browse" th:text="${@displayText.ui('browse_cards_action')}">Voir les cartes</a>
                     </div>
                 </div>
             </div>
             <div class="col-sm-6 col-xl-3">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body d-flex flex-column">
-                        <h4 class="card-title"><i class="fas fa-book text-warning"></i> Ma collection</h4>
-                        <p class="card-text text-muted">Retrouvez vos cartes ajoutees et votre progression.</p>
-                        <a class="btn btn-warning text-dark mt-auto" href="/collection">Ouvrir ma collection</a>
+                        <h4 class="card-title"><i class="fas fa-book text-warning"></i> <span th:text="${@displayText.ui('collection')}">Ma collection</span></h4>
+                        <p class="card-text text-muted" th:text="${@displayText.ui('my_collection_desc')}">Retrouvez vos cartes ajoutees et votre progression.</p>
+                        <a class="btn btn-warning text-dark mt-auto" href="/collection" th:text="${@displayText.ui('open_collection')}">Ouvrir ma collection</a>
                     </div>
                 </div>
             </div>
             <div class="col-sm-6 col-xl-3">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body d-flex flex-column">
-                        <h4 class="card-title"><i class="fas fa-list text-dark"></i> Pokedex</h4>
-                        <p class="card-text text-muted">Associez une carte possedee a chaque Pokemon de la liste complete.</p>
-                        <a class="btn btn-dark mt-auto" href="/pokedex">Ouvrir le pokedex</a>
+                        <h4 class="card-title"><i class="fas fa-list text-dark"></i> <span th:text="${@displayText.ui('pokedex')}">Pokedex</span></h4>
+                        <p class="card-text text-muted" th:text="${@displayText.ui('pokedex_desc')}">Associez une carte possedee a chaque Pokemon de la liste complete.</p>
+                        <a class="btn btn-dark mt-auto" href="/pokedex" th:text="${@displayText.ui('open_pokedex')}">Ouvrir le pokedex</a>
                     </div>
                 </div>
             </div>
@@ -92,7 +92,7 @@
         <div class="row mb-3">
             <div class="col-12">
                 <h2 class="mb-0">
-                    <i class="fas fa-layer-group"></i> Series disponibles
+                    <i class="fas fa-layer-group"></i> <span th:text="${@displayText.ui('available_series')}">Series disponibles</span>
                 </h2>
             </div>
         </div>
@@ -104,7 +104,7 @@
                         <h5 class="card-title" th:text="${serie.name}">Serie Name</h5>
                         <p class="card-text text-muted" th:text="${serie.id}">serie-id</p>
                         <a th:href="@{/sets(serieId=${serie.id})}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-eye"></i> Voir les sets
+                            <i class="fas fa-eye"></i> <span th:text="${@displayText.ui('browse_sets')}">Voir les sets</span>
                         </a>
                     </div>
                 </div>

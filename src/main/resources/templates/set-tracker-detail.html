@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Checklist set - Pokemon TCG Collection</title>
+    <title th:text="${@displayText.ui('open_checklist') + ' - ' + @displayText.ui('app_title')}">Checklist set - Pokemon TCG Collection</title>
 </head>
 <body>
 <div layout:fragment="content">
@@ -12,7 +12,7 @@
         <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
             <div>
                 <a class="btn btn-link ps-0" href="/set-tracker">
-                    <i class="fas fa-arrow-left"></i> Retour au suivi des sets
+                    <i class="fas fa-arrow-left"></i> <span th:text="${@displayText.ui('back_to_set_tracker')}">Retour au suivi des sets</span>
                 </a>
                 <h1 class="mb-1" th:text="${@displayText.setName(detail.set)}">Set Name</h1>
                 <div class="text-muted" th:text="${detail.set.id}">set-id</div>
@@ -24,8 +24,8 @@
             </div>
             <div class="sticky-inline-actions">
                 <div class="d-flex gap-2 flex-wrap">
-                    <span class="badge bg-dark fs-6" th:text="|${detail.ownedDistinctCards}/${detail.totalCards()} cartes|">0/0 cartes</span>
-                    <span class="badge bg-success fs-6" th:text="|${detail.progressPercent()}% complete|">0%</span>
+                    <span class="badge bg-dark fs-6" th:text="|${detail.ownedDistinctCards}/${detail.totalCards()} ${@displayText.ui('cards_plural')}|">0/0 cartes</span>
+                    <span class="badge bg-success fs-6" th:text="|${detail.progressPercent()}% ${@displayText.ui('complete')}|">0%</span>
                 </div>
             </div>
         </div>
@@ -34,26 +34,26 @@
             <div class="card-body">
                 <div class="row g-3 align-items-end">
                     <div class="col-lg-5">
-                        <label class="form-label" for="tracked-set-detail-search">Recherche dynamique</label>
+                        <label class="form-label" for="tracked-set-detail-search" th:text="${@displayText.ui('dynamic_search')}">Recherche dynamique</label>
                         <input id="tracked-set-detail-search" type="search" class="form-control" placeholder="Nom FR/EN, set, id, numero local...">
                     </div>
                     <div class="col-lg-3">
-                        <label class="form-label" for="tracked-set-owned-filter">Affichage</label>
+                        <label class="form-label" for="tracked-set-owned-filter" th:text="${@displayText.ui('display_mode')}">Affichage</label>
                         <select id="tracked-set-owned-filter" class="form-select">
-                            <option value="">Toutes les cartes</option>
-                            <option value="owned">Possedees seulement</option>
-                            <option value="missing">Manquantes seulement</option>
+                            <option value="" th:text="${@displayText.ui('all_cards')}">Toutes les cartes</option>
+                            <option value="owned" th:text="${@displayText.ui('owned_only')}">Possedees seulement</option>
+                            <option value="missing" th:text="${@displayText.ui('missing_only')}">Manquantes seulement</option>
                         </select>
                     </div>
                     <div class="col-lg-2">
-                        <label class="form-label" for="tracked-set-rarity-filter">Raret&eacute;</label>
+                        <label class="form-label" for="tracked-set-rarity-filter" th:text="${@displayText.ui('rarity')}">Rareté</label>
                         <select id="tracked-set-rarity-filter" class="form-select">
-                            <option value="">Toutes les raret&eacute;s</option>
+                            <option value="" th:text="${@displayText.ui('all_rarities')}">Toutes les raretés</option>
                         </select>
                     </div>
                     <div class="col-lg-2 d-grid">
-                        <label class="form-label invisible" for="tracked-set-detail-reset">Reset</label>
-                        <button id="tracked-set-detail-reset" type="button" class="btn btn-danger">Reinitialiser</button>
+                        <label class="form-label invisible" for="tracked-set-detail-reset" th:text="${@displayText.ui('reset')}">Reset</label>
+                        <button id="tracked-set-detail-reset" type="button" class="btn btn-danger" th:text="${@displayText.ui('reset')}">Reinitialiser</button>
                     </div>
                 </div>
             </div>
@@ -114,7 +114,7 @@
                         </div>
                         <div class="mt-auto d-flex justify-content-between align-items-center gap-2">
                             <span class="small fw-semibold"
-                                  th:text="${detail.ownedCardCounts.containsKey(card.id)} ? 'Possedee' : 'Manquante'">
+                                  th:text="${detail.ownedCardCounts.containsKey(card.id)} ? @displayText.ui('owned_status') : @displayText.ui('missing_status')">
                                 Possedee
                             </span>
                             <div class="btn-group btn-group-sm">
@@ -139,7 +139,14 @@
 </div>
 
 <div layout:fragment="scripts">
-    <script>
+    <script th:inline="javascript">
+        const TRACKER_DETAIL_I18N = {
+            errorPrefix: /*[[${@displayText.ui('error_prefix')}]]*/ 'Erreur : ',
+            errorAddCollection: /*[[${@displayText.ui('error_add_collection')}]]*/ 'Erreur lors de l ajout a la collection',
+            errorRemove: /*[[${@displayText.ui('error_remove')}]]*/ 'Erreur lors de la suppression',
+            errorRemoveCollection: /*[[${@displayText.ui('error_remove_collection')}]]*/ 'Erreur lors de la suppression de la collection'
+        };
+
         function normalizeTrackedCardText(value) {
             return (value || '')
                 .normalize('NFD')
@@ -168,9 +175,9 @@
                     }));
                     return;
                 }
-                alert('Erreur: ' + data.error);
+                alert(TRACKER_DETAIL_I18N.errorPrefix + data.error);
             })
-            .catch(() => alert('Erreur lors de l ajout a la collection'));
+            .catch(() => alert(TRACKER_DETAIL_I18N.errorAddCollection));
         }
 
         function removeFromCollection(cardId) {
@@ -190,9 +197,9 @@
                     }));
                     return;
                 }
-                alert('Erreur lors de la suppression');
+                alert(TRACKER_DETAIL_I18N.errorRemove);
             })
-            .catch(() => alert('Erreur lors de la suppression de la collection'));
+            .catch(() => alert(TRACKER_DETAIL_I18N.errorRemoveCollection));
         }
 
         document.addEventListener('DOMContentLoaded', function() {

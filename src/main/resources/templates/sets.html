@@ -2,14 +2,14 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Ensembles - Pokemon TCG Collection</title>
+    <title th:text="${@displayText.ui('sets') + ' - ' + @displayText.ui('app_title')}">Ensembles - Pokemon TCG Collection</title>
 </head>
 <body>
     <div layout:fragment="content">
         <div class="row mb-4">
             <div class="col-12">
-                <h1><i class="fas fa-cubes"></i> Ensembles Pokemon TCG</h1>
-                <p class="text-muted">Decouvrez tous les ensembles de cartes disponibles.</p>
+                <h1><i class="fas fa-cubes"></i> <span th:text="${@displayText.ui('sets')} + ' Pokemon TCG'">Ensembles Pokemon TCG</span></h1>
+                <p class="text-muted" th:text="${@displayText.ui('all_existing_sets')}">Decouvrez tous les ensembles de cartes disponibles.</p>
             </div>
         </div>
 
@@ -18,11 +18,11 @@
             <div>
                 <i class="fas fa-filter"></i>
                 <span>
-                    Filtre actif :
+                    <span th:text="${@displayText.ui('active_filter')}">Filtre actif :</span>
                     <strong th:text="${selectedSerieName != null ? selectedSerieName : selectedSerieId}">Serie</strong>
                 </span>
             </div>
-            <a class="btn btn-sm btn-outline-primary mobile-stack-item" href="/sets">
+            <a class="btn btn-sm btn-outline-primary mobile-stack-item" href="/sets" th:text="${@displayText.ui('view_all_sets')}">
                 Voir tous les sets
             </a>
         </div>
@@ -32,11 +32,11 @@
         </div>
 
         <div th:if="${selectedSerieId != null and sets != null and sets.isEmpty()}" class="alert alert-warning">
-            <i class="fas fa-info-circle"></i> Aucun set trouve pour cette serie.
+            <i class="fas fa-info-circle"></i> <span th:text="${@displayText.ui('no_set_for_series')}">Aucun set trouve pour cette serie.</span>
         </div>
 
         <div th:if="${sets != null and sets.isEmpty() and selectedSerieId == null}" class="alert alert-warning">
-            <i class="fas fa-info-circle"></i> Aucun set ne correspond aux filtres actuels.
+            <i class="fas fa-info-circle"></i> <span th:text="${@displayText.ui('no_set_for_filters')}">Aucun set ne correspond aux filtres actuels.</span>
         </div>
 
         <div class="card mb-4">
@@ -45,12 +45,12 @@
                     <input type="hidden" name="serieId" th:if="${selectedSerieId != null}" th:value="${selectedSerieId}">
                     <div class="row g-3 align-items-end">
                         <div class="col-12">
-                            <h5 class="mb-1"><i class="fas fa-filter"></i> Filtres</h5>
-                            <p class="text-muted small mb-0">Recherche sur les ids et noms EN/FR/JP/KR/ZH, puis combine les langues de disponibilite et les familles de sets.</p>
+                            <h5 class="mb-1"><i class="fas fa-filter"></i> <span th:text="${@displayText.ui('filters')}">Filtres</span></h5>
+                            <p class="text-muted small mb-0" th:text="${@displayText.ui('set_filters_help')}">Recherche sur les ids et noms EN/FR/JP/KR/ZH, puis combine les langues de disponibilite et les familles de sets.</p>
                         </div>
 
                         <div class="col-12 col-lg-5">
-                            <label class="form-label" for="set-search">Recherche</label>
+                            <label class="form-label" for="set-search" th:text="${@displayText.ui('search')}">Recherche</label>
                             <input id="set-search"
                                    type="search"
                                    name="search"
@@ -81,29 +81,30 @@
                             <div class="d-flex flex-wrap gap-2 gap-md-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="mcdoOnly" name="mcdoOnly" value="true" th:checked="${mcdoOnly}">
-                                    <label class="form-check-label" for="mcdoOnly">MCDO</label>
+                                    <label class="form-check-label" for="mcdoOnly" th:text="${@displayText.ui('mcdo_only')}">MCDO</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="exclusiveOnly" name="exclusiveOnly" value="true" th:checked="${exclusiveOnly}">
-                                    <label class="form-check-label" for="exclusiveOnly">Exclus hors EN/FR</label>
+                                    <label class="form-check-label" for="exclusiveOnly" th:text="${@displayText.ui('exclusive_only')}">Exclus hors EN/FR</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="promoOnly" name="promoOnly" value="true" th:checked="${promoOnly}">
-                                    <label class="form-check-label" for="promoOnly">Promos</label>
+                                    <label class="form-check-label" for="promoOnly" th:text="${@displayText.ui('promo_only')}">Promos</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="pocketOnly" name="pocketOnly" value="true" th:checked="${pocketOnly}">
-                                    <label class="form-check-label" for="pocketOnly">Pokemon TCG Pocket</label>
+                                    <label class="form-check-label" for="pocketOnly" th:text="${@displayText.ui('pocket_only')}">Pokemon TCG Pocket</label>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-12 mobile-inline-actions">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-check"></i> Appliquer
+                                <i class="fas fa-check"></i> <span th:text="${@displayText.ui('apply')}">Appliquer</span>
                             </button>
                             <a class="btn btn-outline-secondary"
-                               th:href="${selectedSerieId != null} ? @{/sets(serieId=${selectedSerieId})} : @{/sets}">
+                               th:href="${selectedSerieId != null} ? @{/sets(serieId=${selectedSerieId})} : @{/sets}"
+                               th:text="${@displayText.ui('reset')}">
                                 Reinitialiser
                             </a>
                         </div>
@@ -151,7 +152,7 @@
                                      onerror="this.style.display='none'">
                             </div>
                             <div th:if="${!set.hasVisualAsset()}" class="border rounded p-3 bg-light">
-                                <div class="text-muted small mb-1">Aucun visuel TCGdex</div>
+                                <div class="text-muted small mb-1" th:text="${@displayText.ui('no_visual_asset')}">Aucun visuel TCGdex</div>
                                 <div class="fw-semibold" th:text="${set.id}">set-id</div>
                             </div>
                         </div>
@@ -182,19 +183,19 @@
                         <p class="card-text text-muted" th:text="${set.id}">set-id</p>
                         <div class="row text-center">
                             <div class="col-6">
-                                <small class="text-muted">Cartes</small>
+                                <small class="text-muted" th:text="${@displayText.ui('cards_plural')}">Cartes</small>
                                 <br>
                                 <strong th:text="${set.displayTotal}">0</strong>
                             </div>
                             <div class="col-6">
-                                <small class="text-muted">Disponibilite</small>
+                                <small class="text-muted" th:text="${@displayText.ui('availability')}">Disponibilite</small>
                                 <br>
-                                <strong th:text="${#lists.size(set.orderedAvailableLanguages) + ' langue(s)'}">0 langue(s)</strong>
+                                <strong th:text="${#lists.size(set.orderedAvailableLanguages) + ' ' + @displayText.ui('languages_count')}">0 langue(s)</strong>
                             </div>
                         </div>
                         <div class="mt-3">
                             <a th:href="@{/browse(setId=${set.id})}" class="btn btn-outline-primary btn-sm w-100">
-                                <i class="fas fa-eye"></i> Voir les cartes
+                                <i class="fas fa-eye"></i> <span th:text="${@displayText.ui('browse_cards_action')}">Voir les cartes</span>
                             </a>
                         </div>
                     </div>

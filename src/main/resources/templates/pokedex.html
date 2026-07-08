@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Pokedex - Pokemon TCG Collection</title>
+    <title th:text="${@displayText.ui('pokedex') + ' - ' + @displayText.ui('app_title')}">Pokedex - Pokemon TCG Collection</title>
     <style>
         .pokedex-card-aside {
             display: flex;
@@ -41,15 +41,15 @@
 <div layout:fragment="content">
     <div class="row mb-4 align-items-center">
         <div class="col-lg-8">
-            <h1 class="mb-2"><i class="fas fa-list"></i> Pokedex</h1>
+            <h1 class="mb-2"><i class="fas fa-list"></i> <span th:text="${@displayText.ui('pokedex')}">Pokedex</span></h1>
             <p class="text-muted mb-0">
-                Retrouvez la liste complete des Pokemon et choisissez la carte de votre collection a afficher pour chacun.
+                <span th:text="${@displayText.ui('pokedex_description')}">Retrouvez la liste complete des Pokemon et choisissez la carte de votre collection a afficher pour chacun.</span>
             </p>
         </div>
         <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
             <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
-                <span class="badge bg-dark fs-6" th:text="|${totalResults} Pokemon|">0 Pokemon</span>
-                <span class="badge bg-secondary fs-6" th:text="|${unassignedCount} non assignes|">0 non assignes</span>
+                <span class="badge bg-dark fs-6" th:text="|${totalResults} ${@displayText.ui('pokemon')}|">0 Pokemon</span>
+                <span class="badge bg-secondary fs-6" th:text="|${unassignedCount} ${@displayText.ui('unassigned_count_label')}|">0 non assignes</span>
             </div>
         </div>
     </div>
@@ -63,43 +63,43 @@
             <form id="pokedex-filter-form" method="get" th:action="@{/pokedex}" class="row g-3 align-items-end">
                 <input type="hidden" name="size" th:value="${size}">
                 <div class="col-lg-3">
-                    <label class="form-label" for="pokedex-search">Recherche</label>
+                    <label class="form-label" for="pokedex-search" th:text="${@displayText.ui('search')}">Recherche</label>
                     <input id="pokedex-search"
                            type="search"
                            class="form-control"
                            name="search"
                            th:value="${search}"
-                           placeholder="Nom anglais, francais ou numero national">
+                           th:placeholder="${@displayText.text('Nom anglais, français ou numéro national', 'English name, French name or national number')}">
                 </div>
                 <div class="col-lg-2">
-                    <label class="form-label" for="generation">Generation</label>
+                    <label class="form-label" for="generation" th:text="${@displayText.ui('generation')}">Generation</label>
                     <select id="generation" name="generation" class="form-select">
-                        <option value="">Toutes les generations</option>
+                        <option value="" th:text="${@displayText.ui('all_generations')}">Toutes les generations</option>
                         <option th:each="option : ${generationOptions}"
                                 th:value="${option.id}"
-                                th:text="${option.label}"
+                                th:text="${@displayText.generationLabel(option)}"
                                 th:selected="${generation != null and option.id == generation}">
                             Generation I
                         </option>
                     </select>
                 </div>
                 <div class="col-lg-2">
-                    <label class="form-label" for="regionalMode">Formes alternatives</label>
+                    <label class="form-label" for="regionalMode" th:text="${@displayText.ui('alternative_forms')}">Formes alternatives</label>
                     <select id="regionalMode" name="regionalMode" class="form-select">
                         <option th:each="mode : ${regionalModes}"
                                 th:value="${mode.name()}"
-                                th:text="${mode.label()}"
+                                th:text="${@displayText.regionalDisplayModeLabel(mode)}"
                                 th:selected="${regionalMode != null and regionalMode == mode.name()}">
                             Inclure
                         </option>
                     </select>
                 </div>
                 <div class="col-lg-2">
-                    <label class="form-label" for="megaGigantamaxMode">Megas et Gigamax</label>
+                    <label class="form-label" for="megaGigantamaxMode" th:text="${@displayText.ui('megas_gigamax')}">Megas et Gigamax</label>
                     <select id="megaGigantamaxMode" name="megaGigantamaxMode" class="form-select">
                         <option th:each="mode : ${megaGigantamaxModes}"
                                 th:value="${mode.name()}"
-                                th:text="${mode.label()}"
+                                th:text="${@displayText.regionalDisplayModeLabel(mode)}"
                                 th:selected="${megaGigantamaxMode != null and megaGigantamaxMode == mode.name()}">
                             Inclure
                         </option>
@@ -109,22 +109,22 @@
                     <div class="form-check pt-2 mb-2">
                         <input id="assignedOnly" class="form-check-input" type="checkbox" name="assignedOnly" value="true"
                                th:checked="${assignedOnly}">
-                        <label class="form-check-label" for="assignedOnly">Assignes seulement</label>
+                        <label class="form-check-label" for="assignedOnly" th:text="${@displayText.ui('assigned_only')}">Assignes seulement</label>
                     </div>
                     <div class="form-check pt-1 mb-2">
                         <input id="unassignedOnly" class="form-check-input" type="checkbox" name="unassignedOnly" value="true"
                                th:checked="${unassignedOnly}">
-                        <label class="form-check-label" for="unassignedOnly">Non assignes seulement</label>
+                        <label class="form-check-label" for="unassignedOnly" th:text="${@displayText.ui('unassigned_only')}">Non assignes seulement</label>
                     </div>
                     <div class="form-check pt-1">
                         <input id="missingCardOnly" class="form-check-input" type="checkbox" name="missingCardOnly" value="true"
                                th:checked="${missingCardOnly}">
-                        <label class="form-check-label" for="missingCardOnly">Pas de cartes disponibles</label>
+                        <label class="form-check-label" for="missingCardOnly" th:text="${@displayText.ui('missing_cards_only')}">Pas de cartes disponibles</label>
                     </div>
                 </div>
                 <div class="col-lg-1 d-grid">
                     <button class="btn btn-primary" type="submit">
-                        <i class="fas fa-search"></i> Filtrer
+                        <i class="fas fa-search"></i> <span th:text="${@displayText.ui('filter')}">Filtrer</span>
                     </button>
                 </div>
             </form>
@@ -132,7 +132,7 @@
     </div>
 
     <div class="alert alert-info" th:if="${pokemons != null and pokemons.isEmpty()}">
-        <i class="fas fa-info-circle"></i> Aucun Pokemon ne correspond a ce filtre.
+        <i class="fas fa-info-circle"></i> <span th:text="${@displayText.ui('no_match_filter')}">Aucun Pokemon ne correspond a ce filtre.</span>
     </div>
 
     <div class="row g-4" th:if="${pokemons != null and !pokemons.isEmpty()}">
@@ -158,12 +158,12 @@
                                 </span>
                                 <span class="badge bg-light text-dark border"
                                       th:if="${pokemon.species.generationLabel != null and !pokemon.species.generationLabel.isBlank()}"
-                                      th:text="${pokemon.species.generationLabel}">
+                                      th:text="${@displayText.generationLabel(pokemon.species)}">
                                     Generation I
                                 </span>
                             </div>
                             <div th:if="${pokemon.hasComment()}" class="pokedex-comment-note">
-                                <div class="pokedex-comment-label">Commentaire</div>
+                                <div class="pokedex-comment-label" th:text="${@displayText.ui('comment')}">Commentaire</div>
                                 <div class="pokedex-comment-text" th:text="${pokemon.comment}">Commentaire</div>
                             </div>
                         </div>
@@ -189,7 +189,7 @@
                                  style="width: 84px; height: 118px; object-fit: contain;"
                                  onerror="this.onerror=null;this.src='/images/placeholder.svg'">
                             <div>
-                                <div class="fw-semibold">Carte assignee</div>
+                                <div class="fw-semibold" th:text="${@displayText.ui('assigned_card')}">Carte assignee</div>
                                 <div th:text="${@displayText.userCardName(pokemon.assignedCard)}">Bulbasaur</div>
                                 <div class="text-muted small"
                                      th:if="${@displayText.userCardSecondary(pokemon.assignedCard) != null}"
@@ -206,30 +206,30 @@
                     <div th:if="${!pokemon.hasAssignedCard() and pokemon.hasMissingCardMarked()}"
                          class="border border-warning rounded p-4 bg-warning-subtle text-center mb-3">
                         <div class="mb-2 text-warning-emphasis"><i class="fas fa-ban fa-2x"></i></div>
-                        <div class="fw-semibold text-warning-emphasis">Aucune carte correspondante</div>
-                        <div class="small text-muted mt-1">Ce Pokemon est marque comme sans carte disponible.</div>
+                        <div class="fw-semibold text-warning-emphasis" th:text="${@displayText.ui('no_matching_card')}">Aucune carte correspondante</div>
+                        <div class="small text-muted mt-1" th:text="${@displayText.ui('marked_no_card')}">Ce Pokemon est marque comme sans carte disponible.</div>
                     </div>
 
                     <div th:if="${!pokemon.hasAssignedCard() and !pokemon.hasMissingCardMarked()}"
                          class="border rounded p-4 bg-dark text-white text-center mb-3">
                         <div class="mb-2"><i class="fas fa-circle-dot fa-2x"></i></div>
-                        <div class="fw-semibold">Aucune carte assignee</div>
+                        <div class="fw-semibold" th:text="${@displayText.ui('no_assigned_card')}">Aucune carte assignee</div>
                     </div>
 
-                    <p class="text-muted small mb-3" th:text="|${pokemon.ownedCardCount} carte(s) de ce Pokemon dans votre collection|">
+                    <p class="text-muted small mb-3" th:text="|${pokemon.ownedCardCount} ${@displayText.ui('cards_plural')} ${@displayText.text('de ce Pokémon dans votre collection', 'of this Pokemon in your collection')}|">
                         0 carte(s)
                     </p>
 
                     <div class="d-grid gap-2">
                         <a class="btn btn-outline-dark w-100"
                            th:href="@{/pokedex/{pokemonId}(pokemonId=${pokemon.species.id}, page=${currentPage}, size=${size}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
-                            <i class="fas fa-eye"></i> Ouvrir la fiche
+                            <i class="fas fa-eye"></i> <span th:text="${@displayText.ui('view_details')}">Ouvrir la fiche</span>
                         </a>
                         <a class="btn btn-outline-primary w-100"
                            th:href="${pokemon.species.pokepediaUrl}"
                            target="_blank"
                            rel="noopener noreferrer">
-                            <i class="fas fa-up-right-from-square"></i> Voir sur Pokepedia
+                            <i class="fas fa-up-right-from-square"></i> <span th:text="${@displayText.ui('view_pokepedia')}">Voir sur Pokepedia</span>
                         </a>
                     </div>
                 </div>
@@ -239,12 +239,12 @@
 
     <div class="row mt-4 compact-pagination" th:if="${totalPages > 1}">
         <div class="col-12">
-            <nav aria-label="Navigation Pokedex">
+            <nav th:attr="aria-label=${@displayText.ui('quick_pokedex_nav')}">
                 <ul class="pagination justify-content-center">
                     <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
                         <a class="page-link"
                            th:href="@{/pokedex(page=${currentPage - 1}, size=${size}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
-                            Precedent
+                            <span th:text="${@displayText.ui('previous')}">Precedent</span>
                         </a>
                     </li>
                     <th:block th:each="pageNumber : ${pageNumbers}">
@@ -263,7 +263,7 @@
                     <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
                         <a class="page-link"
                            th:href="@{/pokedex(page=${currentPage + 1}, size=${size}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
-                            Suivant
+                            <span th:text="${@displayText.ui('next')}">Suivant</span>
                         </a>
                     </li>
                 </ul>
@@ -279,7 +279,7 @@
                 <input type="hidden" name="megaGigantamaxMode" th:value="${megaGigantamaxMode}">
                 <input type="hidden" name="size" th:value="${size}">
                 <div class="col-auto">
-                    <label class="col-form-label page-jump-label" for="pokedexPageJump">Page</label>
+                    <label class="col-form-label page-jump-label" for="pokedexPageJump" th:text="${@displayText.ui('page')}">Page</label>
                 </div>
                 <div class="col-auto">
                     <input id="pokedexPageJump"

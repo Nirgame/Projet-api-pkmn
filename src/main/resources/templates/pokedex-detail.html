@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Fiche Pokemon - Pokemon TCG Collection</title>
+    <title th:text="${@displayText.ui('pokedex') + ' - ' + @displayText.ui('app_title')}">Fiche Pokemon - Pokemon TCG Collection</title>
     <style>
         @media (max-width: 767.98px) {
             .pokedex-detail-header {
@@ -31,7 +31,7 @@
             <div>
                 <a class="btn btn-link ps-0"
                    th:href="@{/pokedex(page=${returnPage}, size=${returnSize}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
-                    <i class="fas fa-arrow-left"></i> Retour au pokedex
+                    <i class="fas fa-arrow-left"></i> <span th:text="${@displayText.ui('back_to_pokedex')}">Retour au pokedex</span>
                 </a>
                 <div class="text-muted small" th:text="|#${detail.species.speciesId}|">#1</div>
                 <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
@@ -51,13 +51,13 @@
                    th:href="${detail.species.pokepediaUrl}"
                    target="_blank"
                    rel="noopener noreferrer">
-                    <i class="fas fa-up-right-from-square"></i> Voir sur Pokepedia
+                    <i class="fas fa-up-right-from-square"></i> <span th:text="${@displayText.ui('view_pokepedia')}">Voir sur Pokepedia</span>
                 </a>
             </div>
             <div class="d-flex flex-column align-items-start align-items-lg-end gap-2">
                 <span class="badge bg-dark fs-6"
                       th:if="${detail.species.generationLabel != null and !detail.species.generationLabel.isBlank()}"
-                      th:text="${detail.species.generationLabel}">
+                      th:text="${@displayText.generationLabel(detail.species)}">
                     Generation I
                 </span>
             </div>
@@ -65,13 +65,13 @@
 
         <div class="sticky-inline-actions mb-4 d-flex flex-wrap gap-2 justify-content-between align-items-center">
             <div class="small text-muted">
-                Navigation rapide sur le Pokedex
+                <span th:text="${@displayText.ui('quick_pokedex_nav')}">Navigation rapide sur le Pokedex</span>
             </div>
             <div class="d-flex flex-wrap gap-2">
                 <a class="btn btn-outline-primary btn-sm"
                    th:href="@{/pokedex(page=${returnPage}, size=${returnSize}, search=${search}, generation=${generation}, assignedOnly=${assignedOnly}, unassignedOnly=${unassignedOnly}, missingCardOnly=${missingCardOnly}, regionalMode=${regionalMode}, regionalForm=${regionalForm}, megaGigantamaxMode=${megaGigantamaxMode})}">
                     <i class="fas fa-arrow-left"></i>
-                    <span>Retour Pokedex</span>
+                    <span th:text="${@displayText.ui('back_pokedex')}">Retour Pokedex</span>
                 </a>
                 <a class="btn btn-outline-secondary btn-sm"
                    th:if="${detail.hasPreviousSpecies()}"
@@ -92,7 +92,7 @@
             <div class="col-lg-4">
                 <div id="pokedex-left-panel" class="card shadow-sm sticky-panel sticky-panel-below-actions sticky-panel-scrollable">
                     <div class="card-body">
-                        <h3 class="h5 mb-3">Carte affichee dans le Pokedex</h3>
+                        <h3 class="h5 mb-3" th:text="${@displayText.ui('displayed_card_pokedex')}">Carte affichee dans le Pokedex</h3>
                         <div id="pokedex-assignment-state"
                              th:attr="data-pokemon-id=${detail.species.id},data-missing-marked=${detail.hasMissingCardMarked()}">
                             <div th:if="${detail.hasAssignedCard()}">
@@ -131,7 +131,7 @@
                                 <button class="btn btn-outline-danger w-100"
                                         th:attr="data-pokemon-id=${detail.species.id}"
                                         onclick="clearAssignment(this.dataset.pokemonId)">
-                                    <i class="fas fa-trash"></i> Retirer l'assignation
+                                    <i class="fas fa-trash"></i> <span th:text="${@displayText.ui('clear_assignment')}">Retirer l'assignation</span>
                                 </button>
                             </div>
                             <div th:if="${!detail.hasAssignedCard()}" class="text-center py-4">
@@ -142,11 +142,11 @@
                                     <i class="fas fa-ban"></i>
                                 </div>
                                 <p class="text-muted mb-3" th:if="${!detail.hasMissingCardMarked()}">
-                                    Aucune carte n'est encore assignee a ce Pokemon.
+                                    <span th:text="${@displayText.ui('no_assigned_card_long')}">Aucune carte n'est encore assignee a ce Pokemon.</span>
                                 </p>
                                 <p class="text-warning-emphasis fw-semibold mb-3"
                                    th:if="${detail.hasMissingCardMarked()}">
-                                    Aucune carte correspondante
+                                    <span th:text="${@displayText.ui('no_matching_card')}">Aucune carte correspondante</span>
                                 </p>
                                 <div class="form-check text-start border rounded p-3"
                                      th:classappend="${detail.hasMissingCardMarked()} ? ' bg-warning-subtle border-warning' : ' bg-light'">
@@ -157,7 +157,7 @@
                                            th:attr="data-pokemon-id=${detail.species.id}"
                                            onchange="toggleMissingCard(this.dataset.pokemonId, this.checked)">
                                     <label class="form-check-label" for="missingCardCheckbox">
-                                        Aucune carte correspondante
+                                        <span th:text="${@displayText.ui('no_matching_card')}">Aucune carte correspondante</span>
                                     </label>
                                 </div>
                             </div>
@@ -166,11 +166,11 @@
                                  th:open="${detail.comment != null and !detail.comment.isBlank()}">
                             <summary class="d-flex justify-content-between align-items-center gap-3">
                                 <span class="fw-semibold">
-                                    <i class="fas fa-comment-dots me-2 text-primary"></i>Commentaire
+                                    <i class="fas fa-comment-dots me-2 text-primary"></i><span th:text="${@displayText.ui('comment')}">Commentaire</span>
                                 </span>
                                 <span id="assignmentCommentActionLabel"
                                       class="small text-muted"
-                                      th:text="${detail.comment != null and !detail.comment.isBlank()} ? 'Supprimer' : 'Ajouter'">
+                                      th:text="${@displayText.ui(detail.comment != null and !detail.comment.isBlank() ? 'delete' : 'add')}">
                                     Ajouter
                                 </span>
                             </summary>
@@ -179,14 +179,14 @@
                                           class="form-control"
                                           rows="5"
                                           maxlength="1000"
-                                          placeholder="Ajouter un commentaire sur cette affectation..."
+                                          th:placeholder="${@displayText.ui('add_comment_placeholder')}"
                                           th:text="${detail.comment}"></textarea>
                                 <div class="d-grid mt-2">
                                     <button class="btn btn-outline-primary"
                                             type="button"
                                             th:attr="data-pokemon-id=${detail.species.id}"
                                             onclick="savePokemonComment(this.dataset.pokemonId)">
-                                        <i class="fas fa-comment-dots"></i> Enregistrer le commentaire
+                                        <i class="fas fa-comment-dots"></i> <span th:text="${@displayText.ui('save_comment')}">Enregistrer le commentaire</span>
                                     </button>
                                 </div>
                             </div>
@@ -199,11 +199,11 @@
                 <div id="pokedex-owned-section" class="card shadow-sm mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h3 class="h5 mb-0">Cartes deja dans ma collection</h3>
-                            <span class="badge bg-success" th:text="|${detail.ownedCards.size()} option(s)|">0</span>
+                            <h3 class="h5 mb-0" th:text="${@displayText.ui('owned_cards_collection')}">Cartes deja dans ma collection</h3>
+                            <span class="badge bg-success" th:text="|${detail.ownedCards.size()} ${@displayText.ui('options')}|">0</span>
                         </div>
                         <div class="alert alert-secondary mb-0" th:if="${detail.ownedCards.isEmpty()}">
-                            Vous n'avez pas encore de carte de ce Pokemon dans votre collection.
+                            <span th:text="${@displayText.ui('no_cards_yet_collection')}">Vous n'avez pas encore de carte de ce Pokemon dans votre collection.</span>
                         </div>
                         <div class="row g-3" th:if="${!detail.ownedCards.isEmpty()}">
                             <div class="col-md-6 pokedex-owned-card" th:each="card : ${detail.ownedCards}">
@@ -242,12 +242,12 @@
                                                 <button class="btn btn-sm btn-outline-danger"
                                                         th:attr="data-card-id=${card.cardId}"
                                                         onclick="removeFromCollection(this.dataset.cardId)">
-                                                    <i class="fas fa-minus"></i> Retirer
+                                                    <i class="fas fa-minus"></i> <span th:text="${@displayText.ui('remove')}">Retirer</span>
                                                 </button>
                                                 <button class="btn btn-sm btn-dark"
                                                         th:attr="data-pokemon-id=${detail.species.id},data-card-id=${card.cardId}"
                                                         onclick="assignCard(this.dataset.pokemonId, this.dataset.cardId)">
-                                                    <i class="fas fa-thumbtack"></i> Assigner
+                                                    <i class="fas fa-thumbtack"></i> <span th:text="${@displayText.ui('assign')}">Assigner</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -261,12 +261,12 @@
                 <div id="pokedex-available-section" class="card shadow-sm">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h3 class="h5 mb-0">Cartes TCG disponibles pour ce Pokemon</h3>
-                            <span class="badge bg-primary" th:text="|${detail.availableCards.size()} carte(s)|">0</span>
+                            <h3 class="h5 mb-0" th:text="${@displayText.ui('available_cards_pokemon')}">Cartes TCG disponibles pour ce Pokemon</h3>
+                            <span class="badge bg-primary" th:text="|${detail.availableCards.size()} ${@displayText.ui('cards_plural')}|">0</span>
                         </div>
                         <div class="row g-3 mb-3" th:if="${!detail.availableCards.isEmpty()}">
                             <div class="col-lg-3">
-                                <label class="form-label" for="available-card-search">Recherche rapide</label>
+                                <label class="form-label" for="available-card-search" th:text="${@displayText.ui('quick_search')}">Recherche rapide</label>
                                 <input id="available-card-search"
                                        type="search"
                                        class="form-control"
@@ -279,9 +279,9 @@
                                 </select>
                             </div>
                             <div class="col-lg-2">
-                                <label class="form-label" for="available-card-rarity-filter">Rareté</label>
+                                <label class="form-label" for="available-card-rarity-filter" th:text="${@displayText.ui('rarity')}">Rareté</label>
                                 <select id="available-card-rarity-filter" class="form-select">
-                                    <option value="">Toutes les raretés</option>
+                                    <option value="" th:text="${@displayText.ui('all_rarities')}">Toutes les raretés</option>
                                 </select>
                             </div>
                             <div class="col-lg-2">
@@ -293,18 +293,18 @@
                             <div class="col-lg-2 d-grid">
                                 <label class="form-label invisible" for="available-card-filter-reset">Reset</label>
                                 <button id="available-card-filter-reset" type="button" class="btn btn-danger">
-                                    Reinitialiser
+                                    <span th:text="${@displayText.ui('reset')}">Reinitialiser</span>
                                 </button>
                             </div>
                             <div class="col-12">
                                 <div class="small text-muted">
                                     <span id="available-card-visible-count" th:text="${detail.availableCards.size()}">0</span>
-                                    carte(s) affichee(s)
+                                    <span th:text="${@displayText.ui('displayed_count')}">carte(s) affichee(s)</span>
                                 </div>
                             </div>
                         </div>
                         <div class="alert alert-info mb-0" th:if="${detail.availableCards.isEmpty()}">
-                            Aucune carte n'a ete remontee pour ce Pokemon.
+                            <span th:text="${@displayText.ui('no_cards_found_pokemon')}">Aucune carte n'a ete remontee pour ce Pokemon.</span>
                         </div>
                         <div class="row g-3" th:if="${!detail.availableCards.isEmpty()}">
                             <div class="col-md-6 available-card-item"
@@ -365,19 +365,19 @@
                                                 <button class="btn btn-sm btn-outline-success"
                                                         th:attr="data-card-id=${card.id}"
                                                         onclick="addToCollection(this.dataset.cardId)">
-                                                    <i class="fas fa-plus"></i> Ajouter
+                                                    <i class="fas fa-plus"></i> <span th:text="${@displayText.ui('add')}">Ajouter</span>
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-danger"
                                                         th:if="${detail.ownedCardCounts.containsKey(card.id)}"
                                                         th:attr="data-card-id=${card.id}"
                                                         onclick="removeFromCollection(this.dataset.cardId)">
-                                                    <i class="fas fa-minus"></i> Retirer
+                                                    <i class="fas fa-minus"></i> <span th:text="${@displayText.ui('remove')}">Retirer</span>
                                                 </button>
                                                 <button class="btn btn-sm btn-dark"
                                                         th:if="${detail.ownedCardCounts.containsKey(card.id)}"
                                                         th:attr="data-pokemon-id=${detail.species.id},data-card-id=${card.id}"
                                                         onclick="assignCard(this.dataset.pokemonId, this.dataset.cardId)">
-                                                    <i class="fas fa-thumbtack"></i> Assigner
+                                                    <i class="fas fa-thumbtack"></i> <span th:text="${@displayText.ui('assign')}">Assigner</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -393,7 +393,26 @@
 </div>
 
 <div layout:fragment="scripts">
-    <script>
+    <script th:inline="javascript">
+        const I18N = {
+            add: /*[[${@displayText.ui('add')}]]*/ 'Ajouter',
+            remove: /*[[${@displayText.ui('remove')}]]*/ 'Retirer',
+            assign: /*[[${@displayText.ui('assign')}]]*/ 'Assigner',
+            delete: /*[[${@displayText.ui('delete')}]]*/ 'Supprimer',
+            options: /*[[${@displayText.ui('options')}]]*/ 'option(s)',
+            errorPrefix: /*[[${@displayText.ui('error_prefix')}]]*/ 'Erreur : ',
+            errorAddCollection: /*[[${@displayText.ui('error_add_collection')}]]*/ 'Erreur lors de l ajout a la collection',
+            errorRemove: /*[[${@displayText.ui('error_remove')}]]*/ 'Erreur lors de la suppression',
+            errorRemoveCollection: /*[[${@displayText.ui('error_remove_collection')}]]*/ 'Erreur lors de la suppression de la collection',
+            errorAssign: /*[[${@displayText.ui('error_assign')}]]*/ 'Erreur lors de l assignation',
+            errorClearAssignment: /*[[${@displayText.ui('error_clear_assignment')}]]*/ 'Erreur lors de la suppression de l assignation',
+            errorMissingStatus: /*[[${@displayText.ui('error_missing_status')}]]*/ 'Erreur lors de la mise a jour du statut de carte',
+            errorSaveComment: /*[[${@displayText.ui('error_save_comment')}]]*/ 'Erreur lors de l enregistrement du commentaire',
+            noMatchingCard: /*[[${@displayText.ui('no_matching_card')}]]*/ 'Aucune carte correspondante',
+            noAssignedCardLong: /*[[${@displayText.ui('no_assigned_card_long')}]]*/ 'Aucune carte n\\'est encore assignee a ce Pokemon.',
+            clearAssignment: /*[[${@displayText.ui('clear_assignment')}]]*/ 'Retirer l\\'assignation'
+        };
+
         function normalizeText(value) {
             return (value || '')
                 .normalize('NFD')
@@ -511,7 +530,7 @@
             }
 
             const hasComment = getAssignmentComment().trim().length > 0;
-            label.textContent = hasComment ? 'Supprimer' : 'Ajouter';
+            label.textContent = hasComment ? I18N.delete : I18N.add;
         }
 
         function escapeAssignmentHtml(value) {
@@ -646,19 +665,19 @@
             actions.appendChild(createPokedexActionButton(
                 'btn btn-sm btn-outline-success',
                 'fas fa-plus',
-                'Ajouter',
+                I18N.add,
                 () => addToCollection(cardId)));
 
             if (quantity > 0) {
                 actions.appendChild(createPokedexActionButton(
                     'btn btn-sm btn-outline-danger',
                     'fas fa-minus',
-                    'Retirer',
+                    I18N.remove,
                     () => removeFromCollection(cardId)));
                 actions.appendChild(createPokedexActionButton(
                     'btn btn-sm btn-dark',
                     'fas fa-thumbtack',
-                    'Assigner',
+                    I18N.assign,
                     () => assignCard(pokemonId, cardId)));
             }
         }
@@ -672,7 +691,7 @@
             const count = section.querySelectorAll('.pokedex-owned-card').length;
             const badge = section.querySelector('.badge.bg-success');
             if (badge) {
-                badge.textContent = count + ' option(s)';
+                badge.textContent = count + ' ' + I18N.options;
             }
 
             const body = section.querySelector('.card-body');
@@ -736,12 +755,12 @@
             actions.appendChild(createPokedexActionButton(
                 'btn btn-sm btn-outline-danger',
                 'fas fa-minus',
-                'Retirer',
+                I18N.remove,
                 () => removeFromCollection(snapshot.zoomCardId)));
             actions.appendChild(createPokedexActionButton(
                 'btn btn-sm btn-dark',
                 'fas fa-thumbtack',
-                'Assigner',
+                I18N.assign,
                 () => assignCard(pokemonId, snapshot.zoomCardId)));
             const badge = document.createElement('span');
             badge.className = 'badge bg-success';
@@ -898,9 +917,9 @@
                     queuePokedexDetailRefresh();
                     return;
                 }
-                alert('Erreur: ' + data.error);
+                alert(I18N.errorPrefix + data.error);
             })
-            .catch(() => alert('Erreur lors de l ajout a la collection'));
+            .catch(() => alert(I18N.errorAddCollection));
         }
 
         function removeFromCollection(cardId) {
@@ -919,9 +938,9 @@
                     queuePokedexDetailRefresh();
                     return;
                 }
-                alert('Erreur lors de la suppression');
+                alert(I18N.errorRemove);
             })
-            .catch(() => alert('Erreur lors de la suppression de la collection'));
+            .catch(() => alert(I18N.errorRemoveCollection));
         }
 
         function refreshPokedexDetailView() {
@@ -1012,11 +1031,11 @@
                 container.innerHTML = '' +
                     '<div class="text-center py-4">' +
                     (missingChecked
-                        ? '<div class="display-4 text-warning mb-2"><i class="fas fa-ban"></i></div><p class="text-warning-emphasis fw-semibold mb-3">Aucune carte correspondante</p>'
-                        : '<div class="display-4 text-dark mb-2"><i class="fas fa-circle-dot"></i></div><p class="text-muted mb-3">Aucune carte n\'est encore assignee a ce Pokemon.</p>') +
+                        ? '<div class="display-4 text-warning mb-2"><i class="fas fa-ban"></i></div><p class="text-warning-emphasis fw-semibold mb-3">' + escapeAssignmentHtml(I18N.noMatchingCard) + '</p>'
+                        : '<div class="display-4 text-dark mb-2"><i class="fas fa-circle-dot"></i></div><p class="text-muted mb-3">' + escapeAssignmentHtml(I18N.noAssignedCardLong) + '</p>') +
                     '<div class="form-check text-start border rounded p-3 ' + (missingChecked ? 'bg-warning-subtle border-warning' : 'bg-light') + '">' +
                     '<input id="missingCardCheckbox" class="form-check-input" type="checkbox" data-pokemon-id="' + escapeAssignmentHtml(pokemonId) + '" ' + (missingChecked ? 'checked' : '') + ' onchange="toggleMissingCard(this.dataset.pokemonId, this.checked)">' +
-                    '<label class="form-check-label" for="missingCardCheckbox">Aucune carte correspondante</label>' +
+                    '<label class="form-check-label" for="missingCardCheckbox">' + escapeAssignmentHtml(I18N.noMatchingCard) + '</label>' +
                     '</div>' +
                     '</div>';
                 return;
@@ -1047,7 +1066,7 @@
                 (cardData.zoomSetName ? '<div class="small text-muted mb-1">' + escapeAssignmentHtml(cardData.zoomSetName) + '</div>' : '') +
                 '<p class="small text-muted mb-3">' + escapeAssignmentHtml(cardData.zoomCardId) + '</p>' +
                 '<button class="btn btn-outline-danger w-100" data-pokemon-id="' + escapeAssignmentHtml(pokemonId) + '" onclick="clearAssignment(this.dataset.pokemonId)">' +
-                '<i class="fas fa-trash"></i> Retirer l\'assignation' +
+                '<i class="fas fa-trash"></i> ' + escapeAssignmentHtml(I18N.clearAssignment) +
                 '</button>';
 
             bindPokedexAssignmentZoom();
@@ -1072,9 +1091,9 @@
                     queuePokedexDetailRefresh();
                     return;
                 }
-                alert('Erreur: ' + data.error);
+                alert(I18N.errorPrefix + data.error);
             })
-            .catch(() => alert('Erreur lors de l assignation'));
+            .catch(() => alert(I18N.errorAssign));
         }
 
         function clearAssignment(pokemonId) {
@@ -1093,9 +1112,9 @@
                     queuePokedexDetailRefresh();
                     return;
                 }
-                alert('Erreur: ' + data.error);
+                alert(I18N.errorPrefix + data.error);
             })
-            .catch(() => alert('Erreur lors de la suppression de l assignation'));
+            .catch(() => alert(I18N.errorClearAssignment));
         }
 
         function toggleMissingCard(pokemonId, checked) {
@@ -1119,9 +1138,9 @@
                 if (data.success) {
                     return refreshPokedexDetailView();
                 }
-                alert('Erreur: ' + data.error);
+                alert(I18N.errorPrefix + data.error);
             })
-            .catch(() => alert('Erreur lors de la mise a jour du statut de carte'));
+            .catch(() => alert(I18N.errorMissingStatus));
         }
 
         function savePokemonComment(pokemonId) {
@@ -1140,9 +1159,9 @@
                 if (data.success) {
                     return refreshPokedexDetailView();
                 }
-                alert('Erreur: ' + data.error);
+                alert(I18N.errorPrefix + data.error);
             })
-            .catch(() => alert('Erreur lors de l enregistrement du commentaire'));
+            .catch(() => alert(I18N.errorSaveComment));
         }
 
         document.addEventListener('DOMContentLoaded', function() {

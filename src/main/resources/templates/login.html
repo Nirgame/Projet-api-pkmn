@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Connexion - Pokemon TCG Collection</title>
+    <title th:text="${@displayText.ui('login') + ' - Pokemon TCG Collection'}">Connexion - Pokemon TCG Collection</title>
 </head>
 <body>
     <div layout:fragment="content">
@@ -10,7 +10,7 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header text-center">
-                        <h4><i class="fas fa-sign-in-alt"></i> Connexion</h4>
+                        <h4><i class="fas fa-sign-in-alt"></i> <span th:text="${@displayText.ui('login')}">Connexion</span></h4>
                     </div>
                     <div class="card-body">
                         <div th:if="${error}" class="alert alert-danger">
@@ -23,24 +23,24 @@
                         <form th:action="@{/login}" method="post">
                             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <div class="mb-3">
-                                <label for="username" class="form-label">Nom d'utilisateur</label>
+                                <label for="username" class="form-label" th:text="${@displayText.text('Nom d''utilisateur', 'Username')}">Nom d'utilisateur</label>
                                 <input type="text" class="form-control" id="username" name="username" required>
                             </div>
                             <div class="mb-3">
-                                <label for="password" class="form-label">Mot de passe</label>
+                                <label for="password" class="form-label" th:text="${@displayText.text('Mot de passe', 'Password')}">Mot de passe</label>
                                 <input type="password" class="form-control" id="password" name="password" required minlength="6">
                             </div>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                                    <i class="fas fa-sign-in-alt"></i> <span th:text="${@displayText.text('Se connecter', 'Sign in')}">Se connecter</span>
                                 </button>
                             </div>
                         </form>
                     </div>
                     <div class="card-footer text-center">
                         <p class="mb-0">
-                            Pas encore de compte ?
-                            <a href="/register" class="text-decoration-none">S'inscrire</a>
+                            <span th:text="${@displayText.text('Pas encore de compte ?', 'No account yet?')}">Pas encore de compte ?</span>
+                            <a href="/register" class="text-decoration-none" th:text="${@displayText.text('S''inscrire', 'Sign up')}">S'inscrire</a>
                         </p>
                     </div>
                 </div>

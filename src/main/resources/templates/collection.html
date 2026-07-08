@@ -2,14 +2,14 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Ma Collection - Pokemon TCG Collection</title>
+    <title th:text="${@displayText.ui('collection') + ' - ' + @displayText.ui('app_title')}">Ma Collection - Pokemon TCG Collection</title>
 </head>
 <body>
     <div layout:fragment="content">
         <div class="row mb-4">
             <div class="col-12">
-                <h1><i class="fas fa-book"></i> Ma Collection</h1>
-                <p class="text-muted" th:text="'Collection de ' + ${user.username}">Ma collection</p>
+                <h1><i class="fas fa-book"></i> <span th:text="${@displayText.ui('collection')}">Ma Collection</span></h1>
+                <p class="text-muted" th:text="${@displayText.ui('collection_of') + user.username}">Ma collection</p>
             </div>
         </div>
 
@@ -18,7 +18,7 @@
                 <div class="card text-center">
                     <div class="card-body">
                         <h4 th:text="${collection.size()}">0</h4>
-                        <p class="text-muted">Cartes totales</p>
+                        <p class="text-muted" th:text="${@displayText.ui('total_cards')}">Cartes totales</p>
                     </div>
                 </div>
             </div>
@@ -26,7 +26,7 @@
                 <div class="card text-center">
                     <div class="card-body">
                         <h4 th:text="${pokemonCards.size()}">0</h4>
-                        <p class="text-muted">Pokemons differents</p>
+                        <p class="text-muted" th:text="${@displayText.ui('different_pokemon')}">Pokemons differents</p>
                     </div>
                 </div>
             </div>
@@ -34,7 +34,7 @@
                 <div class="card text-center">
                     <div class="card-body">
                         <h4>0</h4>
-                        <p class="text-muted">Sets completes</p>
+                        <p class="text-muted" th:text="${@displayText.ui('completed_sets')}">Sets completes</p>
                     </div>
                 </div>
             </div>
@@ -46,20 +46,20 @@
                     <div class="card-body">
                         <div class="row g-3 align-items-end">
                             <div class="col-12">
-                                <h5 class="mb-1"><i class="fas fa-filter"></i> Filtres de collection</h5>
-                                <p class="text-muted small mb-0">Recherche rapide et filtres compacts pour retrouver une carte sans prendre toute la page.</p>
+                                <h5 class="mb-1"><i class="fas fa-filter"></i> <span th:text="${@displayText.ui('collection_filters')}">Filtres de collection</span></h5>
+                                <p class="text-muted small mb-0" th:text="${@displayText.ui('search_help_collection')}">Recherche rapide et filtres compacts pour retrouver une carte sans prendre toute la page.</p>
                             </div>
                             <div class="col-lg-4">
-                                <label class="form-label" for="collection-search">Recherche</label>
+                                <label class="form-label" for="collection-search" th:text="${@displayText.ui('search')}">Recherche</label>
                                 <input id="collection-search"
                                        type="search"
                                        class="form-control"
                                        placeholder="Nom, id carte, set...">
                             </div>
                             <div class="col-lg-3">
-                                <label class="form-label" for="collection-pokemon-filter">Pokemon</label>
+                                <label class="form-label" for="collection-pokemon-filter" th:text="${@displayText.ui('pokemon')}">Pokemon</label>
                                 <select id="collection-pokemon-filter" class="form-select">
-                                    <option value="">Tous les Pokemon</option>
+                                    <option value="" th:text="${@displayText.ui('all_pokemon')}">Tous les Pokemon</option>
                                     <option th:each="pokemon : ${pokemonCards}"
                                             th:value="${pokemon.name + '||' + (pokemon.formLabel != null ? pokemon.formLabel : '')}"
                                             th:text="${pokemon.variantLabel != null ? @displayText.userCardName(pokemon) + ' (' + pokemon.variantLabel + ')' : @displayText.userCardName(pokemon)}">
@@ -68,25 +68,25 @@
                                 </select>
                             </div>
                             <div class="col-lg-2">
-                                <label class="form-label" for="collection-set-filter">Set</label>
+                                <label class="form-label" for="collection-set-filter" th:text="${@displayText.ui('set')}">Set</label>
                                 <select id="collection-set-filter" class="form-select">
-                                    <option value="">Tous les sets</option>
+                                    <option value="" th:text="${@displayText.ui('all_sets')}">Tous les sets</option>
                                 </select>
                             </div>
                             <div class="col-lg-2">
-                                <label class="form-label" for="collection-form-filter">Forme</label>
+                                <label class="form-label" for="collection-form-filter" th:text="${@displayText.ui('form')}">Forme</label>
                                 <select id="collection-form-filter" class="form-select">
-                                    <option value="">Toutes les formes</option>
+                                    <option value="" th:text="${@displayText.ui('all_forms')}">Toutes les formes</option>
                                 </select>
                             </div>
                             <div class="col-lg-1 d-grid">
-                                <label class="form-label invisible" for="collection-filter-reset">Reset</label>
-                                <button id="collection-filter-reset" type="button" class="btn btn-danger">Reinitialiser</button>
+                                <label class="form-label invisible" for="collection-filter-reset" th:text="${@displayText.ui('reset')}">Reset</label>
+                                <button id="collection-filter-reset" type="button" class="btn btn-danger" th:text="${@displayText.ui('reset')}">Reinitialiser</button>
                             </div>
                             <div class="col-lg-12">
                                 <div class="small text-muted">
                                     <span id="collection-visible-count" th:text="${collection.size()}">0</span>
-                                    carte(s) affichee(s)
+                                    <span th:text="${@displayText.ui('displayed_count')}">carte(s) affichee(s)</span>
                                 </div>
                             </div>
                         </div>
@@ -97,7 +97,7 @@
 
         <div class="row">
             <div class="col-12">
-                <h3>Toutes mes cartes</h3>
+                <h3 th:text="${@displayText.ui('all_my_cards')}">Toutes mes cartes</h3>
             </div>
         </div>
 
@@ -117,10 +117,10 @@
                          loading="lazy"
                          decoding="async"
                          th:attr="data-zoom-src=${card.zoomImage},
-                                   data-zoom-title=${@displayText.userCardName(card)},
+                                  data-zoom-title=${@displayText.userCardName(card)},
                                   data-zoom-subtitle=${@displayText.userCardSecondary(card)},
-                                   data-zoom-card-id=${card.cardId},
-                                   data-zoom-set-name=${@displayText.userCardSetName(card)},
+                                  data-zoom-card-id=${card.cardId},
+                                  data-zoom-set-name=${@displayText.userCardSetName(card)},
                                   data-zoom-quantity=${'x' + card.quantity},
                                   data-zoom-variant=${card.variantLabel},
                                   data-zoom-owned-count=${card.quantity},
@@ -172,10 +172,10 @@
                 <div class="card">
                     <div class="card-body py-5">
                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <h4>Votre collection est vide</h4>
-                        <p class="text-muted">Commencez a ajouter des cartes a votre collection.</p>
+                        <h4 th:text="${@displayText.ui('empty_collection')}">Votre collection est vide</h4>
+                        <p class="text-muted" th:text="${@displayText.ui('add_cards')}">Commencez a ajouter des cartes a votre collection.</p>
                         <a href="/browse" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Ajouter des cartes
+                            <i class="fas fa-plus"></i> <span th:text="${@displayText.ui('add_cards')}">Ajouter des cartes</span>
                         </a>
                     </div>
                 </div>
@@ -184,7 +184,14 @@
     </div>
 
     <div layout:fragment="scripts">
-        <script>
+        <script th:inline="javascript">
+            const COLLECTION_I18N = {
+                errorPrefix: /*[[${@displayText.ui('error_prefix')}]]*/ 'Erreur : ',
+                errorAddCollection: /*[[${@displayText.ui('error_add_collection')}]]*/ 'Erreur lors de l ajout a la collection',
+                errorRemove: /*[[${@displayText.ui('error_remove')}]]*/ 'Erreur lors de la suppression',
+                errorRemoveCollection: /*[[${@displayText.ui('error_remove_collection')}]]*/ 'Erreur lors de la suppression de la collection'
+            };
+
             function normalizeText(value) {
                 return (value || '')
                     .normalize('NFD')
@@ -294,12 +301,12 @@
                             }
                         }));
                     } else {
-                        alert('Erreur: ' + data.error);
+                        alert(COLLECTION_I18N.errorPrefix + data.error);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Erreur lors de l ajout a la collection');
+                    alert(COLLECTION_I18N.errorAddCollection);
                 });
             }
 
@@ -321,12 +328,12 @@
                             }
                         }));
                     } else {
-                        alert('Erreur lors de la suppression');
+                        alert(COLLECTION_I18N.errorRemove);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Erreur lors de la suppression de la collection');
+                    alert(COLLECTION_I18N.errorRemoveCollection);
                 });
             }
 

@@ -62,7 +62,7 @@ public class WebController {
             List<Serie> series = tcgdexService.getSeries();
             model.addAttribute("series", series.subList(0, Math.min(10, series.size())));
         } catch (IOException e) {
-            model.addAttribute("error", "Unable to load series");
+            model.addAttribute("error", ui("Impossible de charger les series", "Unable to load series"));
         }
         model.addAttribute("authenticated", isAuthenticated(authentication));
         return "home";
@@ -71,7 +71,7 @@ public class WebController {
     @GetMapping("/login")
     public String login(@RequestParam(value = "error", required = false) String error, Model model) {
         if (error != null) {
-            model.addAttribute("error", "Nom d'utilisateur ou mot de passe invalide");
+            model.addAttribute("error", ui("Nom d'utilisateur ou mot de passe invalide", "Invalid username or password"));
         }
         return "login";
     }
@@ -95,7 +95,8 @@ public class WebController {
         try {
             userService.registerUser(username, password);
             redirectAttributes.addFlashAttribute("success",
-                    "Inscription reussie. Vous pouvez maintenant vous connecter.");
+                    ui("Inscription reussie. Vous pouvez maintenant vous connecter.",
+                            "Registration successful. You can now sign in."));
             return "redirect:/login";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -162,8 +163,10 @@ public class WebController {
                         model.addAttribute("selectedSetInfo", selectedSet);
                         model.addAttribute("error",
                                 selectedSet.isRegionalExclusive()
-                                        ? "TCGdex ne fournit pas encore la liste des cartes pour ce set exclusif."
-                                        : "TCGdex ne fournit pas encore la liste des cartes pour ce set.");
+                                        ? ui("TCGdex ne fournit pas encore la liste des cartes pour ce set exclusif.",
+                                                "TCGdex does not provide the card list for this exclusive set yet.")
+                                        : ui("TCGdex ne fournit pas encore la liste des cartes pour ce set.",
+                                                "TCGdex does not provide the card list for this set yet."));
                     } catch (IOException ignored) {
                     }
                 }
@@ -213,7 +216,7 @@ public class WebController {
             model.addAttribute("ownedCardCounts", ownedCardCounts);
 
         } catch (IOException e) {
-            model.addAttribute("error", "Unable to load cards");
+            model.addAttribute("error", ui("Impossible de charger les cartes", "Unable to load cards"));
         }
         return "browse";
     }
@@ -288,7 +291,7 @@ public class WebController {
             model.addAttribute("promoOnly", promoOnly);
             model.addAttribute("pocketOnly", pocketOnly);
         } catch (IOException e) {
-            model.addAttribute("error", "Unable to load sets");
+            model.addAttribute("error", ui("Impossible de charger les sets", "Unable to load sets"));
         }
         return "sets";
     }
@@ -328,7 +331,8 @@ public class WebController {
                     .sorted(Comparator.comparing(Set::getDisplayName, String.CASE_INSENSITIVE_ORDER))
                     .toList());
         } catch (IOException exception) {
-            model.addAttribute("error", "Impossible de charger le suivi des sets pour le moment.");
+            model.addAttribute("error", ui("Impossible de charger le suivi des sets pour le moment.",
+                    "Unable to load set tracking right now."));
         }
 
         return "set-tracker";
@@ -345,7 +349,7 @@ public class WebController {
         User user = userService.findByUsername(authentication.getName()).orElseThrow();
         try {
             setTrackerService.trackSet(user, setId);
-            redirectAttributes.addFlashAttribute("success", "Set ajoute au suivi.");
+            redirectAttributes.addFlashAttribute("success", ui("Set ajoute au suivi.", "Set added to tracker."));
         } catch (IOException | IllegalArgumentException exception) {
             redirectAttributes.addFlashAttribute("error", exception.getMessage());
         }
@@ -362,7 +366,7 @@ public class WebController {
 
         User user = userService.findByUsername(authentication.getName()).orElseThrow();
         setTrackerService.untrackSet(user, setId);
-        redirectAttributes.addFlashAttribute("success", "Set retire du suivi.");
+        redirectAttributes.addFlashAttribute("success", ui("Set retire du suivi.", "Set removed from tracker."));
         return "redirect:/set-tracker";
     }
 
@@ -379,7 +383,8 @@ public class WebController {
             TrackedSetDetailView detailView = setTrackerService.getTrackedSetDetail(user, setId);
             model.addAttribute("detail", detailView);
         } catch (IOException | IllegalArgumentException exception) {
-            model.addAttribute("error", "Impossible de charger ce set pour le moment.");
+            model.addAttribute("error", ui("Impossible de charger ce set pour le moment.",
+                    "Unable to load this set right now."));
         }
 
         return "set-tracker-detail";
@@ -440,7 +445,8 @@ public class WebController {
             model.addAttribute("megaGigantamaxMode", selectedMegaGigantamaxMode.name());
             model.addAttribute("regionalForm", regionalForm);
         } catch (IOException exception) {
-            model.addAttribute("error", "Impossible de charger le Pokedex pour le moment.");
+            model.addAttribute("error", ui("Impossible de charger le Pokedex pour le moment.",
+                    "Unable to load the Pokedex right now."));
         }
 
         return "pokedex";
@@ -493,7 +499,8 @@ public class WebController {
             model.addAttribute("regionalForm", regionalForm);
             model.addAttribute("megaGigantamaxMode", selectedMegaGigantamaxMode.name());
         } catch (IOException exception) {
-            model.addAttribute("error", "Impossible de charger cette fiche Pokemon.");
+            model.addAttribute("error", ui("Impossible de charger cette fiche Pokemon.",
+                    "Unable to load this Pokemon page."));
         }
 
         return "pokedex-detail";
@@ -582,5 +589,9 @@ public class WebController {
         } catch (IllegalArgumentException exception) {
             return "/";
         }
+    }
+
+    private String ui(String french, String english) {
+        return "en".equalsIgnoreCase(uiLanguageService.getCurrentLanguage()) ? english : french;
     }
 }

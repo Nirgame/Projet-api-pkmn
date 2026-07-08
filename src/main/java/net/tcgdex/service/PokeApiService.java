@@ -108,7 +108,7 @@ public class PokeApiService {
                     nationalEntry.frenchName(),
                     nationalEntry.formLabel()));
 
-            for (RegionalForm regionalForm : getRegionalFormsForSpecies(nationalEntry.speciesId())) {
+            for (RegionalForm regionalForm : resolveRegionalFormsForSpecies(nationalEntry.speciesId())) {
                 int regionalGenerationId = regionalForm.appearanceGenerationId();
                 entries.add(new PokemonIndexEntry(
                         regionalForm.toEntryId(nationalEntry.speciesId()),
@@ -365,7 +365,11 @@ public class PokeApiService {
         });
     }
 
-    private EnumSet<RegionalForm> getRegionalFormsForSpecies(int speciesId) {
+    public EnumSet<RegionalForm> getRegionalFormsForSpecies(int speciesId) {
+        return EnumSet.copyOf(resolveRegionalFormsForSpecies(speciesId));
+    }
+
+    private EnumSet<RegionalForm> resolveRegionalFormsForSpecies(int speciesId) {
         return switch (speciesId) {
             case 19, 20, 26, 27, 28, 37, 38, 50, 51, 53, 74, 75, 76, 88, 89, 103, 105 ->
                 EnumSet.of(RegionalForm.ALOLA);

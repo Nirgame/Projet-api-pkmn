@@ -2,13 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Parcourir les cartes - Pokemon TCG Collection</title>
+    <title th:text="${@displayText.ui('browse_cards') + ' - ' + @displayText.ui('app_title')}">Parcourir les cartes - Pokemon TCG Collection</title>
 </head>
 <body>
     <div layout:fragment="content">
         <div class="row mb-4">
             <div class="col-12">
-                <h1><i class="fas fa-search"></i> Parcourir les cartes</h1>
+                <h1><i class="fas fa-search"></i> <span th:text="${@displayText.ui('browse_cards')}">Parcourir les cartes</span></h1>
             </div>
         </div>
 
@@ -16,14 +16,16 @@
             <div class="col-12">
                 <form id="browse-filter-form" class="row g-2 align-items-end" th:action="@{/browse}" method="get">
                     <div class="col-lg-5">
-                        <label class="form-label" for="browseSearch">Recherche</label>
+                        <label class="form-label" for="browseSearch" th:text="${@displayText.ui('search')}">Recherche</label>
                         <input id="browseSearch" class="form-control" type="search" name="search"
-                               th:value="${search}" placeholder="Rechercher une carte en francais ou en anglais..." aria-label="Search">
+                               th:value="${search}"
+                               th:placeholder="${@displayText.ui('browse_cards_search_placeholder')}"
+                               th:attr="aria-label=${@displayText.ui('search')}">
                     </div>
                     <div class="col-lg-3">
-                        <label class="form-label" for="browseSet">Set</label>
+                        <label class="form-label" for="browseSet" th:text="${@displayText.ui('set')}">Set</label>
                         <select id="browseSet" class="form-select" name="setId">
-                            <option value="">Tous les sets</option>
+                            <option value="" th:text="${@displayText.ui('all_sets')}">Tous les sets</option>
                             <option th:each="setOption : ${setOptions}"
                                     th:value="${setOption.id}"
                                     th:text="${@displayText.setName(setOption)}"
@@ -33,9 +35,9 @@
                         </select>
                     </div>
                     <div class="col-lg-3">
-                        <label class="form-label" for="browseRarity">Rareté</label>
+                        <label class="form-label" for="browseRarity" th:text="${@displayText.ui('rarity')}">Rareté</label>
                         <select id="browseRarity" class="form-select" name="rarity">
-                            <option value="">Toutes les raretés</option>
+                            <option value="" th:text="${@displayText.ui('all_rarities')}">Toutes les raretés</option>
                             <option th:each="rarityOption : ${rarityOptions}"
                                     th:value="${rarityOption}"
                                     th:text="${rarityOption}"
@@ -46,7 +48,7 @@
                     </div>
                     <div class="col-lg-2 d-grid">
                         <button class="btn btn-outline-primary" type="submit">
-                            <i class="fas fa-search"></i> Rechercher
+                            <i class="fas fa-search"></i> <span th:text="${@displayText.ui('search')}">Rechercher</span>
                         </button>
                     </div>
                 </form>
@@ -59,7 +61,7 @@
 
         <div th:if="${cards != null}">
             <div class="alert alert-info" th:if="${cards.isEmpty()}">
-                <i class="fas fa-info-circle"></i> Aucune carte trouvee pour ce filtre.
+                <i class="fas fa-info-circle"></i> <span th:text="${@displayText.ui('browse_no_cards')}">Aucune carte trouvee pour ce filtre.</span>
             </div>
             <div class="row" th:if="${!cards.isEmpty()}">
                 <div class="col-6 col-lg-4 col-xl-3 mb-4" th:each="card : ${cards}">
@@ -114,7 +116,7 @@
                                 <small class="text-muted" th:text="${card.localId}">Local ID</small>
                                 <button class="btn btn-sm btn-success add-to-collection-btn"
                                         th:attr="data-card-id=${card.id}">
-                                    <i class="fas fa-plus"></i> Ajouter
+                                    <i class="fas fa-plus"></i> <span th:text="${@displayText.ui('add')}">Ajouter</span>
                                 </button>
                             </div>
                         </div>
@@ -125,10 +127,10 @@
 
         <div class="row compact-pagination" th:if="${totalPages > 1}">
             <div class="col-12">
-                <nav aria-label="Page navigation">
+                <nav th:attr="aria-label=${@displayText.ui('page')}">
                     <ul class="pagination justify-content-center">
                         <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
-                            <a class="page-link" th:href="@{/browse(page=${currentPage - 1}, search=${search}, setId=${setId}, rarity=${rarity})}">Precedent</a>
+                            <a class="page-link" th:href="@{/browse(page=${currentPage - 1}, search=${search}, setId=${setId}, rarity=${rarity})}" th:text="${@displayText.ui('previous')}">Precedent</a>
                         </li>
                         <th:block th:each="pageNumber : ${pageNumbers}">
                             <li class="page-item disabled" th:if="${pageNumber == null}">
@@ -142,7 +144,7 @@
                             </li>
                         </th:block>
                         <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
-                            <a class="page-link" th:href="@{/browse(page=${currentPage + 1}, search=${search}, setId=${setId}, rarity=${rarity})}">Suivant</a>
+                            <a class="page-link" th:href="@{/browse(page=${currentPage + 1}, search=${search}, setId=${setId}, rarity=${rarity})}" th:text="${@displayText.ui('next')}">Suivant</a>
                         </li>
                     </ul>
                 </nav>
@@ -151,7 +153,7 @@
                     <input type="hidden" name="setId" th:value="${setId}">
                     <input type="hidden" name="rarity" th:value="${rarity}">
                     <div class="col-auto">
-                        <label class="col-form-label page-jump-label" for="browsePageJump">Page</label>
+                        <label class="col-form-label page-jump-label" for="browsePageJump" th:text="${@displayText.ui('page')}">Page</label>
                     </div>
                     <div class="col-auto">
                         <input id="browsePageJump"
@@ -171,11 +173,17 @@
     </div>
 
     <div layout:fragment="scripts">
-        <script>
+        <script th:inline="javascript">
+            const BROWSE_I18N = {
+                add: /*[[${@displayText.ui('add')}]]*/ 'Ajouter',
+                errorPrefix: /*[[${@displayText.ui('error_prefix')}]]*/ 'Erreur : ',
+                errorAddCollection: /*[[${@displayText.ui('error_add_collection')}]]*/ 'Erreur lors de l ajout a la collection'
+            };
+
             function setButtonLoading(button, loading) {
                 button.innerHTML = loading
                     ? '<i class="fas fa-spinner fa-spin"></i>'
-                    : '<i class="fas fa-plus"></i> Ajouter';
+                    : '<i class="fas fa-plus"></i> ' + BROWSE_I18N.add;
                 button.disabled = loading;
             }
 
@@ -218,13 +226,13 @@
                         setButtonLoading(button, false);
                     } else {
                         setButtonLoading(button, false);
-                        alert('Erreur: ' + data.error);
+                        alert(BROWSE_I18N.errorPrefix + data.error);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     setButtonLoading(button, false);
-                    alert('Erreur lors de l ajout a la collection');
+                    alert(BROWSE_I18N.errorAddCollection);
                 });
             }
 
