@@ -297,18 +297,37 @@ public class WebController {
     }
 
     @GetMapping("/collection")
-    public String collection(Authentication authentication, Model model) {
+    public String collection(@RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "48") int size,
+            Authentication authentication,
+            Model model) {
         if (!isAuthenticated(authentication)) {
             return "redirect:/login";
         }
 
         String username = authentication.getName();
         User user = userService.findByUsername(username).orElseThrow();
+        List<UserCard> fullCollection = collectionService.getUserCollection(user).stream()
+                .sorted(Comparator.comparing(UserCard::getName, String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(UserCard::getCardId, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+        int safeSize = Math.max(size, 1);
+        int totalPages = Math.max(1, (int) Math.ceil((double) fullCollection.size() / safeSize));
+        int safePage = Math.max(1, Math.min(page, totalPages));
+        int start = (safePage - 1) * safeSize;
+        List<UserCard> pageCollection = start >= fullCollection.size()
+                ? Collections.emptyList()
+                : fullCollection.subList(start, Math.min(start + safeSize, fullCollection.size()));
 
         model.addAttribute("user", user);
-        model.addAttribute("collection", collectionService.getUserCollection(user));
+        model.addAttribute("collection", pageCollection);
+        model.addAttribute("collectionTotalCount", fullCollection.size());
         model.addAttribute("pokemonCards", collectionService.getDistinctPokemonCards(user));
         model.addAttribute("pokemonNames", collectionService.getDistinctPokemonNames(user));
+        model.addAttribute("currentPage", safePage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("pageNumbers", buildCompactPageNumbers(safePage, totalPages));
+        model.addAttribute("pageSize", safeSize);
 
         return "collection";
     }

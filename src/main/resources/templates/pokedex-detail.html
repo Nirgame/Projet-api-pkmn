@@ -914,7 +914,6 @@
                         ? data.card.quantity
                         : 1;
                     syncPokedexCollectionState(cardId, quantity);
-                    queuePokedexDetailRefresh();
                     return;
                 }
                 alert(I18N.errorPrefix + data.error);
@@ -935,7 +934,6 @@
                 if (data.success) {
                     const quantity = typeof data.quantity === 'number' ? data.quantity : 0;
                     syncPokedexCollectionState(cardId, quantity);
-                    queuePokedexDetailRefresh();
                     return;
                 }
                 alert(I18N.errorRemove);
@@ -1088,7 +1086,6 @@
                 if (data.success) {
                     const quantity = Number.parseInt(buildCardSnapshot(cardId)?.zoomOwnedCount || '0', 10) || 1;
                     renderAssignedCardFromCardId(cardId, quantity);
-                    queuePokedexDetailRefresh();
                     return;
                 }
                 alert(I18N.errorPrefix + data.error);
@@ -1109,7 +1106,6 @@
                         container.dataset.missingMarked = 'false';
                     }
                     renderPokedexAssignmentState(null);
-                    queuePokedexDetailRefresh();
                     return;
                 }
                 alert(I18N.errorPrefix + data.error);
@@ -1136,7 +1132,12 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    return refreshPokedexDetailView();
+                    const container = document.getElementById('pokedex-assignment-state');
+                    if (container) {
+                        container.dataset.missingMarked = checked ? 'true' : 'false';
+                    }
+                    renderPokedexAssignmentState(null);
+                    return;
                 }
                 alert(I18N.errorPrefix + data.error);
             })
@@ -1157,7 +1158,8 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    return refreshPokedexDetailView();
+                    updateAssignmentCommentActionLabel();
+                    return;
                 }
                 alert(I18N.errorPrefix + data.error);
             })
@@ -1179,7 +1181,6 @@
                 }
                 const quantity = Number.parseInt(buildCardSnapshot(detail.cardId || '')?.zoomOwnedCount || '0', 10) || 1;
                 renderAssignedCardFromCardId(detail.cardId, quantity);
-                queuePokedexDetailRefresh();
             });
 
             window.addEventListener('pokedex-assignment-cleared', event => {
@@ -1190,7 +1191,6 @@
                 }
                 assignmentContainer.dataset.missingMarked = 'false';
                 renderPokedexAssignmentState(null);
-                queuePokedexDetailRefresh();
             });
 
             window.addEventListener('collection-card-updated', event => {
@@ -1203,7 +1203,6 @@
                     return;
                 }
                 syncPokedexCollectionState(detail.cardId, typeof detail.quantity === 'number' ? detail.quantity : 0);
-                queuePokedexDetailRefresh();
             });
         });
     </script>

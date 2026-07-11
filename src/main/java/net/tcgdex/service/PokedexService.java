@@ -522,6 +522,31 @@ public class PokedexService {
     }
 
     private PokemonSpeciesInfo resolveListSpecies(PokemonIndexEntry entry, boolean collapseAlternativeNames) {
+        if (collapseAlternativeNames && isCollapsedGigantamaxUrshifuEntry(entry)) {
+            PokemonSpeciesInfo cachedBaseSpecies = pokeApiService.findCachedPokemonSpecies(entry.speciesId());
+            String baseEnglishName = cachedBaseSpecies != null && cachedBaseSpecies.englishName() != null && !cachedBaseSpecies.englishName().isBlank()
+                    ? cachedBaseSpecies.englishName()
+                    : entry.englishName();
+            String baseFrenchName = cachedBaseSpecies != null && cachedBaseSpecies.frenchName() != null && !cachedBaseSpecies.frenchName().isBlank()
+                    ? cachedBaseSpecies.frenchName()
+                    : entry.frenchName();
+            String collapsedFrenchName = baseFrenchName != null && !baseFrenchName.isBlank()
+                    ? baseFrenchName + " Gigamax"
+                    : "Gigamax " + baseEnglishName;
+            return new PokemonSpeciesInfo(
+                    entry.id(),
+                    entry.speciesId(),
+                    entry.slug(),
+                    "Gigantamax " + baseEnglishName,
+                    collapsedFrenchName,
+                    entry.generationId(),
+                    entry.generationLabel(),
+                    null,
+                    null,
+                    baseEnglishName,
+                    baseFrenchName);
+        }
+
         if (collapseAlternativeNames && shouldCollapseAlternativeNames(entry)) {
             try {
                 return pokeApiService.getBasePokemonSpecies(entry.speciesId());
@@ -640,6 +665,13 @@ public class PokedexService {
                 && entry.alternativeForm() != null
                 && entry.alternativeForm().replacesBaseEntry()
                 && !entry.alternativeForm().isMegaOrGigantamaxForm();
+    }
+
+    private boolean isCollapsedGigantamaxUrshifuEntry(PokemonIndexEntry entry) {
+        return entry != null
+                && entry.speciesId() == 892
+                && entry.alternativeForm() != null
+                && entry.alternativeForm().gigantamaxForm();
     }
 
     private PokemonSpeciesInfo collapseToBaseSpecies(PokemonSpeciesInfo species) {
