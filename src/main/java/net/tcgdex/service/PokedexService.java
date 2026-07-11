@@ -87,8 +87,12 @@ public class PokedexService {
                 .filter(entry -> !allAssignedPokemonIds.contains(entry.id()))
                 .count();
 
-        int safePage = Math.max(page, 1);
         int safeSize = Math.max(size, 1);
+        int totalPages = Math.max(1, (int) Math.ceil((double) filteredEntries.size() / safeSize));
+        int safePage = Math.max(page, 1);
+        if (safePage > totalPages) {
+            safePage = totalPages;
+        }
         int start = (safePage - 1) * safeSize;
         List<PokemonIndexEntry> currentPageEntries = start >= filteredEntries.size()
                 ? List.of()
@@ -103,7 +107,7 @@ public class PokedexService {
                 pokeApiService.getGenerationOptions(),
                 List.of(RegionalForm.values()),
                 safePage,
-                Math.max(1, (int) Math.ceil((double) filteredEntries.size() / safeSize)),
+                totalPages,
                 filteredEntries.size(),
                 unassignedCount);
     }
@@ -350,6 +354,10 @@ public class PokedexService {
                     .toList();
         }
 
+        if (regionalMode == RegionalDisplayMode.EXCLUDE) {
+            entries = collapseExcludedAlternativeEntries(entries);
+        }
+
         if (search == null || search.isBlank()) {
             return entries;
         }
@@ -402,6 +410,28 @@ public class PokedexService {
 
     private boolean isMegaGigantamaxEntry(PokemonIndexEntry entry) {
         return entry.alternativeForm() != null && entry.alternativeForm().isMegaOrGigantamaxForm();
+    }
+
+    private List<PokemonIndexEntry> collapseExcludedAlternativeEntries(List<PokemonIndexEntry> entries) {
+        Set<String> seenKeys = new LinkedHashSet<>();
+        List<PokemonIndexEntry> collapsedEntries = new java.util.ArrayList<>();
+
+        for (PokemonIndexEntry entry : entries) {
+            String collapseKey = getCollapsedEntryKey(entry);
+            if (!seenKeys.add(collapseKey)) {
+                continue;
+            }
+            collapsedEntries.add(entry);
+        }
+
+        return collapsedEntries;
+    }
+
+    private String getCollapsedEntryKey(PokemonIndexEntry entry) {
+        if (isCollapsedGigantamaxUrshifuEntry(entry)) {
+            return "gigamax-urshifu-" + entry.speciesId();
+        }
+        return String.valueOf(entry.id());
     }
 
     private Map<String, UserCard> mapUserCardsByCardId(List<UserCard> userCollection) {
@@ -494,7 +524,6 @@ public class PokedexService {
         Set<String> baseQueries = new LinkedHashSet<>();
         baseQueries.add(baseSpecies.englishName());
         baseQueries.add(baseSpecies.frenchName());
-        baseQueries.add(species.slug());
         if (species.isAlternativeForm()) {
             collectBaseSpeciesCards(cardsById, species, baseQueries);
         } else {
@@ -505,7 +534,6 @@ public class PokedexService {
                     Set<String> regionalQueries = new LinkedHashSet<>();
                     regionalQueries.add(regionalSpecies.englishName());
                     regionalQueries.add(regionalSpecies.frenchName());
-                    regionalQueries.add(species.slug());
                     collectCardsForQueries(cardsById, regionalSpecies, regionalQueries);
                 }
             }

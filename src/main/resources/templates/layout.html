@@ -506,6 +506,14 @@
             missingStatus: /*[[${@displayText.ui('missing_status')}]]*/ 'Missing'
         };
 
+        function hasDatasetValue(node, datasetKey, expectedValue) {
+            return !!node && !!node.dataset && node.dataset[datasetKey] === expectedValue;
+        }
+
+        function filterByDatasetValue(nodes, datasetKey, expectedValue) {
+            return Array.from(nodes).filter(node => hasDatasetValue(node, datasetKey, expectedValue));
+        }
+
         (() => {
             let zoomModal = null;
             let zoomDialog = null;
@@ -763,15 +771,16 @@
             }
 
             function updateCardDatasets(cardId, updater) {
-                document.querySelectorAll('[data-zoom-card-id="' + CSS.escape(cardId) + '"]').forEach(node => {
+                filterByDatasetValue(document.querySelectorAll('[data-zoom-card-id]'), 'zoomCardId', cardId).forEach(node => {
                     updater(node.dataset);
                 });
             }
 
             function updateCollectionCardDisplays(cardId, quantity) {
-                const escapedCardId = CSS.escape(cardId);
-
-                document.querySelectorAll('.collection-card-item[data-card-id="' + escapedCardId + '"], .pokemon-card-item[data-card-id="' + escapedCardId + '"], .available-card-item[data-card-id="' + escapedCardId + '"]').forEach(item => {
+                document.querySelectorAll('.collection-card-item, .pokemon-card-item, .available-card-item').forEach(item => {
+                    if (!hasDatasetValue(item, 'cardId', cardId)) {
+                        return;
+                    }
                     item.dataset.quantity = String(quantity);
 
                     const quantityBadge = item.querySelector('.btn-light.disabled');
@@ -779,12 +788,12 @@
                         quantityBadge.textContent = 'x' + quantity;
                     }
 
-                    const removeButton = item.querySelector('.btn-outline-danger[data-card-id="' + escapedCardId + '"]');
+                    const removeButton = filterByDatasetValue(item.querySelectorAll('.btn-outline-danger[data-card-id]'), 'cardId', cardId)[0];
                     if (removeButton) {
                         removeButton.style.display = quantity > 0 ? '' : 'none';
                     }
 
-                    const assignButton = item.querySelector('.btn-dark[data-card-id="' + escapedCardId + '"]');
+                    const assignButton = filterByDatasetValue(item.querySelectorAll('.btn-dark[data-card-id]'), 'cardId', cardId)[0];
                     if (assignButton) {
                         assignButton.disabled = quantity <= 0;
                         assignButton.classList.toggle('disabled', quantity <= 0);
@@ -795,7 +804,7 @@
                     }
                 });
 
-                document.querySelectorAll('[data-zoom-card-id="' + escapedCardId + '"]').forEach(node => {
+                filterByDatasetValue(document.querySelectorAll('[data-zoom-card-id]'), 'zoomCardId', cardId).forEach(node => {
                     const trackedCard = node.closest('.tracked-set-detail-card');
                     if (trackedCard) {
                         trackedCard.dataset.owned = quantity > 0 ? 'true' : 'false';
@@ -818,7 +827,7 @@
                             status.textContent = quantity > 0 ? APP_I18N.ownedStatus : APP_I18N.missingStatus;
                         }
 
-                        const removeButton = trackedCard.querySelector('.btn-outline-danger[data-card-id="' + escapedCardId + '"]');
+                        const removeButton = filterByDatasetValue(trackedCard.querySelectorAll('.btn-outline-danger[data-card-id]'), 'cardId', cardId)[0];
                         if (removeButton) {
                             removeButton.style.display = quantity > 0 ? '' : 'none';
                         }
