@@ -252,7 +252,6 @@
                 const formSelect = document.getElementById('collection-form-filter');
                 const resetButton = document.getElementById('collection-filter-reset');
                 const visibleCount = document.getElementById('collection-visible-count');
-                const totalCount = document.getElementById('collection-total-count');
 
                 const uniqueSets = [...new Set(items
                     .map(item => item.dataset.setName || item.dataset.setId)
@@ -307,9 +306,6 @@
                     });
 
                     visibleCount.textContent = String(visible);
-                    if (totalCount) {
-                        totalCount.textContent = String(items.length);
-                    }
                 }
 
                 searchInput.addEventListener('input', applyFilters);

@@ -409,8 +409,8 @@
             errorMissingStatus: /*[[${@displayText.ui('error_missing_status')}]]*/ 'Erreur lors de la mise a jour du statut de carte',
             errorSaveComment: /*[[${@displayText.ui('error_save_comment')}]]*/ 'Erreur lors de l enregistrement du commentaire',
             noMatchingCard: /*[[${@displayText.ui('no_matching_card')}]]*/ 'Aucune carte correspondante',
-            noAssignedCardLong: /*[[${@displayText.ui('no_assigned_card_long')}]]*/ 'Aucune carte n\\'est encore assignee a ce Pokemon.',
-            clearAssignment: /*[[${@displayText.ui('clear_assignment')}]]*/ 'Retirer l\\'assignation'
+            noAssignedCardLong: /*[[${@displayText.ui('no_assigned_card_long')}]]*/ "Aucune carte n'est encore assignee a ce Pokemon.",
+            clearAssignment: /*[[${@displayText.ui('clear_assignment')}]]*/ "Retirer l'assignation"
         };
 
         function normalizeText(value) {
@@ -590,6 +590,10 @@
 
             assignmentCommentField.dataset.commentBound = 'true';
             assignmentCommentField.addEventListener('input', updateAssignmentCommentActionLabel);
+        }
+
+        function reloadPokedexDetail() {
+            window.location.reload();
         }
 
         function getPokedexPokemonId() {
@@ -869,6 +873,7 @@
         function renderAssignedCardFromCardId(cardId, quantity) {
             const snapshot = buildCardSnapshot(cardId);
             if (!snapshot) {
+                reloadPokedexDetail();
                 return;
             }
 
@@ -897,13 +902,18 @@
                     const quantity = data.card && typeof data.card.quantity === 'number'
                         ? data.card.quantity
                         : 1;
-                    syncPokedexCollectionState(cardId, quantity);
-                    window.dispatchEvent(new CustomEvent('collection-card-updated', {
-                        detail: {
-                            cardId: cardId,
-                            quantity: quantity
-                        }
-                    }));
+                    try {
+                        syncPokedexCollectionState(cardId, quantity);
+                        window.dispatchEvent(new CustomEvent('collection-card-updated', {
+                            detail: {
+                                cardId: cardId,
+                                quantity: quantity
+                            }
+                        }));
+                    } catch (error) {
+                        console.error('Echec de synchronisation locale apres ajout.', error);
+                        reloadPokedexDetail();
+                    }
                     return;
                 }
                 alert(I18N.errorPrefix + data.error);
@@ -923,13 +933,18 @@
             .then(data => {
                 if (data.success) {
                     const quantity = typeof data.quantity === 'number' ? data.quantity : 0;
-                    syncPokedexCollectionState(cardId, quantity);
-                    window.dispatchEvent(new CustomEvent('collection-card-updated', {
-                        detail: {
-                            cardId: cardId,
-                            quantity: quantity
-                        }
-                    }));
+                    try {
+                        syncPokedexCollectionState(cardId, quantity);
+                        window.dispatchEvent(new CustomEvent('collection-card-updated', {
+                            detail: {
+                                cardId: cardId,
+                                quantity: quantity
+                            }
+                        }));
+                    } catch (error) {
+                        console.error('Echec de synchronisation locale apres retrait.', error);
+                        reloadPokedexDetail();
+                    }
                     return;
                 }
                 alert(I18N.errorRemove);
@@ -1006,14 +1021,19 @@
             .then(data => {
                 if (data.success) {
                     const quantity = Number.parseInt(buildCardSnapshot(cardId)?.zoomOwnedCount || '0', 10) || 1;
-                    renderAssignedCardFromCardId(cardId, quantity);
-                    window.dispatchEvent(new CustomEvent('pokedex-assignment-updated', {
-                        detail: {
-                            pokemonId: pokemonId,
-                            cardId: cardId,
-                            comment: getAssignmentComment()
-                        }
-                    }));
+                    try {
+                        renderAssignedCardFromCardId(cardId, quantity);
+                        window.dispatchEvent(new CustomEvent('pokedex-assignment-updated', {
+                            detail: {
+                                pokemonId: pokemonId,
+                                cardId: cardId,
+                                comment: getAssignmentComment()
+                            }
+                        }));
+                    } catch (error) {
+                        console.error('Echec de synchronisation locale apres assignation.', error);
+                        reloadPokedexDetail();
+                    }
                     return;
                 }
                 alert(I18N.errorPrefix + data.error);
@@ -1029,16 +1049,21 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const container = document.getElementById('pokedex-assignment-state');
-                    if (container) {
-                        container.dataset.missingMarked = 'false';
-                    }
-                    renderPokedexAssignmentState(null);
-                    window.dispatchEvent(new CustomEvent('pokedex-assignment-cleared', {
-                        detail: {
-                            pokemonId: pokemonId
+                    try {
+                        const container = document.getElementById('pokedex-assignment-state');
+                        if (container) {
+                            container.dataset.missingMarked = 'false';
                         }
-                    }));
+                        renderPokedexAssignmentState(null);
+                        window.dispatchEvent(new CustomEvent('pokedex-assignment-cleared', {
+                            detail: {
+                                pokemonId: pokemonId
+                            }
+                        }));
+                    } catch (error) {
+                        console.error('Echec de synchronisation locale apres suppression d assignation.', error);
+                        reloadPokedexDetail();
+                    }
                     return;
                 }
                 alert(I18N.errorPrefix + data.error);
@@ -1065,11 +1090,16 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const container = document.getElementById('pokedex-assignment-state');
-                    if (container) {
-                        container.dataset.missingMarked = checked ? 'true' : 'false';
+                    try {
+                        const container = document.getElementById('pokedex-assignment-state');
+                        if (container) {
+                            container.dataset.missingMarked = checked ? 'true' : 'false';
+                        }
+                        renderPokedexAssignmentState(null);
+                    } catch (error) {
+                        console.error('Echec de synchronisation locale du statut sans carte.', error);
+                        reloadPokedexDetail();
                     }
-                    renderPokedexAssignmentState(null);
                     return;
                 }
                 alert(I18N.errorPrefix + data.error);
@@ -1091,7 +1121,12 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    updateAssignmentCommentActionLabel();
+                    try {
+                        updateAssignmentCommentActionLabel();
+                    } catch (error) {
+                        console.error('Echec de synchronisation locale du commentaire.', error);
+                        reloadPokedexDetail();
+                    }
                     return;
                 }
                 alert(I18N.errorPrefix + data.error);
@@ -1112,8 +1147,13 @@
                 if (!assignmentContainer || assignmentContainer.dataset.pokemonId !== String(detail.pokemonId || '')) {
                     return;
                 }
-                const quantity = Number.parseInt(buildCardSnapshot(detail.cardId || '')?.zoomOwnedCount || '0', 10) || 1;
-                renderAssignedCardFromCardId(detail.cardId, quantity);
+                try {
+                    const quantity = Number.parseInt(buildCardSnapshot(detail.cardId || '')?.zoomOwnedCount || '0', 10) || 1;
+                    renderAssignedCardFromCardId(detail.cardId, quantity);
+                } catch (error) {
+                    console.error('Echec de mise a jour evenement assignation.', error);
+                    reloadPokedexDetail();
+                }
             });
 
             window.addEventListener('pokedex-assignment-cleared', event => {
@@ -1122,8 +1162,13 @@
                 if (!assignmentContainer || assignmentContainer.dataset.pokemonId !== String(detail.pokemonId || '')) {
                     return;
                 }
-                assignmentContainer.dataset.missingMarked = 'false';
-                renderPokedexAssignmentState(null);
+                try {
+                    assignmentContainer.dataset.missingMarked = 'false';
+                    renderPokedexAssignmentState(null);
+                } catch (error) {
+                    console.error('Echec de mise a jour evenement suppression assignation.', error);
+                    reloadPokedexDetail();
+                }
             });
 
             window.addEventListener('collection-card-updated', event => {
@@ -1135,7 +1180,12 @@
                 if (!detail.cardId) {
                     return;
                 }
-                syncPokedexCollectionState(detail.cardId, typeof detail.quantity === 'number' ? detail.quantity : 0);
+                try {
+                    syncPokedexCollectionState(detail.cardId, typeof detail.quantity === 'number' ? detail.quantity : 0);
+                } catch (error) {
+                    console.error('Echec de mise a jour evenement collection.', error);
+                    reloadPokedexDetail();
+                }
             });
         });
     </script>
